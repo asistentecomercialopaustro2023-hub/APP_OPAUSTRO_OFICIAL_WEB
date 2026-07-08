@@ -1,0 +1,1083 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Permissions-Policy" content="camera=(self), geolocation=(self), microphone=(), payment=(), usb=(), bluetooth=()">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; connect-src 'self' https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+<meta name="theme-color" content="#0f1729"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ventas"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest">
+<title>Opaustro - Mapa de Ventas</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+:root{--bg:#0f1729;--panel:#1a2438;--panel2:#141d30;--border:#2a3651;--accent:#3b82f6;--accent2:#60a5fa;--V:#22c55e;--R:#ef4444;--A:#eab308;--text:#e2e8f0;--muted:#94a3b8;--font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+header{background:linear-gradient(90deg,#141d30 0%,#1a2438 100%);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;height:62px;}
+.h-left{display:flex;align-items:center;gap:16px;}
+.h-logo{height:34px;width:auto;}
+.h-divider{width:1px;height:30px;background:var(--border);}
+.h-titles .h-title{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);}
+.h-titles .h-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+.h-kpis{display:flex;gap:10px;align-items:center;}
+.hkpi{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:7px 14px;text-align:center;min-width:78px;}
+.hkpi-v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);line-height:1;}
+.hkpi-l{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-top:4px;}
+.hkpi.green .hkpi-v{color:var(--V);}
+.hkpi.red .hkpi-v{color:var(--R);}
+.hkpi.accent .hkpi-v{color:var(--accent2);}
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);padding:0 22px;flex-shrink:0;}
+.tab{padding:11px 20px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.2s;}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+.main{display:flex;flex:1;overflow:hidden;position:relative;}
+.filt-toggle{display:none;position:absolute;top:12px;left:12px;z-index:1200;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);letter-spacing:.03em;}
+.sb-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:1100;}
+.sb-overlay.show{display:block;}
+.sidebar{width:272px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sec{padding:13px 15px;border-bottom:1px solid var(--border);}
+.sec-label{font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.scard{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:9px 5px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.scard:hover{transform:translateY(-1px);border-color:var(--accent);}
+.scard.av{border-color:var(--V)!important;background:rgba(34,197,94,0.12)!important;}
+.scard.ar{border-color:var(--R)!important;background:rgba(239,68,68,0.12)!important;}
+.scard.aa{border-color:var(--A)!important;background:rgba(234,179,8,0.12)!important;}
+.sn{font-family:var(--mono);font-size:16px;font-weight:700;}
+.sl{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-top:3px;}
+.cv{color:var(--V);}.cr{color:var(--R);}.ca{color:var(--A);}
+.frow{margin-bottom:9px;}
+.flabel{font-size:10px;color:var(--muted);margin-bottom:5px;}
+select,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:7px 11px;color:var(--text);font-family:var(--font);font-size:11px;outline:none;cursor:pointer;transition:border 0.15s;}
+input[type=text]{cursor:text;}
+select:focus,input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.15);}
+select option{background:var(--panel);color:var(--text);}
+input[type=text]::placeholder{color:#64748b;}
+.reset-btn{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.15s;margin-top:3px;font-weight:600;}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent2);background:rgba(59,130,246,0.1);}
+.info{padding:13px;flex-shrink:0;}
+.ccard{position:fixed;bottom:18px;left:288px;width:258px;z-index:1000;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px;display:none;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+.ccard.show{display:block;}
+.cc-close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;font-weight:700;}
+.cc-close:hover{color:var(--R);}
+.cn{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:4px;color:var(--text);padding-right:16px;}
+.cm{font-size:10px;color:var(--muted);margin-bottom:11px;}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.kpi{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
+.kpi-l{font-size:9px;color:var(--muted);margin-bottom:3px;}
+.kpi-v{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.var-big{display:flex;justify-content:space-between;align-items:center;padding:9px 0 4px;border-top:1px solid var(--border);margin-top:6px;}
+.var-big .vl{font-size:11px;color:var(--muted);}
+.var-big .vv{font-family:var(--mono);font-size:18px;font-weight:700;}
+.bar{height:5px;background:var(--panel2);border-radius:3px;margin-top:7px;overflow:hidden;}
+.barf{height:100%;border-radius:3px;transition:width 0.4s;}
+.tag{display:inline-block;font-size:9px;padding:3px 8px;border-radius:11px;margin-top:7px;font-weight:600;margin-right:4px;}
+.tag-blue{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:var(--accent2);}
+.tag-gray{background:rgba(148,163,184,0.12);border:1px solid var(--border);color:var(--muted);}
+.hint{font-size:10px;color:var(--muted);text-align:center;padding:22px 4px;line-height:1.9;}
+.vend-box{display:flex;justify-content:space-between;align-items:center;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:7px;padding:8px 11px;margin-bottom:9px;}
+.vend-l{font-size:9px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;}
+.vend-v{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent2);}
+.combo-list{position:absolute;top:100%;left:0;right:0;background:var(--panel2);border:1px solid var(--accent);border-top:none;border-radius:0 0 7px 7px;max-height:220px;overflow-y:auto;z-index:5000;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.combo-list.show{display:block;}
+.combo-item{padding:7px 11px;font-size:11px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.combo-item:hover{background:rgba(59,130,246,0.18);color:var(--accent2);}
+.combo-item.empty{color:var(--muted);cursor:default;font-style:italic;}
+#map{flex:1;background:#e8eef4;}
+#zonaView{flex:1;display:none;overflow:hidden;background:var(--bg);flex-direction:column;}
+.zona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:11px;padding:18px;overflow-y:auto;height:100%;}
+.zcard{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:15px;transition:all 0.15s;}
+.zcard:hover{box-shadow:0 6px 20px rgba(0,0,0,0.3);transform:translateY(-2px);border-color:var(--accent);}
+.zcard.zV{border-left:4px solid var(--V);}
+.zcard.zR{border-left:4px solid var(--R);}
+.zcard.zA{border-left:4px solid var(--A);}
+.zname{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text);}
+.zrow{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;}
+.zkey{color:var(--muted);}
+.zval{font-family:var(--mono);font-weight:600;color:var(--text);}
+.zmini{display:flex;gap:3px;margin-top:11px;height:6px;border-radius:3px;overflow:hidden;}
+.zmini-seg{height:100%;min-width:2px;}
+.leaflet-control-zoom a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important;}
+.leaflet-control-zoom a:hover{background:var(--panel2)!important;}
+.leaflet-tooltip{background:transparent!important;border:none!important;box-shadow:none!important;}
+.tt{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--font);font-size:11px;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,0.4);white-space:nowrap;line-height:1.7;}
+.tt b{display:block;margin-bottom:4px;font-size:12px;color:var(--accent2);}
+.leaflet-bar{border:none!important;box-shadow:0 2px 8px rgba(0,0,0,0.4)!important;}
+.marker-cluster div{font-family:var(--mono)!important;font-weight:700!important;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:#475569;}
+#loginScreen{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#04140d 0%,#06241a 50%,#04140d 100%);display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;}
+#loginScreen:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 22% 22%,rgba(5,150,105,.30) 0%,transparent 44%),radial-gradient(ellipse at 80% 78%,rgba(79,255,176,.12) 0%,transparent 38%);pointer-events:none;}
+#loginScreen:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+.login-box{position:relative;background:#fff;border-radius:18px;padding:38px 34px;width:100%;max-width:400px;box-shadow:0 0 0 1px rgba(255,255,255,.07),0 40px 90px rgba(0,0,0,.55),0 0 80px rgba(5,150,105,.15);text-align:center;z-index:1;}
+.login-logo{height:42px;width:auto;margin-bottom:22px;}
+.login-title{font-size:21px;font-weight:900;letter-spacing:0;text-transform:none;color:#047857;margin-bottom:4px;}
+.login-sub{font-size:12px;color:#687386;margin-bottom:28px;font-family:var(--font);}
+.login-field{margin-bottom:14px;text-align:left;}
+.login-field label{font-size:11px;font-weight:750;letter-spacing:0.04em;text-transform:uppercase;color:#687386;display:block;margin-bottom:5px;}
+.login-field select,.login-field input{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:11px 12px;font-size:14px;color:#1a1a2e;outline:none;font-family:var(--font);transition:.15s;}
+.login-field select:focus,.login-field input:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,0.12);background:#fff;}
+.login-btn{width:100%;background:linear-gradient(135deg,#047857 0%,#059669 100%);color:#fff;border:none;border-radius:8px;padding:12px 14px;font-size:14px;font-weight:850;font-family:var(--font);cursor:pointer;transition:.15s;margin-top:6px;letter-spacing:0.03em;box-shadow:0 8px 22px rgba(5,150,105,.32);}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(5,150,105,.42);}
+.login-error{color:#A32D2D;font-size:12px;margin-top:12px;background:#FCEBEB;border:1px solid #f3b6b6;border-radius:7px;padding:8px 10px;display:none;}
+.login-footer{font-size:10px;font-weight:700;color:#b0bec5;margin-top:18px;padding-top:16px;border-top:1px solid #f0f4f8;text-transform:uppercase;letter-spacing:.08em;}
+/* ====== RESPONSIVE MÓVIL ====== */
+@media(max-width:820px){
+  header{height:auto;padding:8px 12px;flex-wrap:wrap;gap:8px;}
+  .h-left{gap:10px;}
+  .h-logo{height:26px;}
+  .h-titles .h-title{font-size:10px;}
+  .h-titles .h-sub{font-size:8px;}
+  .h-kpis{gap:6px;width:100%;overflow-x:auto;justify-content:flex-start;padding-bottom:2px;}
+  .hkpi{min-width:64px;padding:5px 9px;flex-shrink:0;}
+  .hkpi-v{font-size:13px;}
+  .tabs{padding:0 12px;}
+  .tab{padding:10px 16px;}
+  /* sidebar como panel deslizable */
+  .filt-toggle{display:block;}
+  .sidebar{position:absolute;top:0;bottom:0;left:0;width:84%;max-width:320px;z-index:1150;transform:translateX(-100%);transition:transform .25s ease;box-shadow:6px 0 24px rgba(0,0,0,.5);}
+  .sidebar.open{transform:translateX(0);}
+  #map,#zonaView{width:100%;}
+  /* tarjeta de detalle del cliente: abajo centrada, no pegada al sidebar */
+  .ccard{left:10px;right:10px;width:auto;bottom:10px;}
+}
+@media(max-width:480px){
+  .h-titles .h-sub{display:none;}
+  .hkpi{min-width:58px;padding:4px 7px;}
+  .hkpi-l{font-size:7px;}
+}
+
+
+/* Embed/mobile app fix: content must fill the iframe width in Android/iOS/PWA. */
+html.embed-mode,
+html.embed-mode body {
+  width: 100%;
+  min-width: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html.embed-mode .main {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  html.embed-mode header {
+    display: flex !important;
+    height: auto;
+    min-height: 82px;
+    padding: 8px 10px;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 5;
+  }
+
+  html.embed-mode .h-left {
+    flex: 1 1 250px;
+    width: auto;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  html.embed-mode .h-logo {
+    height: 30px;
+  }
+
+  html.embed-mode .h-titles .h-title {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  html.embed-mode .h-titles .h-sub {
+    display: block;
+    font-size: 9px;
+  }
+
+  html.embed-mode .h-kpis {
+    flex: 1 1 340px;
+    width: auto;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(58px, 1fr));
+    gap: 6px;
+    overflow: visible;
+  }
+
+  html.embed-mode .hkpi {
+    min-width: 0;
+    padding: 6px 4px;
+  }
+
+  html.embed-mode .tabs {
+    display: flex;
+    padding: 0 12px;
+    min-height: 44px;
+    position: relative;
+    z-index: 5;
+  }
+
+  html.embed-mode .main {
+    display: flex;
+    width: 100vw;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+  }
+
+  html.embed-mode .sidebar {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(84vw, 320px) !important;
+    max-width: 320px;
+    z-index: 1150;
+    transform: translateX(-105%) !important;
+    box-shadow: 18px 0 50px rgba(0,0,0,.25);
+  }
+
+  html.embed-mode .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  html.embed-mode #map,
+  html.embed-mode #zonaView {
+    position: relative;
+    width: 100vw !important;
+    height: 100% !important;
+    min-height: 0;
+  }
+
+  html.embed-mode .filt-toggle {
+    display: block;
+    position: fixed;
+    top: 134px;
+    left: 12px;
+  }
+}
+
+@media (max-width: 520px), (pointer: coarse) and (max-width: 520px) {
+  html.embed-mode header {
+    min-height: 118px;
+  }
+
+  html.embed-mode .h-left {
+    flex-basis: 100%;
+  }
+
+  html.embed-mode .h-kpis {
+    flex-basis: 100%;
+    grid-template-columns: repeat(5, minmax(64px, 1fr));
+    overflow-x: auto;
+  }
+
+  html.embed-mode .filt-toggle {
+    top: 170px;
+  }
+}
+
+</style>
+
+<script>
+(function(){
+  if(new URLSearchParams(location.search).get('embed')==='1'){
+    document.documentElement.classList.add('embed-mode');
+    const style=document.createElement('style');
+    style.textContent='html.embed-mode #loginScreen,html.embed-mode #btnSalirMapa{display:none!important;}html.embed-mode body{overflow:hidden!important;}';
+    document.head.appendChild(style);
+  }
+})();
+</script>
+
+</head>
+<body>
+
+<button id="btnSalirMapa" type="button" style="display:none;position:fixed;bottom:18px;right:18px;z-index:100001;background:rgba(220,38,38,.92);color:#fff;border:1px solid rgba(255,255,255,.18);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;box-shadow:0 6px 20px rgba(0,0,0,.4);">&#x23FB; Salir</button>
+<div id="loginScreen" style="display:none">
+<a href="./index.html" style="position:fixed;top:14px;left:16px;z-index:100000;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.18);letter-spacing:.04em;">&#8592; Portal</a>
+  <div class="login-box">
+    <img src="../Recuros_imagenes/logo_color.png" class="login-logo" alt="Opaustro" onerror="this.style.display='none'">
+    <div class="login-title">Mapa Territorial de Ventas</div>
+    <div class="login-sub">Acceso autorizado</div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <select id="liUser">
+        <option value="">Cargando usuarios...</option>
+      </select>
+    </div>
+    <div class="login-field">
+      <label>Clave (3 dígitos)</label>
+      <input id="liPass" type="password" maxlength="3" placeholder="•••" inputmode="numeric"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div id="loginError" class="login-error">Usuario o clave incorrectos</div>
+    <div class="login-footer">Opaustro &copy; 2026</div>
+  </div>
+</div>
+<header>
+  <div class="h-left">
+    <img src="../Recuros_imagenes/logo_color.png" class="h-logo" alt="Opaustro" onerror="this.style.display='none'">
+    <div class="h-divider"></div>
+    <div class="h-titles">
+      <div class="h-title">Mapa Territorial de Ventas Opaustro</div>
+      <div class="h-sub">Mayo 2026 &nbsp;|&nbsp; vs Promedio Ene-Abr 2026</div>
+    </div>
+  </div>
+  <div class="h-kpis">
+    <div class="hkpi accent"><div class="hkpi-v" id="kClientes">9,740</div><div class="hkpi-l">Clientes</div></div>
+    <div class="hkpi"><div class="hkpi-v" id="kVenta">$1,606K</div><div class="hkpi-l">Venta Mayo</div></div>
+    <div class="hkpi green"><div class="hkpi-v" id="kCrec">10,823</div><div class="hkpi-l">Crecieron</div></div>
+    <div class="hkpi red"><div class="hkpi-v" id="kBaj">8,153</div><div class="hkpi-l">Bajaron</div></div>
+    <div class="hkpi accent"><div class="hkpi-v" id="kPct">111.1%</div><div class="hkpi-l">% Crecim.</div></div>
+  </div>
+</header>
+
+
+<div class="tabs">
+  <div class="tab active" id="tab-mapa"  onclick="setTab('mapa')">Mapa</div>
+  <div class="tab"        id="tab-zonas" onclick="setTab('zonas')">Zonas</div>
+</div>
+
+<div class="main">
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <button class="filt-toggle" id="filtToggle" onclick="toggleSidebar()">☰ Filtros</button>
+  <div class="sidebar" id="sidebar">
+    <div class="sec">
+      <div class="sec-label">Resumen Mayo 2026</div>
+      <div class="stats">
+        <div class="scard" id="sc-V" onclick="toggleSem('V')">
+          <div class="sn cv">10823</div><div class="sl">Crecieron</div>
+        </div>
+        <div class="scard" id="sc-R" onclick="toggleSem('R')">
+          <div class="sn cr">8153</div><div class="sl">Bajaron</div>
+        </div>
+        <div class="scard" id="sc-A" onclick="toggleSem('A')">
+          <div class="sn ca">1280</div><div class="sl">Igual</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Filtros</div>
+      <div class="frow" style="position:relative;">
+        <div class="flabel">Cliente</div>
+        <input id="fCliente" type="text" placeholder="Escribe o selecciona..." autocomplete="off"
+               oninput="onClienteInput()" onfocus="mostrarLista()" onblur="setTimeout(ocultarLista,200)">
+        <div id="clienteList" class="combo-list"></div>
+      </div>
+      <div class="frow">
+        <div class="flabel">Agencia</div>
+        <select id="fAgencia" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="AMBATO">AMBATO</option>
+<option value="AMBATO-M">AMBATO-M</option>
+<option value="RIOBAMBA">RIOBAMBA</option>
+<option value="RIOBAMBA - M">RIOBAMBA - M</option>
+<option value="UL ICE RIOBA">UL ICE RIOBA</option>
+<option value="UL PATRICIO">UL PATRICIO</option>
+        </select>
+      </div>
+      <div class="frow">
+        <div class="flabel">Proveedor</div>
+        <select id="fProveedor" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="CELYASA">CELYASA</option>
+<option value="DISTRIBUIDORA DISPACIF SA">DISTRIBUIDORA DISPACIF SA</option>
+<option value="MONDELEZ ECUADOR C. LTDA.">MONDELEZ ECUADOR C. LTDA.</option>
+<option value="NIRSA S.A.">NIRSA S.A.</option>
+<option value="UNILEVER ANDINA ECUADOR SA">UNILEVER ANDINA ECUADOR SA</option>
+<option value="UNIVERSAL">UNIVERSAL</option>
+        </select>
+      </div>
+      <div class="frow">
+        <div class="flabel">Vendedor</div>
+        <select id="fVendedor" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="F131">F131</option>
+<option value="F132">F132</option>
+<option value="F133">F133</option>
+<option value="F134">F134</option>
+<option value="F135">F135</option>
+<option value="F136">F136</option>
+<option value="F199">F199</option>
+<option value="F201">F201</option>
+<option value="F202">F202</option>
+<option value="F203">F203</option>
+<option value="F204">F204</option>
+<option value="F205">F205</option>
+<option value="F206">F206</option>
+<option value="F207">F207</option>
+<option value="F208">F208</option>
+<option value="F215">F215</option>
+<option value="F217">F217</option>
+<option value="F250">F250</option>
+<option value="F251">F251</option>
+<option value="F252">F252</option>
+<option value="F253">F253</option>
+<option value="F254">F254</option>
+<option value="F255">F255</option>
+<option value="F256">F256</option>
+<option value="F257">F257</option>
+<option value="F258">F258</option>
+<option value="F259">F259</option>
+<option value="F300">F300</option>
+<option value="F301">F301</option>
+<option value="F302">F302</option>
+<option value="F303">F303</option>
+<option value="F304">F304</option>
+<option value="F305">F305</option>
+<option value="F306">F306</option>
+<option value="F307">F307</option>
+<option value="F308">F308</option>
+<option value="F309">F309</option>
+<option value="F310">F310</option>
+<option value="F311">F311</option>
+<option value="F312">F312</option>
+<option value="F319">F319</option>
+<option value="FO01">FO01</option>
+<option value="FO02">FO02</option>
+<option value="FO03">FO03</option>
+<option value="FO04">FO04</option>
+<option value="FO05">FO05</option>
+<option value="FO06">FO06</option>
+<option value="FO08">FO08</option>
+<option value="FO09">FO09</option>
+<option value="FO10">FO10</option>
+<option value="FO12">FO12</option>
+<option value="FO13">FO13</option>
+<option value="FO14">FO14</option>
+<option value="FO15">FO15</option>
+<option value="FO16">FO16</option>
+<option value="FO17">FO17</option>
+<option value="FO18">FO18</option>
+<option value="FO19">FO19</option>
+<option value="FO20">FO20</option>
+<option value="FO21">FO21</option>
+<option value="FO22">FO22</option>
+<option value="FO23">FO23</option>
+<option value="FO28">FO28</option>
+<option value="FO29">FO29</option>
+<option value="FO30">FO30</option>
+<option value="FO98">FO98</option>
+<option value="FO99">FO99</option>
+        </select>
+      </div>
+      <div class="frow">
+        <div class="flabel">Canal</div>
+        <select id="fCanal" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="ATT MIXTOS">ATT MIXTOS</option>
+<option value="AUTOSERVICIOS">AUTOSERVICIOS</option>
+<option value="IC CONVENIENCE">IC CONVENIENCE</option>
+<option value="IC FARMACIAS">IC FARMACIAS</option>
+<option value="IC HELADERIAS">IC HELADERIAS</option>
+<option value="IC MODERNO">IC MODERNO</option>
+<option value="IC OTROS COBERTURA">IC OTROS COBERTURA</option>
+<option value="IC SUPERMERCADOS">IC SUPERMERCADOS</option>
+<option value="IC TIENDAS TRADICIONALES">IC TIENDAS TRADICIONALES</option>
+<option value="MAYORISTAS">MAYORISTAS</option>
+<option value="RECORREDORES">RECORREDORES</option>
+<option value="TRADICIONALES">TRADICIONALES</option>
+        </select>
+      </div>
+      <div class="frow">
+        <div class="flabel">Ciudad</div>
+        <select id="fCiudad" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="ALAUSI">ALAUSI</option>
+<option value="AMBATO">AMBATO</option>
+<option value="ARAJUNO">ARAJUNO</option>
+<option value="ARCHIDONA">ARCHIDONA</option>
+<option value="BAÑOS DE AGUA SANTA">BAÑOS DE AGUA SANTA</option>
+<option value="CALUMA">CALUMA</option>
+<option value="CARLOS JULIO AROSEMENA TOLA">CARLOS JULIO AROSEMENA TOLA</option>
+<option value="CEVALLOS">CEVALLOS</option>
+<option value="CHAMBO">CHAMBO</option>
+<option value="CHILLANES">CHILLANES</option>
+<option value="CHIMBO">CHIMBO</option>
+<option value="CHUNCHI">CHUNCHI</option>
+<option value="COLTA">COLTA</option>
+<option value="CUMANDA">CUMANDA</option>
+<option value="ECHEANDIA">ECHEANDIA</option>
+<option value="GUAMOTE">GUAMOTE</option>
+<option value="GUANO">GUANO</option>
+<option value="GUARANDA">GUARANDA</option>
+<option value="LA MANA">LA MANA</option>
+<option value="LATACUNGA">LATACUNGA</option>
+<option value="MERA">MERA</option>
+<option value="MOCHA">MOCHA</option>
+<option value="PALLATANGA">PALLATANGA</option>
+<option value="PANGUA">PANGUA</option>
+<option value="PASTAZA">PASTAZA</option>
+<option value="PATATE">PATATE</option>
+<option value="PENIPE">PENIPE</option>
+<option value="PUJILI">PUJILI</option>
+<option value="QUERO">QUERO</option>
+<option value="RIOBAMBA">RIOBAMBA</option>
+<option value="SALCEDO">SALCEDO</option>
+<option value="SAN MIGUEL">SAN MIGUEL</option>
+<option value="SAN PEDRO DE PELILEO">SAN PEDRO DE PELILEO</option>
+<option value="SANTA CLARA">SANTA CLARA</option>
+<option value="SANTIAGO DE PILLARO">SANTIAGO DE PILLARO</option>
+<option value="SAQUISILI">SAQUISILI</option>
+<option value="SIGCHOS">SIGCHOS</option>
+<option value="TENA">TENA</option>
+<option value="TISALEO">TISALEO</option>
+        </select>
+      </div>
+      <button class="reset-btn" onclick="resetFilters()">↺ Limpiar filtros</button>
+    </div>
+
+    <div class="info">
+      <div id="clienteCard" class="ccard">
+        <span class="cc-close" onclick="cerrarCard()">×</span>
+        <div class="cn" id="ccNombre"></div>
+        <div class="cm" id="ccMeta"></div>
+        <div class="vend-box" id="ccVendBox">
+          <span class="vend-l">Vendedor</span>
+          <span class="vend-v" id="ccVend"></span>
+        </div>
+        <div class="row3">
+          <div class="kpi"><div class="kpi-l">Venta Mayo 2026</div><div class="kpi-v" id="ccAbril"></div></div>
+          <div class="kpi"><div class="kpi-l">Prom. Ene-Abr 2026</div><div class="kpi-v" id="cc2025"></div></div>
+        </div>
+        <div class="row3">
+          <div class="kpi"><div class="kpi-l">Variación</div><div class="kpi-v" id="ccVarSmall"></div></div>
+        </div>
+        <div class="var-big">
+          <span class="vl">Mayo vs Prom. Ene-Abr</span>
+          <span class="vv" id="ccVar"></span>
+        </div>
+        <div class="bar"><div class="barf" id="ccBar"></div></div>
+        <div id="ccTags" style="margin-top:8px;"></div>
+      </div>
+      <div class="hint" id="hintMsg">Haz clic en un<br>marcador para ver<br>el detalle del cliente</div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <div id="zonaView"><div class="zona-grid" id="zonaGrid"></div></div>
+</div>
+
+<script src="./ventas_data.js"></script>
+<script>
+const MES_ACTUAL = 5;
+const MESES_BASE = [1,2,3,4];
+function buildData(){
+  return (typeof DATA_RAW!=="undefined"?DATA_RAW:[]).map(function(d){
+    var lat=Number(d.lat), lng=Number(d.lng);
+    if(Number.isFinite(lng) && lng>0 && lng>=70 && lng<=82) lng=-lng;
+    var mayo=d.v[MES_ACTUAL]||0;
+    var baseVals=MESES_BASE.map(function(m){return d.v[m]||0;});
+    var prom=baseVals.reduce(function(a,b){return a+b;},0)/MESES_BASE.length;
+    var vp=prom>0?Math.round((mayo-prom)/prom*1000)/10:0;
+    var s=vp>=15?"V":vp<=-15?"R":"A";
+    return Object.assign({},d,{lat:lat,lng:lng,s:s,abril:mayo,prom_trim:Math.round(prom*100)/100,prom2025:Math.round(prom*100)/100,var:vp});
+  }).filter(function(d){return Number.isFinite(d.lat)&&Number.isFinite(d.lng)&&d.lat!==0&&d.lng!==0;});
+}
+const DATA=buildData();
+</script>
+<script>
+// datos cargados desde ventas_data.js
+const COLS = {V:'#16a34a', R:'#dc2626', A:'#ca8a04'};
+
+// LOGIN
+const APPS_SCRIPT_URL = '';
+var MAPA_USERS = [];
+
+async function mapaCargarUsuarios(){
+  if(!APPS_SCRIPT_URL) return;
+  const sel = document.getElementById('liUser');
+  const prev = sel.value;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getUsuariosMapa');
+    const data = await res.json();
+    if(data.usuarios && data.usuarios.length){
+      MAPA_USERS = data.usuarios;
+      sel.innerHTML = '<option value="">Selecciona tu usuario...</option>';
+      data.usuarios.forEach(u => {
+        const o = document.createElement('option');
+        o.value = u.usuario;
+        o.textContent = u.usuario.charAt(0) + u.usuario.slice(1).toLowerCase();
+        sel.appendChild(o);
+      });
+      if(prev) sel.value = prev;
+    }
+  } catch(e){ console.warn('No se pudo cargar usuarios mapa', e); }
+}
+
+function doLogin(){
+  const u = document.getElementById('liUser').value;
+  const p = document.getElementById('liPass').value.trim();
+  const err = document.getElementById('loginError');
+  const found = MAPA_USERS.find(x => x.usuario === u && String(x.clave) === String(p));
+  if(found){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('btnSalirMapa').style.display = 'none';
+    iniciarApp();
+    setTimeout(() => map.invalidateSize(), 200);
+  } else {
+    err.style.display = 'block';
+    document.getElementById('liPass').value = '';
+  }
+}
+
+// COMBOBOX CLIENTE (buscable)
+function listaClientesDisponibles(){
+  // Clientes según los OTROS filtros activos (agencia, vendedor, etc.)
+  const ag = document.getElementById('fAgencia').value;
+  const pr = document.getElementById('fProveedor').value;
+  const ve = document.getElementById('fVendedor').value;
+  const ca = document.getElementById('fCanal').value;
+  const ci = document.getElementById('fCiudad').value;
+  const subset = DATA.filter(d => {
+    if(ag && d.ag !== ag) return false;
+    if(pr && d.pr !== pr) return false;
+    if(ve && d.vend !== ve) return false;
+    if(ca && d.can !== ca) return false;
+    if(ci && d.c !== ci) return false;
+    return true;
+  });
+  return [...new Set(subset.map(d => d.n))].sort();
+}
+
+function renderLista(filtro){
+  const cont = document.getElementById('clienteList');
+  const f = (filtro || '').toUpperCase().trim();
+  let clientes = listaClientesDisponibles();
+  if(f) clientes = clientes.filter(n => n.toUpperCase().includes(f));
+  clientes = clientes.slice(0, 100); // máximo 100 para no saturar
+  cont.innerHTML = '';
+  if(!clientes.length){
+    cont.innerHTML = '<div class="combo-item empty">Sin coincidencias</div>';
+    return;
+  }
+  // Opción para limpiar
+  const todos = document.createElement('div');
+  todos.className = 'combo-item';
+  todos.style.color = 'var(--muted)';
+  todos.textContent = '— Todos los clientes —';
+  todos.onclick = () => { document.getElementById('fCliente').value=''; ocultarLista(); applyFilters(); };
+  cont.appendChild(todos);
+  clientes.forEach(n => {
+    const it = document.createElement('div');
+    it.className = 'combo-item';
+    it.textContent = n;
+    it.onclick = () => { document.getElementById('fCliente').value = n; ocultarLista(); applyFilters(); };
+    cont.appendChild(it);
+  });
+}
+
+let clienteTimer = null;
+function onClienteInput(){
+  renderLista(document.getElementById('fCliente').value);
+  mostrarLista();
+  clearTimeout(clienteTimer);
+  clienteTimer = setTimeout(applyFilters, 350);  // espera 350ms tras dejar de escribir
+}
+function mostrarLista(){
+  renderLista(document.getElementById('fCliente').value);
+  document.getElementById('clienteList').classList.add('show');
+}
+function ocultarLista(){
+  document.getElementById('clienteList').classList.remove('show');
+}
+let filtered = DATA.slice();
+let activeSem = null;
+let estadoCliente = {};  // cod -> estado total del cliente
+
+const map = L.map('map').setView([-1.66, -78.65], 10);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {attribution:'&copy; OpenStreetMap &amp; CartoDB', subdomains:'abcd', maxZoom:19}).addTo(map);
+
+function clusterIcon(clusterObj){
+  const markers = clusterObj.getAllChildMarkers();
+  let v=0, r=0, a=0;
+  markers.forEach(m => {
+    if(m.options.sem==='V') v++;
+    else if(m.options.sem==='R') r++;
+    else a++;
+  });
+  const total = markers.length;
+  // Color dominante
+  let col = '#16a34a';
+  if(r >= v && r >= a) col = '#dc2626';
+  else if(a >= v && a >= r) col = '#ca8a04';
+  // Si hay un filtro activo, usar ese color
+  if(activeSem) col = COLS[activeSem];
+  return L.divIcon({
+    html:`<div style="background:${col}33;border:2px solid ${col};border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px ${col}55;backdrop-filter:blur(2px);">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#fff">${total}</span>
+          </div>`,
+    className:'', iconSize:[40,40]
+  });
+}
+
+let cluster = (L.markerClusterGroup ? L.markerClusterGroup({
+  maxClusterRadius: 60,
+  iconCreateFunction: clusterIcon,
+  chunkedLoading: true,
+  chunkInterval: 100,
+  chunkDelay: 30,
+  removeOutsideVisibleBounds: true,
+  animate: false
+}) : L.layerGroup());
+map.addLayer(cluster);
+
+function mkIcon(s){
+  const c = COLS[s] || '#94a3b8';
+  return L.divIcon({
+    html:`<div style="width:13px;height:13px;border-radius:50%;background:${c};border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35)"></div>`,
+    iconSize:[13,13], iconAnchor:[6,6], className:''
+  });
+}
+
+function fmt(n){
+  return '$' + parseFloat(n).toLocaleString('es-EC', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function notifyHostStatus(status, message){
+  try{
+    if(window.parent && window.parent !== window){
+      var target = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '*';
+      window.parent.postMessage({type:'opaustro-module-status', status:status, message:message}, target);
+    }
+  }catch(e){}
+}
+
+function renderMap(){
+  notifyHostStatus(filtered.length?'ok':'warn',filtered.length?'Datos conectados':'Sin puntos para mostrar');
+  cluster.clearLayers();
+  const markers = [];
+  filtered.forEach(d => {
+    const est = estadoCliente[d.cod] || d.s;
+    const m = L.marker([d.lat, d.lng], {icon: mkIcon(est), sem: est});
+    const sg = d.var >= 0 ? '+' : '';
+    m.bindTooltip(
+      `<div class="tt"><b>${d.n}</b>${d.c} · ${d.can}<br>Mayo: ${fmt(d.abril)} | Prom.Ene-Abr: ${fmt(d.prom_trim)}<br>Variación: ${sg}${d.var}%</div>`,
+      {permanent:false, direction:'top', offset:[0,-4]}
+    );
+    m.on('click', () => showCard(d));
+    markers.push(m);
+  });
+  if(cluster.addLayers) cluster.addLayers(markers);
+  else markers.forEach(m => cluster.addLayer(m));
+  setTimeout(function(){ map.invalidateSize(); }, 40);
+}
+
+function showCard(d){
+  document.getElementById('hintMsg').style.display = 'none';
+  const card = document.getElementById('clienteCard');
+  card.classList.add('show');
+  document.getElementById('ccNombre').textContent = d.n;
+  document.getElementById('ccMeta').textContent   = d.ag + ' · ' + d.c;
+  document.getElementById('ccVend').textContent   = d.vend || '—';
+  document.getElementById('ccAbril').textContent  = fmt(d.abril);
+  document.getElementById('cc2025').textContent   = fmt(d.prom2025);
+  const col = COLS[d.s] || '#94a3b8';
+  const sg  = d.var >= 0 ? '+' : '';
+  document.getElementById('ccVar').textContent      = sg + d.var + '%';
+  document.getElementById('ccVar').style.color      = col;
+  document.getElementById('ccVarSmall').textContent = sg + d.var + '%';
+  document.getElementById('ccVarSmall').style.color = col;
+  const pct = Math.min(Math.abs(d.var), 100);
+  document.getElementById('ccBar').style.width      = pct + '%';
+  document.getElementById('ccBar').style.background = col;
+  const tags = document.getElementById('ccTags');
+  tags.innerHTML = '';
+  if(d.can){ const t=document.createElement('span'); t.className='tag tag-blue'; t.textContent=d.can; tags.appendChild(t); }
+  if(d.pr){  const t=document.createElement('span'); t.className='tag tag-gray'; t.textContent=d.pr;  tags.appendChild(t); }
+}
+
+function cerrarCard(){
+  document.getElementById('clienteCard').classList.remove('show');
+  document.getElementById('hintMsg').style.display = 'block';
+}
+
+function toggleSem(s){
+  if(activeSem === s){
+    activeSem = null;
+    ['V','R','A'].forEach(x => document.getElementById('sc-'+x).className='scard');
+  } else {
+    activeSem = s;
+    ['V','R','A'].forEach(x => document.getElementById('sc-'+x).className='scard'+(x===s?' a'+x:''));
+  }
+  applyFilters();
+}
+
+function applyFilters(){
+  const ag = document.getElementById('fAgencia').value;
+  const pr = document.getElementById('fProveedor').value;
+  const ve = document.getElementById('fVendedor').value;
+  const ca = document.getElementById('fCanal').value;
+  const ci = document.getElementById('fCiudad').value;
+  const cl = (document.getElementById('fCliente').value || '').toUpperCase().trim();
+  const hayFiltro = !!(ag || pr || ve || ca || ci || cl);
+
+  // Paso 1: base (todo lo que pasa los filtros, sin semáforo)
+  const base = [];
+  for(let i=0; i<DATA.length; i++){
+    const d = DATA[i];
+    if(ag && d.ag !== ag) continue;
+    if(pr && d.pr !== pr) continue;
+    if(ve && d.vend !== ve) continue;
+    if(ca && d.can !== ca) continue;
+    if(ci && d.c !== ci) continue;
+    if(cl && !d.n.toUpperCase().includes(cl)) continue;
+    base.push(d);
+  }
+
+  // Agregar por cliente único (sumar abril y trimestre de todas sus combinaciones)
+  const porCliente = {};  // cod -> {abril, trim}
+  let ventaFil = 0;
+  for(let i=0; i<base.length; i++){
+    const d = base[i];
+    ventaFil += d.abril;
+    if(!porCliente[d.cod]) porCliente[d.cod] = {abril:0, trim:0};
+    porCliente[d.cod].abril += d.abril;
+    porCliente[d.cod].trim  += d.prom_trim;
+  }
+
+  // Clasificar cada cliente único por su variación TOTAL
+  let nV=0, nR=0, nA=0;
+  const codigos = Object.keys(porCliente);
+  estadoCliente = {};  // cod -> 'V'/'R'/'A'
+  for(const cod of codigos){
+    const c = porCliente[cod];
+    let varTot;
+    if(c.trim === 0) varTot = 100;
+    else varTot = (c.abril - c.trim) / c.trim * 100;
+    let est;
+    if(varTot > 5) est = 'V';
+    else if(varTot < -5) est = 'R';
+    else est = 'A';
+    estadoCliente[cod] = est;
+    if(est==='V') nV++; else if(est==='R') nR++; else nA++;
+  }
+
+  // Paso 2: construir filtered (mapa) usando el estado TOTAL del cliente
+  filtered = [];
+  for(let i=0; i<base.length; i++){
+    const d = base[i];
+    if(!activeSem || estadoCliente[d.cod] === activeSem) filtered.push(d);
+  }
+  document.querySelector('#sc-V .sn').textContent = nV.toLocaleString('es-EC');
+  document.querySelector('#sc-R .sn').textContent = nR.toLocaleString('es-EC');
+  document.querySelector('#sc-A .sn').textContent = nA.toLocaleString('es-EC');
+
+  // KPI Clientes: clientes únicos
+  const totClientes = codigos.length;
+  const ventaTxt = ventaFil >= 1000 ? '$'+(ventaFil/1000).toLocaleString('es-EC',{maximumFractionDigits:0})+'K' : '$'+ventaFil.toLocaleString('es-EC',{maximumFractionDigits:0});
+  const pctFil = totClientes ? (nV/totClientes*100).toFixed(1) : 0;
+  document.getElementById('kClientes').textContent = totClientes.toLocaleString('es-EC');
+  document.getElementById('kVenta').textContent    = ventaTxt;
+  document.getElementById('kCrec').textContent     = nV.toLocaleString('es-EC');
+  document.getElementById('kBaj').textContent      = nR.toLocaleString('es-EC');
+  document.getElementById('kPct').textContent      = pctFil + '%';
+
+  // Filtros en cadena
+  actualizarDropdowns(ag, pr, ve, ca, ci);
+
+  if(ci){
+    const lats = filtered.map(d=>d.lat), lngs = filtered.map(d=>d.lng);
+    if(lats.length) map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]],{padding:[50,50]});
+  }
+  renderMap();
+  if(document.getElementById('zonaView').style.display !== 'none') renderZonas();
+}
+
+// Opciones completas (se calculan una sola vez al inicio)
+let OPCIONES_FULL = null;
+function calcularOpcionesFull(){
+  const sets = {ag:new Set(), pr:new Set(), vend:new Set(), can:new Set(), c:new Set()};
+  for(let i=0; i<DATA.length; i++){
+    const d = DATA[i];
+    if(d.ag) sets.ag.add(d.ag);
+    if(d.pr) sets.pr.add(d.pr);
+    if(d.vend) sets.vend.add(d.vend);
+    if(d.can) sets.can.add(d.can);
+    if(d.c) sets.c.add(d.c);
+  }
+  OPCIONES_FULL = {
+    ag:[...sets.ag].sort(), pr:[...sets.pr].sort(), vend:[...sets.vend].sort(),
+    can:[...sets.can].sort(), c:[...sets.c].sort()
+  };
+}
+
+function actualizarDropdowns(ag, pr, ve, ca, ci){
+  const campos = [
+    {id:'fAgencia',   key:'ag'},
+    {id:'fProveedor', key:'pr'},
+    {id:'fVendedor',  key:'vend'},
+    {id:'fCanal',     key:'can'},
+    {id:'fCiudad',    key:'c'}
+  ];
+  const hayFiltro = !!(ag || pr || ve || ca || ci);
+
+  // Caso rápido: sin filtros -> usar opciones completas precalculadas
+  if(!hayFiltro){
+    campos.forEach(campo => {
+      const sel = document.getElementById(campo.id);
+      const valorActual = sel.value;
+      const labelTodos = sel.options[0].text;
+      sel.innerHTML = '<option value="">' + labelTodos + '</option>';
+      OPCIONES_FULL[campo.key].forEach(op => {
+        const o = document.createElement('option');
+        o.value = op; o.textContent = op;
+        if(op === valorActual) o.selected = true;
+        sel.appendChild(o);
+      });
+    });
+    return;
+  }
+
+  // Con filtros: un solo recorrido recolectando opciones por campo
+  const filtros = {ag, pr, vend:ve, can:ca, c:ci};
+  const sets = {ag:new Set(), pr:new Set(), vend:new Set(), can:new Set(), c:new Set()};
+  for(let i=0; i<DATA.length; i++){
+    const d = DATA[i];
+    campos.forEach(campo => {
+      // ¿pasa todos los filtros EXCEPTO el suyo?
+      let ok = true;
+      for(const c2 of campos){
+        if(c2.key === campo.key) continue;
+        const fv = filtros[c2.key];
+        if(fv && d[c2.key] !== fv){ ok = false; break; }
+      }
+      if(ok && d[campo.key]) sets[campo.key].add(d[campo.key]);
+    });
+  }
+  campos.forEach(campo => {
+    const opciones = [...sets[campo.key]].sort();
+    const sel = document.getElementById(campo.id);
+    const valorActual = sel.value;
+    const labelTodos = sel.options[0].text;
+    sel.innerHTML = '<option value="">' + labelTodos + '</option>';
+    opciones.forEach(op => {
+      const o = document.createElement('option');
+      o.value = op; o.textContent = op;
+      if(op === valorActual) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function resetFilters(){
+  ['fAgencia','fProveedor','fVendedor','fCanal','fCiudad'].forEach(id => document.getElementById(id).value='');
+  const bc = document.getElementById('fCliente');
+  if(bc) bc.value = '';
+  activeSem = null;
+  ['V','R','A'].forEach(x => document.getElementById('sc-'+x).className='scard');
+  map.setView([-1.66, -78.65], 10);
+  applyFilters();
+}
+
+function renderZonas(){
+  const cityMap = {};
+  filtered.forEach(d => {
+    if(!cityMap[d.c]) cityMap[d.c] = {name:d.c, V:0, R:0, A:0, abril:0, prom_trim:0};
+    cityMap[d.c][d.s]++;
+    cityMap[d.c].abril     += d.abril;
+    cityMap[d.c].prom_trim += d.prom_trim;
+  });
+  const zonas = Object.values(cityMap).map(z => {
+    const tot = z.V + z.R + z.A || 1;
+    const vr  = z.prom_trim > 0 ? (z.abril - z.prom_trim) / z.prom_trim * 100 : 0;
+    return {...z, tot, var_z: vr.toFixed(1), zc: z.R/tot > 0.5 ? 'R' : (z.V/tot >= 0.35 ? 'V' : 'A')};
+  }).sort((a,b) => parseFloat(b.var_z) - parseFloat(a.var_z));
+
+  const grid = document.getElementById('zonaGrid');
+  grid.innerHTML = '';
+  if(!zonas.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">Sin datos</div>'; return; }
+  zonas.forEach(z => {
+    const col = COLS[z.zc];
+    const sg  = parseFloat(z.var_z) >= 0 ? '+' : '';
+    const el  = document.createElement('div');
+    el.className = 'zcard z' + z.zc;
+    el.innerHTML =
+      '<div class="zname">' + z.name + '</div>' +
+      '<div class="zrow"><span class="zkey">Clientes</span><span class="zval">' + z.tot + '</span></div>' +
+      '<div class="zrow"><span class="zkey">Venta Mayo</span><span class="zval">' + fmt(z.abril) + '</span></div>' +
+      '<div class="zrow"><span class="zkey">Prom. Trimestre</span><span class="zval">' + fmt(z.prom_trim) + '</span></div>' +
+      '<div class="zrow"><span class="zkey">Variación</span><span class="zval" style="color:'+col+'">' + sg + z.var_z + '%</span></div>' +
+      '<div class="zrow"><span class="zkey" style="color:var(--V)">&#9679; Crecieron</span><span class="zval cv">' + z.V + '</span></div>' +
+      '<div class="zrow"><span class="zkey" style="color:var(--R)">&#9679; Bajaron</span><span class="zval cr">' + z.R + '</span></div>' +
+      '<div class="zmini">' +
+        '<div class="zmini-seg" style="flex:' + (z.V/z.tot*100).toFixed(0) + ';background:var(--V)"></div>' +
+        '<div class="zmini-seg" style="flex:' + (z.R/z.tot*100).toFixed(0) + ';background:var(--R)"></div>' +
+        '<div class="zmini-seg" style="flex:' + (z.A/z.tot*100).toFixed(0) + ';background:var(--A)"></div>' +
+      '</div>';
+    grid.appendChild(el);
+  });
+}
+
+function setTab(t){
+  document.getElementById('tab-mapa').className  = 'tab' + (t==='mapa'  ? ' active' : '');
+  document.getElementById('tab-zonas').className = 'tab' + (t==='zonas' ? ' active' : '');
+  document.getElementById('map').style.display      = t==='mapa'  ? '' : 'none';
+  document.getElementById('zonaView').style.display = t==='zonas' ? 'flex' : 'none';
+  if(t==='mapa')  map.invalidateSize();
+  if(t==='zonas') renderZonas();
+}
+
+let yaIniciado = false;
+function fitEmbedMap(){
+  try{
+    var isEmbed = document.documentElement.classList.contains('embed-mode');
+    if(isEmbed){
+      var sb = document.getElementById('sidebar');
+      var ov = document.getElementById('sbOverlay');
+      if(sb) sb.classList.remove('open');
+      if(ov) ov.classList.remove('show');
+    }
+    if(typeof map !== 'undefined' && map){
+      map.invalidateSize();
+      setTimeout(function(){ map.invalidateSize(); }, 120);
+      setTimeout(function(){ map.invalidateSize(); }, 420);
+      setTimeout(function(){ map.setView(map.getCenter(), map.getZoom(), {animate:false}); }, 520);
+    }
+  }catch(e){}
+}
+function iniciarApp(){
+  if(yaIniciado) return;
+  yaIniciado = true;
+  calcularOpcionesFull();
+  applyFilters();
+  fitEmbedMap();
+  setTimeout(() => { fitEmbedMap(); renderZonas(); }, 100);
+}
+function toggleSidebar(){
+  var sb=document.getElementById('sidebar');
+  var ov=document.getElementById('sbOverlay');
+  var abierto=sb.classList.toggle('open');
+  if(ov) ov.classList.toggle('show',abierto);
+  if(abierto && typeof map!=='undefined' && map){ setTimeout(function(){map.invalidateSize();},260); }
+}
+window.addEventListener('DOMContentLoaded', function(){
+  var login = document.getElementById('loginScreen');
+  var salir = document.getElementById('btnSalirMapa');
+  if(login) login.style.display = 'none';
+  if(salir) salir.style.display = 'none';
+  iniciarApp();
+  fitEmbedMap();
+  var sb=document.getElementById('sidebar');
+  if(sb){ sb.addEventListener('change', function(){ if(window.innerWidth<=820 && sb.classList.contains('open')) toggleSidebar(); }); }
+});
+window.addEventListener('resize', fitEmbedMap);
+window.addEventListener('orientationchange', function(){ setTimeout(fitEmbedMap, 180); });
+</script>
+</body>
+</html>
+
+
+
+
+

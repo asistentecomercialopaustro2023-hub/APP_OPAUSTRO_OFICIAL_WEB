@@ -1,0 +1,15 @@
+﻿{
+    "app":  "OPAUSTRO",
+    "version":  "1.0.0",
+    "label":  "OPAUSTRO v1.0.0",
+    "channel":  "oficial",
+    "publishedAt":  "2026-07-08",
+    "notes":  [
+                  "Primera version oficial de lanzamiento. Se conserva la funcionalidad existente y se reinicia la numeracion publica a v1.0.0.",
+                  "Base preparada para control profesional de versiones con Git, rama main, rama develop y tags."
+              ],
+    "releaseKey":  "1.0.0",
+    "forceUpdate":  false,
+    "rollback":  false
+}
+
