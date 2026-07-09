@@ -1,15 +1,14 @@
-﻿{
+{
     "app":  "OPAUSTRO",
-    "version":  "1.0.0",
-    "label":  "OPAUSTRO v1.0.0",
+    "version":  "1.0.1",
+    "label":  "OPAUSTRO v1.0.1",
     "channel":  "oficial",
-    "publishedAt":  "2026-07-08",
+    "publishedAt":  "2026-07-09",
     "notes":  [
-                  "Primera version oficial de lanzamiento. Se conserva la funcionalidad existente y se reinicia la numeracion publica a v1.0.0.",
-                  "Base preparada para control profesional de versiones con Git, rama main, rama develop y tags."
+                  "Error de camara Logistica corregido: la captura de fotos en registrar entrada/salida/bodega ahora usa camara en vivo dentro de la pagina en vez de la app de camara del sistema, evitando que el proceso se cerrara sin guardar al tomar la 2da o 3ra foto.",
+                  "Encabezado del modulo Logistica ajustado para moviles: el indicador de sincronizacion y los botones de accion ya no se desbordan a una segunda fila."
               ],
-    "releaseKey":  "1.0.0",
+    "releaseKey":  "1.0.1",
     "forceUpdate":  false,
     "rollback":  false
 }
-
