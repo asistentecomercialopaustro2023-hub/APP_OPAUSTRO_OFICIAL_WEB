@@ -2066,6 +2066,7 @@ function startApp(){
 function registerPWA(){
   if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
     window.addEventListener('load', function(){
+      var swVersion='20260709-cache-auto';
       var refreshing=false;
       navigator.serviceWorker.addEventListener('controllerchange', function(){
         if(refreshing) return;
@@ -2078,7 +2079,7 @@ function registerPWA(){
           window.location.reload();
         }
       });
-      navigator.serviceWorker.register('./sw.js').then(function(reg){
+      navigator.serviceWorker.register('./sw.js?v='+swVersion).then(function(reg){
         if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
         reg.addEventListener('updatefound', function(){
           var worker=reg.installing;
@@ -2106,7 +2107,6 @@ setInterval(function(){
 </script>
 </body>
 </html>
-
 
 
 
