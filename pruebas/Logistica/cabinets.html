@@ -999,26 +999,32 @@ function comprimirFoto(file, cb, errCb) {
 
 
 var _cameraState={stream:null,prefix:'',vista:''};
-var CAM_LABELS={f:'frontal del contrato',r:'reverso del contrato',l:'portada o fachada del local'};
+var CAM_LABELS={
+  'ce:f':'frontal del equipo','ce:t':'trasera del equipo','ce:i':'interior del equipo','ce:p':'placa del equipo',
+  'ml:f':'frontal del equipo','ml:t':'trasera del equipo','ml:i':'interior del equipo',
+  'fk:f':'frontal del equipo','fk:t':'trasera del equipo','fk:i':'interior del equipo',
+  'dc:f':'frontal del contrato','dc:r':'reverso del contrato','dc:l':'portada o fachada del local',
+  'ct:f':'frontal del contrato','ct:r':'reverso del contrato'
+};
 function pickFoto(prefix, vista, ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  var inp=g(prefix+'-inp-'+vista);
-  if(!inp){ openCameraCapture(prefix,vista); return false; }
-  try{ inp.value=''; }catch(e){}
-  inp.click();
+  openCameraCapture(prefix,vista);
   return false;
 }
+function pickFotoNativa(prefix, vista){
+  var inp=g(prefix+'-inp-'+vista);
+  if(!inp) return;
+  try{ inp.value=''; }catch(e){}
+  inp.click();
+}
 async function openCameraCapture(prefix, vista){
-  if(prefix!=='dc'){
-    var inp=g(prefix+'-inp-'+vista); if(inp) inp.click();
-    return;
-  }
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    toast('La cámara no está disponible en este dispositivo o navegador','err');
+    toast('Cámara en vivo no disponible, abriendo cámara del dispositivo…','warn');
+    pickFotoNativa(prefix,vista);
     return;
   }
   _cameraState.prefix=prefix; _cameraState.vista=vista;
-  var title=g('cam-title'); if(title) title.textContent='📷 Tomar foto: '+(CAM_LABELS[vista]||'evidencia');
+  var title=g('cam-title'); if(title) title.textContent='📷 Tomar foto: '+(CAM_LABELS[prefix+':'+vista]||'evidencia');
   g('modal-camera').classList.add('on');
   try{
     _cameraState.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
@@ -1027,7 +1033,8 @@ async function openCameraCapture(prefix, vista){
     await video.play();
   }catch(e){
     closeCameraCapture();
-    toast('No se pudo abrir la cámara. Revisa permisos del dispositivo.','err');
+    toast('No se pudo abrir la cámara en vivo, abriendo cámara del dispositivo…','warn');
+    pickFotoNativa(prefix,vista);
   }
 }
 function closeCameraCapture(){
