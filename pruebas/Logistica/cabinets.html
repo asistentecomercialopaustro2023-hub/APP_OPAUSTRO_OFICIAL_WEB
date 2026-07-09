@@ -2066,7 +2066,31 @@ function startApp(){
 function registerPWA(){
   if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('./sw.js').catch(function(err){
+      var refreshing=false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(refreshing) return;
+        refreshing=true;
+        window.location.reload();
+      });
+      navigator.serviceWorker.addEventListener('message', function(ev){
+        if(ev.data&&ev.data.type==='OPAUSTRO_CACHE_UPDATED'&&!refreshing){
+          refreshing=true;
+          window.location.reload();
+        }
+      });
+      navigator.serviceWorker.register('./sw.js').then(function(reg){
+        if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        reg.addEventListener('updatefound', function(){
+          var worker=reg.installing;
+          if(!worker) return;
+          worker.addEventListener('statechange', function(){
+            if(worker.state==='installed'&&navigator.serviceWorker.controller){
+              worker.postMessage({type:'SKIP_WAITING'});
+            }
+          });
+        });
+        reg.update().catch(function(){});
+      }).catch(function(err){
         console.warn('No se pudo registrar la app offline:', err);
       });
     });
@@ -2082,7 +2106,6 @@ setInterval(function(){
 </script>
 </body>
 </html>
-
 
 
 

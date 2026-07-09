@@ -1,4 +1,4 @@
-const CACHE_NAME = 'opaustro-logistica-v1.0.1-fotos';
+const CACHE_NAME = 'opaustro-logistica-v1.0.2-cache-auto';
 const APP_SHELL = [
   './',
   './index.html',
@@ -16,13 +16,20 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    ))
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({type: 'window'}))
+      .then(clients => clients.forEach(client => client.postMessage({type: 'OPAUSTRO_CACHE_UPDATED', cache: CACHE_NAME})))
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
@@ -37,4 +44,3 @@ self.addEventListener('fetch', event => {
     }).catch(() => caches.match(req).then(cached => cached || caches.match('./index.html')))
   );
 });
-
