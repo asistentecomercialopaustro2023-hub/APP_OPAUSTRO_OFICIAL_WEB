@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'opaustro-logistica-v1.0.0';
+const CACHE_NAME = 'opaustro-logistica-v1.0.1-fotos';
 const APP_SHELL = [
   './',
   './index.html',
