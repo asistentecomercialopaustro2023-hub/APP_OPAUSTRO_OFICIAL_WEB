@@ -199,7 +199,11 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .login-help{font-size:11px;color:#9ca3af;text-align:center;margin-top:16px;}
 .login-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid #f0f4f8;}
 .login-brand span{font-size:10px;font-weight:700;color:#b0bec5;text-transform:uppercase;letter-spacing:.08em;}
-@media(max-width:500px){.login-card{padding:28px 20px;border-radius:14px;}.login-portal-back{top:14px;left:14px;}.brand-mag{display:none}.brand-left{min-width:0}.hdr{padding:8px 12px}.wrap{padding:14px 10px}.card{padding:13px 12px}.kgrid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:500px){.login-card{padding:28px 20px;border-radius:14px;}.login-portal-back{top:14px;left:14px;}.brand-mag{display:none}.brand-left{min-width:0}.hdr{padding:8px 12px;flex-direction:column;align-items:stretch;gap:6px;}.wrap{padding:14px 10px}.card{padding:13px 12px}.kgrid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.sync-row{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:3px;}
+.slbl{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;}
+.sync-row .btn{padding:4px 6px;font-size:9.5px;flex:0 0 auto;letter-spacing:-.01em;}
+}
 </style>
 
 <script>
@@ -862,7 +866,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 
 <script>
 var SK='pingu_v7', CK='pingu_cfg_v2';
-var APPS_URL='https://script.google.com/macros/s/AKfycbxorxRM2qDEb5yEypBlpJ_XcG_qRAs5UwQ26-T8LGa7421MvjboSuY5nvGTi1zmWghW/exec';
+var APPS_URL='https://script.google.com/macros/s/AKfycbxPUAR6TvVYCFx8QjGFZdv8um8byUdubMPoKY5v0DbL0GwzqcvwmSMiuqnQkvBSmcPetw/exec';
 var LOGISTICA_API_KEY='';
 var AURL=APPS_URL, LOCAL=false;
 var DB={equipos:{},movimientos:[],mantenimientos:[],usuarios:[]};
