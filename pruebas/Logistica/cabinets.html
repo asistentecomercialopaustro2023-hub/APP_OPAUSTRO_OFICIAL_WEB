@@ -132,7 +132,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .foto3-area{border:2px dashed var(--brd);border-radius:var(--rs);padding:10px 6px;text-align:center;cursor:pointer;background:var(--surf2);position:relative;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:.15s;}
 .foto3-area:hover{border-color:var(--acc);background:var(--accl);}
 .foto3-area.done{border-color:var(--ok-c);border-style:solid;background:var(--ok-b);}
-.foto3-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.foto3-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;pointer-events:none;}
 .foto3-prev{width:100%;height:70px;object-fit:cover;border-radius:4px;display:none;}
 .foto3-prev.on{display:block;}
 .foto3-icon{font-size:20px;line-height:1;}
@@ -151,7 +151,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 
 .foto-area{border:2px dashed var(--brd);border-radius:var(--rs);padding:16px;text-align:center;cursor:pointer;background:var(--surf2);position:relative;margin-bottom:10px;}
 .foto-area:hover{border-color:var(--acc);background:var(--accl);}
-.foto-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.foto-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;pointer-events:none;}
 .foto-prev{width:100%;max-height:150px;object-fit:cover;border-radius:var(--rs);margin-top:8px;display:none;}
 .foto-prev.on{display:block;}
 
@@ -539,7 +539,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <div class="foto3-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Frontal</div>
-          <div class="foto3-area" id="ce-area-f" onclick="document.getElementById('ce-inp-f').click()">
+          <div class="foto3-area" id="ce-area-f" onclick="pickFoto('ce','f',event)">
             <input type="file" id="ce-inp-f" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ce-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -549,7 +549,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Trasera</div>
-          <div class="foto3-area" id="ce-area-t" onclick="document.getElementById('ce-inp-t').click()">
+          <div class="foto3-area" id="ce-area-t" onclick="pickFoto('ce','t',event)">
             <input type="file" id="ce-inp-t" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ce-prev-t" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -559,7 +559,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Interior</div>
-          <div class="foto3-area" id="ce-area-i" onclick="document.getElementById('ce-inp-i').click()">
+          <div class="foto3-area" id="ce-area-i" onclick="pickFoto('ce','i',event)">
             <input type="file" id="ce-inp-i" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ce-prev-i" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -569,7 +569,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Placa</div>
-          <div class="foto3-area" id="ce-area-p" onclick="document.getElementById('ce-inp-p').click()">
+          <div class="foto3-area" id="ce-area-p" onclick="pickFoto('ce','p',event)">
             <input type="file" id="ce-inp-p" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ce-prev-p" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -609,7 +609,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <div class="foto3-grid">
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Frontal</div>
-          <div class="foto3-area" id="ml-area-f" onclick="document.getElementById('ml-inp-f').click()">
+          <div class="foto3-area" id="ml-area-f" onclick="pickFoto('ml','f',event)">
             <input type="file" id="ml-inp-f" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ml-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -619,7 +619,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Trasera</div>
-          <div class="foto3-area" id="ml-area-t" onclick="document.getElementById('ml-inp-t').click()">
+          <div class="foto3-area" id="ml-area-t" onclick="pickFoto('ml','t',event)">
             <input type="file" id="ml-inp-t" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ml-prev-t" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -629,7 +629,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Interior</div>
-          <div class="foto3-area" id="ml-area-i" onclick="document.getElementById('ml-inp-i').click()">
+          <div class="foto3-area" id="ml-area-i" onclick="pickFoto('ml','i',event)">
             <input type="file" id="ml-inp-i" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ml-prev-i" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -664,7 +664,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <div class="foto3-grid">
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Frontal</div>
-          <div class="foto3-area" id="fk-area-f" onclick="document.getElementById('fk-inp-f').click()">
+          <div class="foto3-area" id="fk-area-f" onclick="pickFoto('fk','f',event)">
             <input type="file" id="fk-inp-f" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="fk-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -674,7 +674,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Trasera</div>
-          <div class="foto3-area" id="fk-area-t" onclick="document.getElementById('fk-inp-t').click()">
+          <div class="foto3-area" id="fk-area-t" onclick="pickFoto('fk','t',event)">
             <input type="file" id="fk-inp-t" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="fk-prev-t" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -684,7 +684,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📸 Interior</div>
-          <div class="foto3-area" id="fk-area-i" onclick="document.getElementById('fk-inp-i').click()">
+          <div class="foto3-area" id="fk-area-i" onclick="pickFoto('fk','i',event)">
             <input type="file" id="fk-inp-i" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="fk-prev-i" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -809,7 +809,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <div class="foto3-grid" style="grid-template-columns:1fr 1fr;">
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Frontal</div>
-          <div class="foto3-area" id="ct-area-f" onclick="document.getElementById('ct-inp-f').click()">
+          <div class="foto3-area" id="ct-area-f" onclick="pickFoto('ct','f',event)">
             <input type="file" id="ct-inp-f" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ct-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -819,7 +819,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Reverso</div>
-          <div class="foto3-area" id="ct-area-r" onclick="document.getElementById('ct-inp-r').click()">
+          <div class="foto3-area" id="ct-area-r" onclick="pickFoto('ct','r',event)">
             <input type="file" id="ct-inp-r" accept="image/jpeg,image/png,image/*" capture="environment">
             <img class="foto3-prev" id="ct-prev-r" src="" alt="">
             <div class="foto3-icon">📷</div>
@@ -944,7 +944,7 @@ function comprimirFoto(file, cb, errCb) {
   function dibujarImagen(img){
     if(done) return;
     try {
-      var MAX=1200;
+      var MAX=900;
       var ow=img.naturalWidth||img.width, oh=img.naturalHeight||img.height;
       if(!ow||!oh){ finalizar(); if(errCb) errCb('imagen sin dimensiones'); return; }
       var w=ow, h=oh;
@@ -959,9 +959,9 @@ function comprimirFoto(file, cb, errCb) {
           finalizar();
           if(!blob){ if(errCb) errCb('error exportando imagen'); return; }
           blobToDataURL(blob);
-        }, 'image/jpeg', 0.75);
+        }, 'image/jpeg', 0.68);
       } else {
-        var data=canvas.toDataURL('image/jpeg',0.75);
+        var data=canvas.toDataURL('image/jpeg',0.68);
         finalizar();
         if(!data||data.length<100){ if(errCb) errCb('imagen vacía tras comprimir'); return; }
         cb(data);
@@ -1000,6 +1000,14 @@ function comprimirFoto(file, cb, errCb) {
 
 var _cameraState={stream:null,prefix:'',vista:''};
 var CAM_LABELS={f:'frontal del contrato',r:'reverso del contrato',l:'portada o fachada del local'};
+function pickFoto(prefix, vista, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  var inp=g(prefix+'-inp-'+vista);
+  if(!inp){ openCameraCapture(prefix,vista); return false; }
+  try{ inp.value=''; }catch(e){}
+  inp.click();
+  return false;
+}
 async function openCameraCapture(prefix, vista){
   if(prefix!=='dc'){
     var inp=g(prefix+'-inp-'+vista); if(inp) inp.click();
@@ -1038,7 +1046,7 @@ function captureCameraPhoto(){
   if(h>=w && h>max){ w=Math.round(w*max/h); h=max; }
   canvas.width=w; canvas.height=h;
   canvas.getContext('2d').drawImage(video,0,0,w,h);
-  var data=canvas.toDataURL('image/jpeg',0.78);
+  var data=canvas.toDataURL('image/jpeg',0.68);
   var prefix=_cameraState.prefix, vista=_cameraState.vista;
   if(prefix && vista){
     g(prefix+'-foto-'+vista).value=data;
@@ -1067,9 +1075,11 @@ function capFoto(prefix, vista) {
     prev.src = data; prev.classList.add('on');
     if(area){ area.classList.add('done'); area.style.opacity='1'; }
     actualizarCnt(prefix);
+    try{ inp.value=''; }catch(e){}
     toast('✅ Foto guardada','ok');
   }, function(errMsg){
     if(area) area.style.opacity='1';
+    try{ inp.value=''; }catch(e){}
     toast('❌ Error con la foto: '+errMsg,'err');
     console.error('Error captura foto:', errMsg);
   });
@@ -1105,6 +1115,7 @@ function validarFotos3(prefix) {
 function resetFotos3(prefix) {
   vistas(prefix).forEach(function(v) {
     var inp=g(prefix+'-foto-'+v); if(inp)inp.value='';
+    var fileInp=g(prefix+'-inp-'+v); if(fileInp)try{fileInp.value='';}catch(e){}
     var prev=g(prefix+'-prev-'+v);
     if(prev){prev.src='';prev.classList.remove('on');}
     var area=g(prefix+'-area-'+v);
@@ -2071,12 +2082,6 @@ setInterval(function(){
 </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
