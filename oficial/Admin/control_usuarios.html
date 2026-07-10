@@ -214,7 +214,7 @@
           <p style="margin:0 0 12px;color:var(--muted);font-size:13px;">Usuario: <strong id="resetPwdUser"></strong></p>
           <label>Nueva contraseña
             <span class="pwd-input-row">
-              <input id="resetPwdInput" type="password" required minlength="4" placeholder="Ingrese la nueva contraseña" autocomplete="new-password">
+              <input id="resetPwdInput" type="password" required minlength="3" placeholder="Ingrese la nueva contraseña" autocomplete="new-password">
               <button class="pwd-toggle" type="button" id="toggleResetPwd" aria-label="Mostrar contraseña" title="Mostrar contraseña">
                 <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-3.22 4.36"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -456,15 +456,17 @@
       const row=$("resetRow").value;
       const nueva=$("resetPwdInput").value.trim();
       const msg=$("resetPwdMsg");
-      if(nueva.length<4){msg.textContent="La contraseña debe tener al menos 4 caracteres.";msg.className="reset-msg error";return;}
+      if(nueva.length<3){msg.textContent="La contraseña debe tener al menos 3 caracteres.";msg.className="reset-msg error";return;}
       const confirmBtn=$("confirmResetPwd");
       confirmBtn.disabled=true;confirmBtn.textContent="Guardando...";
       try{
         const data=await api("resetPassword",{row,password:nueva});
         if(!data.success){msg.textContent=data.message||"No se pudo cambiar la contraseña.";msg.className="reset-msg error";return;}
-        msg.textContent="La contraseña se cambió exitosamente.";
+        msg.textContent="✅ Contraseña cambiada exitosamente";
         msg.className="reset-msg ok";
         await loadUsers();
+        setTimeout(closeResetPassword,1200);
+        return;
       }catch(error){
         msg.textContent="No se pudo contactar el servidor. Intente de nuevo.";
         msg.className="reset-msg error";

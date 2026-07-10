@@ -1655,27 +1655,156 @@
       display: block;
     }
 
-    .profile-photo-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 4px 0 18px;
-      text-align: left;
+    .profile-card {
+      text-align: center;
+    }
+
+    .profile-card h2 {
+      text-align: center;
+      color: #486078;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 18px;
+    }
+
+    .profile-avatar-wrap {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 12px;
     }
 
     .profile-photo-preview {
-      width: 64px;
-      height: 64px;
+      width: 128px;
+      height: 128px;
       border-radius: 50%;
       object-fit: cover;
       background: #e8f6ff;
-      border: 1px solid #c9deec;
+      border: 3px solid #ffffff;
+      box-shadow: 0 12px 28px rgba(0, 60, 90, .18), 0 0 0 1px #d7e8f2;
       cursor: pointer;
+      display: block;
     }
 
-    .profile-photo-actions {
+    .profile-avatar-placeholder {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
       display: grid;
-      gap: 6px;
+      place-items: center;
+      background: #e8f6ff;
+      color: #8caebf;
+      border: 3px solid #ffffff;
+      box-shadow: 0 12px 28px rgba(0, 60, 90, .18), 0 0 0 1px #d7e8f2;
+    }
+
+    .profile-avatar-placeholder svg {
+      width: 60px;
+      height: 60px;
+    }
+
+    .profile-photo-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .profile-link {
+      border: 0;
+      background: none;
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 800;
+      color: #0074a8;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .profile-link:hover {
+      text-decoration: underline;
+    }
+
+    .profile-link-danger {
+      color: #b23434;
+    }
+
+    .profile-link-sep {
+      color: #c4d5e0;
+      font-size: .8rem;
+    }
+
+    .profile-identity {
+      margin: 18px 0 22px;
+    }
+
+    .profile-identity-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .profile-role-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 999px;
+      background: #eef4f8;
+      color: #486078;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .profile-actions-pro {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .profile-btn-primary {
+      min-height: 48px;
+      border: 0;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1388bd, #006fa5);
+      color: #ffffff;
+      box-shadow: 0 14px 28px rgba(0, 111, 165, 0.22);
+    }
+
+    .profile-btn-close {
+      min-height: 48px;
+      padding: 0 20px;
+      border: 1px solid #f3b6b6;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      background: #fff5f5;
+      color: #a32d2d;
+    }
+
+    .profile-btn-close:hover {
+      background: #ffeaea;
+    }
+
+    @media (max-width: 520px) {
+      .profile-actions-pro {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-btn-close {
+        order: 2;
+      }
+
+      .profile-btn-primary {
+        order: 1;
+      }
     }
 
     .photo-lightbox .lightbox-card {
@@ -1697,7 +1826,7 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, .4);
     }
 
-    .lightbox-delete {
+    .lightbox-close {
       position: absolute;
       top: -14px;
       right: -14px;
@@ -1705,8 +1834,8 @@
       height: 38px;
       border-radius: 50%;
       background: #fff;
-      color: #a32d2d;
-      border: 1px solid #f3b6b6;
+      color: #33495c;
+      border: 1px solid #d7e8f2;
       font-size: 18px;
       font-weight: 900;
       cursor: pointer;
@@ -1715,27 +1844,64 @@
       box-shadow: 0 10px 22px rgba(0, 0, 0, .3);
     }
 
-    .lightbox-delete:hover {
-      background: #fff1f1;
+    .lightbox-close:hover {
+      background: #eef4f8;
     }
 
-    .profile-photo-actions label {
-      font-size: .85rem;
-      font-weight: 800;
-      color: #0074a8;
-      cursor: pointer;
+    .crop-card {
+      text-align: center;
     }
 
-    .profile-meta {
-      text-align: left;
-      margin-bottom: 4px;
+    .crop-card h2 {
+      text-align: center;
+      margin-bottom: 6px;
     }
 
-    .profile-meta div {
-      font-size: .9rem;
-      color: var(--muted);
+    .crop-card p {
+      margin-bottom: 16px;
     }
 
+    .crop-stage {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #0b2436;
+      cursor: grab;
+      touch-action: none;
+      box-shadow: 0 0 0 4px #ffffff, 0 0 0 5px #d7e8f2, 0 14px 30px rgba(0, 60, 90, .25);
+    }
+
+    .crop-stage:active {
+      cursor: grabbing;
+    }
+
+    .crop-stage img {
+      position: absolute;
+      max-width: none;
+      max-height: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .crop-zoom-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 auto 18px;
+      color: #7fa8bd;
+      font-size: 1rem;
+    }
+
+    .crop-zoom {
+      width: 200px;
+      accent-color: #0074a8;
+    }
 
     /* Fixed mobile shell: header and bottom navigation stay anchored; only module content scrolls. */
     .app-screen.is-mobile-layout {
@@ -3450,6 +3616,113 @@
       });
     }
 
+    // Ventana de recorte/zoom: permite arrastrar la foto y hacer zoom para
+    // centrarla/acomodarla antes de guardarla. Devuelve un <canvas> cuadrado con
+    // la parte elegida, o null si el usuario cancela.
+    function openPhotoCropOverlay(img) {
+      return new Promise((resolve) => {
+        const STAGE = 260;
+        const overlay = document.createElement("div");
+        overlay.className = "update-overlay crop-overlay";
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.innerHTML = `
+          <div class="update-card crop-card">
+            <h2>Acomodar foto</h2>
+            <p>Arrastra para mover y usa el control para hacer zoom.</p>
+            <div class="crop-stage" id="cropStage">
+              <img id="cropImg" alt="">
+            </div>
+            <div class="crop-zoom-row">
+              🔍<input type="range" class="crop-zoom" id="cropZoom" min="100" max="300" value="100">
+            </div>
+            <div class="update-actions">
+              <button type="button" class="update-later" id="cropCancel">Cancelar</button>
+              <button type="button" class="update-now" id="cropConfirm">Usar foto</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        const stage = overlay.querySelector("#cropStage");
+        const cropImg = overlay.querySelector("#cropImg");
+        const zoomInput = overlay.querySelector("#cropZoom");
+        cropImg.src = img.src;
+
+        const naturalW = img.naturalWidth || img.width;
+        const naturalH = img.naturalHeight || img.height;
+        const baseScale = Math.max(STAGE / naturalW, STAGE / naturalH);
+        let zoom = 1, panX = 0, panY = 0;
+
+        function render() {
+          const scale = baseScale * zoom;
+          const dispW = naturalW * scale, dispH = naturalH * scale;
+          const maxPanX = Math.max(0, (dispW - STAGE) / 2);
+          const maxPanY = Math.max(0, (dispH - STAGE) / 2);
+          panX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+          panY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+          cropImg.style.width = dispW + "px";
+          cropImg.style.height = dispH + "px";
+          cropImg.style.left = ((STAGE - dispW) / 2 + panX) + "px";
+          cropImg.style.top = ((STAGE - dispH) / 2 + panY) + "px";
+        }
+        render();
+
+        let dragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+        stage.addEventListener("pointerdown", (event) => {
+          dragging = true;
+          startX = event.clientX; startY = event.clientY;
+          startPanX = panX; startPanY = panY;
+          try { stage.setPointerCapture(event.pointerId); } catch (error) {}
+        });
+        stage.addEventListener("pointermove", (event) => {
+          if (!dragging) return;
+          panX = startPanX + (event.clientX - startX);
+          panY = startPanY + (event.clientY - startY);
+          render();
+        });
+        const stopDrag = () => { dragging = false; };
+        stage.addEventListener("pointerup", stopDrag);
+        stage.addEventListener("pointercancel", stopDrag);
+        stage.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          zoom = Math.min(3, Math.max(1, zoom + (event.deltaY < 0 ? 0.08 : -0.08)));
+          zoomInput.value = String(Math.round(zoom * 100));
+          render();
+        }, { passive: false });
+        zoomInput.addEventListener("input", () => {
+          zoom = Number(zoomInput.value) / 100;
+          render();
+        });
+
+        const onEscape = (event) => {
+          if (event.key === "Escape") finish(null);
+        };
+        document.addEventListener("keydown", onEscape);
+
+        function finish(result) {
+          document.removeEventListener("keydown", onEscape);
+          overlay.remove();
+          resolve(result);
+        }
+
+        overlay.querySelector("#cropCancel").addEventListener("click", () => finish(null));
+        overlay.querySelector("#cropConfirm").addEventListener("click", () => {
+          const scale = baseScale * zoom;
+          const dispW = naturalW * scale, dispH = naturalH * scale;
+          const left = (STAGE - dispW) / 2 + panX;
+          const top = (STAGE - dispH) / 2 + panY;
+          const sSize = STAGE / scale;
+          const sx = Math.min(Math.max(0, -left / scale), naturalW - sSize);
+          const sy = Math.min(Math.max(0, -top / scale), naturalH - sSize);
+          const outCanvas = document.createElement("canvas");
+          outCanvas.width = 480;
+          outCanvas.height = 480;
+          outCanvas.getContext("2d").drawImage(img, sx, sy, sSize, sSize, 0, 0, 480, 480);
+          finish(outCanvas);
+        });
+      });
+    }
+
     async function compressProfilePhoto(file) {
       const dataUrl = await fileToDataUrl(file);
       const img = document.createElement("img");
@@ -3458,17 +3731,45 @@
         img.onerror = () => reject(new Error("Imagen invalida."));
         img.src = dataUrl;
       });
-      const max = 480;
-      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-      if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
-      else if (h > max) { w = Math.round(w * max / h); h = max; }
+      const croppedCanvas = await openPhotoCropOverlay(img);
+      if (!croppedCanvas) return null;
       const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      return canvas.toDataURL("image/jpeg", 0.75);
+      const ctx = canvas.getContext("2d");
+      // La foto se guarda en base64 dentro de una celda de Google Sheets (limite ~50000
+      // caracteres): se prueba con calidad/tamano decrecientes hasta quedar comodamente
+      // por debajo de ese limite, en vez de fallar con fotos grandes o muy detalladas.
+      const attempts = [{ max: 480, quality: 0.75 }, { max: 360, quality: 0.6 }, { max: 240, quality: 0.5 }];
+      let result = null;
+      for (const attempt of attempts) {
+        canvas.width = attempt.max;
+        canvas.height = attempt.max;
+        ctx.drawImage(croppedCanvas, 0, 0, attempt.max, attempt.max);
+        result = canvas.toDataURL("image/jpeg", attempt.quality);
+        if (result.length <= 40000) break;
+      }
+      return result;
     }
 
-    function openPhotoLightbox(url, identity, previewEl) {
+    async function removeProfilePhoto_(identity, onRemoved) {
+      if (!confirm("¿Seguro que quieres eliminar la foto?")) return false;
+      try {
+        const response = await callLoginApi("deleteProfilePhoto", { rol: identity.rol, usuario: identity.usuario });
+        if (!response || !response.success) {
+          alert((response && response.message) || "No se pudo eliminar la foto.");
+          return false;
+        }
+        if (state.currentSession) state.currentSession.fotoPerfil = "";
+        persistSession(state.currentSession);
+        renderHeaderAvatar("");
+        if (onRemoved) onRemoved();
+        return true;
+      } catch (error) {
+        alert("No se pudo contactar el servidor. Intenta de nuevo.");
+        return false;
+      }
+    }
+
+    function openPhotoLightbox(url) {
       if (document.querySelector(".photo-lightbox")) return;
       const overlay = document.createElement("div");
       overlay.className = "update-overlay photo-lightbox";
@@ -3477,7 +3778,7 @@
       overlay.innerHTML = `
         <div class="lightbox-card">
           <img class="lightbox-img" src="${escapeHtml(url)}" alt="Foto de perfil">
-          <button type="button" class="lightbox-delete" id="lightboxDelete" aria-label="Eliminar foto" title="Eliminar foto">✕</button>
+          <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Cerrar" title="Cerrar">✕</button>
         </div>`;
       document.body.appendChild(overlay);
 
@@ -3488,28 +3789,22 @@
       };
       document.addEventListener("keydown", onEscape);
 
-      overlay.querySelector("#lightboxDelete").addEventListener("click", async () => {
-        if (!confirm("¿Seguro que quieres eliminar la foto?")) return;
-        try {
-          const response = await callLoginApi("deleteProfilePhoto", { rol: identity.rol, usuario: identity.usuario });
-          if (!response || !response.success) {
-            alert((response && response.message) || "No se pudo eliminar la foto.");
-            return;
-          }
-          if (state.currentSession) state.currentSession.fotoPerfil = "";
-          persistSession(state.currentSession);
-          renderHeaderAvatar("");
-          if (previewEl) {
-            previewEl.removeAttribute("src");
-            previewEl.style.display = "none";
-          }
-          const label = document.querySelector('label[for="profilePhotoInput"]');
-          if (label) label.textContent = "📷 Subir foto";
-          closeOverlay();
-        } catch (error) {
-          alert("No se pudo contactar el servidor. Intenta de nuevo.");
-        }
-      });
+      overlay.querySelector("#lightboxClose").addEventListener("click", closeOverlay);
+    }
+
+    function resetProfilePhotoUi_(previewEl) {
+      if (previewEl) {
+        previewEl.removeAttribute("src");
+        previewEl.style.display = "none";
+      }
+      const placeholder = document.getElementById("profileAvatarPlaceholder");
+      if (placeholder) placeholder.style.display = "";
+      const label = document.getElementById("profilePhotoLabel");
+      if (label) label.textContent = "Subir foto";
+      const sep = document.getElementById("profileLinkSep");
+      if (sep) sep.style.display = "none";
+      const deleteLink = document.getElementById("profileDeletePhoto");
+      if (deleteLink) deleteLink.style.display = "none";
     }
 
     function openProfileOverlay() {
@@ -3522,24 +3817,28 @@
       overlay.setAttribute("aria-modal", "true");
       const fotoActual = session.fotoPerfil || "";
       overlay.innerHTML = `
-        <div class="update-card">
-          <div class="update-icon">👤</div>
+        <div class="update-card profile-card">
           <h2>Mi perfil</h2>
-          <div class="profile-meta">
-            <div><strong>${escapeHtml(session.user || identity.usuario || "Usuario")}</strong></div>
-            <div>${escapeHtml(identity.rol === "admin" ? "Administrador" : identity.rol)} · ${escapeHtml(identity.usuario)}</div>
-          </div>
-          <div class="profile-photo-row">
+          <div class="profile-avatar-wrap">
             <img class="profile-photo-preview" id="profilePhotoPreview" src="${fotoActual ? escapeHtml(fotoActual) : ''}" alt="" ${fotoActual ? "" : 'style="display:none;"'}>
-            <div class="profile-photo-actions">
-              <label for="profilePhotoInput">📷 ${fotoActual ? "Cambiar foto" : "Subir foto"}</label>
-              <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;">
-              <span class="pwd-msg" id="profilePhotoMsg" style="color:#a32d2d;font-size:.8rem;"></span>
+            <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder" ${fotoActual ? 'style="display:none;"' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
-          <div class="update-actions">
-            <button type="button" class="update-later" id="profileClose">Cerrar</button>
-            <button type="button" class="update-now" id="profileChangePwd">Cambiar contraseña</button>
+          <div class="profile-photo-links">
+            <label for="profilePhotoInput" class="profile-link" id="profilePhotoLabel">${fotoActual ? "Cambiar foto" : "Subir foto"}</label>
+            <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;">
+            <span class="profile-link-sep" id="profileLinkSep" ${fotoActual ? "" : 'style="display:none;"'}>·</span>
+            <button type="button" class="profile-link profile-link-danger" id="profileDeletePhoto" ${fotoActual ? "" : 'style="display:none;"'}>Eliminar foto</button>
+          </div>
+          <div class="pwd-msg" id="profilePhotoMsg" style="color:#a32d2d;font-size:.8rem;text-align:center;min-height:1.1em;"></div>
+          <div class="profile-identity">
+            <div class="profile-identity-name">${escapeHtml(session.user || identity.usuario || "Usuario")}</div>
+            <span class="profile-role-badge">${escapeHtml(identity.rol === "admin" ? "Administrador" : identity.rol)}</span>
+          </div>
+          <div class="profile-actions-pro">
+            <button type="button" class="profile-btn-primary" id="profileChangePwd">🔒 Cambiar contraseña</button>
+            <button type="button" class="profile-btn-close" id="profileClose">Cerrar</button>
           </div>
         </div>`;
       document.body.appendChild(overlay);
@@ -3554,24 +3853,35 @@
       const photoInput = overlay.querySelector("#profilePhotoInput");
       const photoMsg = overlay.querySelector("#profilePhotoMsg");
       const photoPreview = overlay.querySelector("#profilePhotoPreview");
+      const photoLabel = overlay.querySelector("#profilePhotoLabel");
+      const photoSep = overlay.querySelector("#profileLinkSep");
+      const deleteLink = overlay.querySelector("#profileDeletePhoto");
+      const placeholder = overlay.querySelector("#profileAvatarPlaceholder");
       photoPreview.addEventListener("click", () => {
-        if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src, identity, photoPreview);
+        if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src);
+      });
+      deleteLink.addEventListener("click", async () => {
+        await removeProfilePhoto_(identity, () => resetProfilePhotoUi_(photoPreview));
       });
       photoInput.addEventListener("change", async () => {
         const file = photoInput.files && photoInput.files[0];
         if (!file) return;
-        photoMsg.textContent = "Subiendo foto...";
         try {
           const foto = await compressProfilePhoto(file);
+          if (!foto) return; // el usuario cancelo el recorte
+          photoMsg.textContent = "Subiendo foto...";
           const response = await callLoginApi("updateProfilePhoto", { rol: identity.rol, usuario: identity.usuario, foto });
           if (!response || !response.success) {
             photoMsg.textContent = (response && response.message) || "No se pudo guardar la foto.";
             return;
           }
           photoMsg.textContent = "";
-          const preview = overlay.querySelector("#profilePhotoPreview");
-          preview.src = foto;
-          preview.style.display = "";
+          photoPreview.src = foto;
+          photoPreview.style.display = "";
+          placeholder.style.display = "none";
+          photoLabel.textContent = "Cambiar foto";
+          photoSep.style.display = "";
+          deleteLink.style.display = "";
           if (state.currentSession) state.currentSession.fotoPerfil = response.url || foto;
           persistSession(state.currentSession);
           renderHeaderAvatar((state.currentSession && state.currentSession.fotoPerfil) || foto);
