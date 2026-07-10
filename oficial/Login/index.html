@@ -3081,7 +3081,7 @@
       if (normalized === "SUPERVISOR") return VENTAS_MODULES;
       if (normalized === "CARTERA") return CARTERA_MODULES;
       if (normalized === "VENDEDOR" || normalized === "VENTAS") return VENDEDOR_MODULES;
-      if (normalized === "VENDEDORES_ICE" || normalized === "VENDEDOR_ICE" || normalized === "ICE") return ICE_OPERATIVO_MODULES;
+      if (normalized === "VENDEDORES_ICE" || normalized === "VENDEDOR_ICE" || normalized === "ICE") return [...ICE_OPERATIVO_MODULES, ...VENDEDOR_MODULES];
       return null;
     }
 

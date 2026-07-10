@@ -11,6 +11,7 @@
                   "Rediseño de la ventana 'Mi perfil': foto grande y centrada, enlaces 'Cambiar foto' / 'Eliminar foto', nombre y rol como insignia, y botones de 'Cambiar contraseña' / 'Cerrar' mas claros. La 'X' de la vista ampliada de la foto ahora solo cierra esa vista (ya no elimina la foto).",
                   "Mejora: al resetear la contraseña de un usuario desde Control de usuarios, se muestra un aviso de exito claro y el dialogo se cierra solo.",
                   "Corregido: el menu lateral no mostraba las opciones dentro de 'Control de accesos' en el celular aunque el grupo estuviera abierto (una regla de estilos pensada para el modo de escritorio colapsado se aplicaba tambien en movil).",
+                  "Nuevo: los usuarios con rol Vendedor_ICE ahora tambien ven el modulo de Ventas (Mapa, BI Vendedor, BI Cartera, BI Devoluciones, BI Nuevo Dia), ademas del modulo de ICE que ya tenian (Escaneo y Mis visitas).",
                   "Requiere republicar manualmente Login/Code.gs (oficial) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
               ],
     "releaseKey":  "1.0.4",
