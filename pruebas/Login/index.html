@@ -1655,27 +1655,156 @@
       display: block;
     }
 
-    .profile-photo-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 4px 0 18px;
-      text-align: left;
+    .profile-card {
+      text-align: center;
+    }
+
+    .profile-card h2 {
+      text-align: center;
+      color: #486078;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 18px;
+    }
+
+    .profile-avatar-wrap {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 12px;
     }
 
     .profile-photo-preview {
-      width: 64px;
-      height: 64px;
+      width: 128px;
+      height: 128px;
       border-radius: 50%;
       object-fit: cover;
       background: #e8f6ff;
-      border: 1px solid #c9deec;
+      border: 3px solid #ffffff;
+      box-shadow: 0 12px 28px rgba(0, 60, 90, .18), 0 0 0 1px #d7e8f2;
       cursor: pointer;
+      display: block;
     }
 
-    .profile-photo-actions {
+    .profile-avatar-placeholder {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
       display: grid;
-      gap: 6px;
+      place-items: center;
+      background: #e8f6ff;
+      color: #8caebf;
+      border: 3px solid #ffffff;
+      box-shadow: 0 12px 28px rgba(0, 60, 90, .18), 0 0 0 1px #d7e8f2;
+    }
+
+    .profile-avatar-placeholder svg {
+      width: 60px;
+      height: 60px;
+    }
+
+    .profile-photo-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .profile-link {
+      border: 0;
+      background: none;
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 800;
+      color: #0074a8;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .profile-link:hover {
+      text-decoration: underline;
+    }
+
+    .profile-link-danger {
+      color: #b23434;
+    }
+
+    .profile-link-sep {
+      color: #c4d5e0;
+      font-size: .8rem;
+    }
+
+    .profile-identity {
+      margin: 18px 0 22px;
+    }
+
+    .profile-identity-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .profile-role-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 999px;
+      background: #eef4f8;
+      color: #486078;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .profile-actions-pro {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .profile-btn-primary {
+      min-height: 48px;
+      border: 0;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1388bd, #006fa5);
+      color: #ffffff;
+      box-shadow: 0 14px 28px rgba(0, 111, 165, 0.22);
+    }
+
+    .profile-btn-close {
+      min-height: 48px;
+      padding: 0 20px;
+      border: 1px solid #f3b6b6;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      background: #fff5f5;
+      color: #a32d2d;
+    }
+
+    .profile-btn-close:hover {
+      background: #ffeaea;
+    }
+
+    @media (max-width: 520px) {
+      .profile-actions-pro {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-btn-close {
+        order: 2;
+      }
+
+      .profile-btn-primary {
+        order: 1;
+      }
     }
 
     .photo-lightbox .lightbox-card {
@@ -1718,24 +1847,6 @@
     .lightbox-delete:hover {
       background: #fff1f1;
     }
-
-    .profile-photo-actions label {
-      font-size: .85rem;
-      font-weight: 800;
-      color: #0074a8;
-      cursor: pointer;
-    }
-
-    .profile-meta {
-      text-align: left;
-      margin-bottom: 4px;
-    }
-
-    .profile-meta div {
-      font-size: .9rem;
-      color: var(--muted);
-    }
-
 
     /* Fixed mobile shell: header and bottom navigation stay anchored; only module content scrolls. */
     .app-screen.is-mobile-layout {
@@ -3478,6 +3589,25 @@
       return result;
     }
 
+    async function removeProfilePhoto_(identity, onRemoved) {
+      if (!confirm("¿Seguro que quieres eliminar la foto?")) return false;
+      try {
+        const response = await callLoginApi("deleteProfilePhoto", { rol: identity.rol, usuario: identity.usuario });
+        if (!response || !response.success) {
+          alert((response && response.message) || "No se pudo eliminar la foto.");
+          return false;
+        }
+        if (state.currentSession) state.currentSession.fotoPerfil = "";
+        persistSession(state.currentSession);
+        renderHeaderAvatar("");
+        if (onRemoved) onRemoved();
+        return true;
+      } catch (error) {
+        alert("No se pudo contactar el servidor. Intenta de nuevo.");
+        return false;
+      }
+    }
+
     function openPhotoLightbox(url, identity, previewEl) {
       if (document.querySelector(".photo-lightbox")) return;
       const overlay = document.createElement("div");
@@ -3499,27 +3629,24 @@
       document.addEventListener("keydown", onEscape);
 
       overlay.querySelector("#lightboxDelete").addEventListener("click", async () => {
-        if (!confirm("¿Seguro que quieres eliminar la foto?")) return;
-        try {
-          const response = await callLoginApi("deleteProfilePhoto", { rol: identity.rol, usuario: identity.usuario });
-          if (!response || !response.success) {
-            alert((response && response.message) || "No se pudo eliminar la foto.");
-            return;
-          }
-          if (state.currentSession) state.currentSession.fotoPerfil = "";
-          persistSession(state.currentSession);
-          renderHeaderAvatar("");
-          if (previewEl) {
-            previewEl.removeAttribute("src");
-            previewEl.style.display = "none";
-          }
-          const label = document.querySelector('label[for="profilePhotoInput"]');
-          if (label) label.textContent = "📷 Subir foto";
-          closeOverlay();
-        } catch (error) {
-          alert("No se pudo contactar el servidor. Intenta de nuevo.");
-        }
+        const removed = await removeProfilePhoto_(identity, () => resetProfilePhotoUi_(previewEl));
+        if (removed) closeOverlay();
       });
+    }
+
+    function resetProfilePhotoUi_(previewEl) {
+      if (previewEl) {
+        previewEl.removeAttribute("src");
+        previewEl.style.display = "none";
+      }
+      const placeholder = document.getElementById("profileAvatarPlaceholder");
+      if (placeholder) placeholder.style.display = "";
+      const label = document.getElementById("profilePhotoLabel");
+      if (label) label.textContent = "Subir foto";
+      const sep = document.getElementById("profileLinkSep");
+      if (sep) sep.style.display = "none";
+      const deleteLink = document.getElementById("profileDeletePhoto");
+      if (deleteLink) deleteLink.style.display = "none";
     }
 
     function openProfileOverlay() {
@@ -3532,24 +3659,28 @@
       overlay.setAttribute("aria-modal", "true");
       const fotoActual = session.fotoPerfil || "";
       overlay.innerHTML = `
-        <div class="update-card">
-          <div class="update-icon">👤</div>
+        <div class="update-card profile-card">
           <h2>Mi perfil</h2>
-          <div class="profile-meta">
-            <div><strong>${escapeHtml(session.user || identity.usuario || "Usuario")}</strong></div>
-            <div>${escapeHtml(identity.rol === "admin" ? "Administrador" : identity.rol)} · ${escapeHtml(identity.usuario)}</div>
-          </div>
-          <div class="profile-photo-row">
+          <div class="profile-avatar-wrap">
             <img class="profile-photo-preview" id="profilePhotoPreview" src="${fotoActual ? escapeHtml(fotoActual) : ''}" alt="" ${fotoActual ? "" : 'style="display:none;"'}>
-            <div class="profile-photo-actions">
-              <label for="profilePhotoInput">📷 ${fotoActual ? "Cambiar foto" : "Subir foto"}</label>
-              <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;">
-              <span class="pwd-msg" id="profilePhotoMsg" style="color:#a32d2d;font-size:.8rem;"></span>
+            <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder" ${fotoActual ? 'style="display:none;"' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
-          <div class="update-actions">
-            <button type="button" class="update-later" id="profileClose">Cerrar</button>
-            <button type="button" class="update-now" id="profileChangePwd">Cambiar contraseña</button>
+          <div class="profile-photo-links">
+            <label for="profilePhotoInput" class="profile-link" id="profilePhotoLabel">${fotoActual ? "Cambiar foto" : "Subir foto"}</label>
+            <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;">
+            <span class="profile-link-sep" id="profileLinkSep" ${fotoActual ? "" : 'style="display:none;"'}>·</span>
+            <button type="button" class="profile-link profile-link-danger" id="profileDeletePhoto" ${fotoActual ? "" : 'style="display:none;"'}>Eliminar foto</button>
+          </div>
+          <div class="pwd-msg" id="profilePhotoMsg" style="color:#a32d2d;font-size:.8rem;text-align:center;min-height:1.1em;"></div>
+          <div class="profile-identity">
+            <div class="profile-identity-name">${escapeHtml(session.user || identity.usuario || "Usuario")}</div>
+            <span class="profile-role-badge">${escapeHtml(identity.rol === "admin" ? "Administrador" : identity.rol)}</span>
+          </div>
+          <div class="profile-actions-pro">
+            <button type="button" class="profile-btn-primary" id="profileChangePwd">🔒 Cambiar contraseña</button>
+            <button type="button" class="profile-btn-close" id="profileClose">Cerrar</button>
           </div>
         </div>`;
       document.body.appendChild(overlay);
@@ -3564,8 +3695,15 @@
       const photoInput = overlay.querySelector("#profilePhotoInput");
       const photoMsg = overlay.querySelector("#profilePhotoMsg");
       const photoPreview = overlay.querySelector("#profilePhotoPreview");
+      const photoLabel = overlay.querySelector("#profilePhotoLabel");
+      const photoSep = overlay.querySelector("#profileLinkSep");
+      const deleteLink = overlay.querySelector("#profileDeletePhoto");
+      const placeholder = overlay.querySelector("#profileAvatarPlaceholder");
       photoPreview.addEventListener("click", () => {
         if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src, identity, photoPreview);
+      });
+      deleteLink.addEventListener("click", async () => {
+        await removeProfilePhoto_(identity, () => resetProfilePhotoUi_(photoPreview));
       });
       photoInput.addEventListener("change", async () => {
         const file = photoInput.files && photoInput.files[0];
@@ -3579,9 +3717,12 @@
             return;
           }
           photoMsg.textContent = "";
-          const preview = overlay.querySelector("#profilePhotoPreview");
-          preview.src = foto;
-          preview.style.display = "";
+          photoPreview.src = foto;
+          photoPreview.style.display = "";
+          placeholder.style.display = "none";
+          photoLabel.textContent = "Cambiar foto";
+          photoSep.style.display = "";
+          deleteLink.style.display = "";
           if (state.currentSession) state.currentSession.fotoPerfil = response.url || foto;
           persistSession(state.currentSession);
           renderHeaderAvatar((state.currentSession && state.currentSession.fotoPerfil) || foto);
