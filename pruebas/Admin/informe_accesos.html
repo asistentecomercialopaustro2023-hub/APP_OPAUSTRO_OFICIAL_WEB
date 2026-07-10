@@ -106,6 +106,14 @@
       <button class="icon-square" id="refreshBtn" type="button" title="Actualizar accesos" aria-label="Actualizar accesos">&#8635;</button>
     </form>
 
+    <section class="role-control">
+      <div class="role-control-head">
+        <span class="role-control-title">Roles visibles en el informe</span>
+        <span class="role-control-note" id="controlledRolesStatus">0 de 0 rol(es) activos</span>
+      </div>
+      <div class="role-chips" id="controlledRoles"></div>
+    </section>
+
     <section class="metrics" aria-label="Resumen de accesos">
       <button class="metric" id="cardDay" type="button" data-range="day"><span>Ingresos hoy</span><strong id="countDay">0</strong></button>
       <button class="metric" id="cardWeek" type="button" data-range="week"><span>Semana actual</span><strong id="countWeek">0</strong></button>
