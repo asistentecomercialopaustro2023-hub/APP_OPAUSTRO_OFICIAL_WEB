@@ -106,14 +106,6 @@
       <button class="icon-square" id="refreshBtn" type="button" title="Actualizar accesos" aria-label="Actualizar accesos">&#8635;</button>
     </form>
 
-    <section class="role-control">
-      <div class="role-control-head">
-        <span class="role-control-title">Roles visibles en el informe</span>
-        <span class="role-control-note" id="controlledRolesStatus">0 de 0 rol(es) activos</span>
-      </div>
-      <div class="role-chips" id="controlledRoles"></div>
-    </section>
-
     <section class="metrics" aria-label="Resumen de accesos">
       <button class="metric" id="cardDay" type="button" data-range="day"><span>Ingresos hoy</span><strong id="countDay">0</strong></button>
       <button class="metric" id="cardWeek" type="button" data-range="week"><span>Semana actual</span><strong id="countWeek">0</strong></button>
@@ -232,7 +224,6 @@
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzgAsPi-0BQW0O7ZrOH2jgoo_jsx-tY9EflYOV2lTmLlJXXRfceLkXUVmHKeUYtA_P1Hw/exec";
     const LOG_KEY = "opaustro_access_log";
-    const ROLE_EXCLUDED_KEY = "opaustro_access_roles_excluded";
     const DEFAULT_EXCLUDED_ROLE_KEYS = new Set(["ADMIN", "ADMINISTRADOR", "GERENCIA", "GERENTE"]);
     const $ = id => document.getElementById(id);
     let rows = [];
@@ -255,8 +246,17 @@
     function fmt(value){const d=parseDate(value);return d?d.toLocaleString("es-EC",{dateStyle:"short",timeStyle:"short"}):""}
     function norm(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim()}
     function roleKey(value){return norm(value)}
-    function readExcludedRoles(){try{const raw=JSON.parse(localStorage.getItem(ROLE_EXCLUDED_KEY)||"null");return Array.isArray(raw)?new Set(raw.map(roleKey)):new Set(DEFAULT_EXCLUDED_ROLE_KEYS)}catch(_){return new Set(DEFAULT_EXCLUDED_ROLE_KEYS)}}
-    function writeExcludedRoles(){try{localStorage.setItem(ROLE_EXCLUDED_KEY,JSON.stringify([...excludedRoleKeys]))}catch(_){}}
+    async function fetchExcludedRoles(){
+      if(!ACCESS_API_URL) return new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
+      try{
+        const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"getExcludedAccessRoles",payload:{}})});
+        const text=await response.text();
+        const data=JSON.parse(String(text||"{}"));
+        return data.success&&Array.isArray(data.excludedRoles)?new Set(data.excludedRoles.map(roleKey)):new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
+      }catch(_){
+        return new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
+      }
+    }
     async function fetchLoginRoles(){
       if(!ACCESS_API_URL) return [];
       const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"getLoginData",payload:{}})});
@@ -283,10 +283,11 @@
     }
     async function loadRows(){
       try{
-        const result=await Promise.allSettled([fetchCentralRows(),fetchLoginRoles()]);
+        const result=await Promise.allSettled([fetchCentralRows(),fetchLoginRoles(),fetchExcludedRoles()]);
         const centralOk=result[0].status==="fulfilled";
         rows=centralOk?result[0].value:[];
         loginRoles=result[1].status==="fulfilled"?result[1].value:loginRoles;
+        excludedRoleKeys=result[2].status==="fulfilled"?result[2].value:excludedRoleKeys;
         sourceLabel=centralOk?"central":"sin-conexion";
       }catch(_){
         rows=[];
@@ -295,29 +296,6 @@
     }
     function uniqueRoles(){const byKey=new Map();loginRoles.concat(rows.map(r=>String(r.role).trim())).filter(Boolean).forEach(role=>{const key=roleKey(role);if(key&&!byKey.has(key))byKey.set(key,role)});return [...byKey.values()].sort((a,b)=>a.localeCompare(b,"es"))}
     function controlledRoles(){return allRoles.filter(role=>!excludedRoleKeys.has(roleKey(role)))}
-    function renderControlledRoles(){
-      allRoles=uniqueRoles();
-      excludedRoleKeys=readExcludedRoles();
-      const box=$("controlledRoles");
-      const status=$("controlledRolesStatus");
-      if(!box||!status) return;
-      box.innerHTML=allRoles.length?allRoles.map(role=>{
-        const key=roleKey(role);
-        const checked=!excludedRoleKeys.has(key);
-        return `<label class="role-chip"><input type="checkbox" value="${escapeHtml(key)}" ${checked?"checked":""}><span>${escapeHtml(role)}</span></label>`;
-      }).join(""):`<span class="role-control-note">No se encontraron roles configurados.</span>`;
-      status.textContent=`${controlledRoles().length} de ${allRoles.length} rol(es) activos`;
-      box.querySelectorAll("input[type='checkbox']").forEach(input=>{
-        input.addEventListener("change",()=>{
-          if(input.checked) excludedRoleKeys.delete(input.value);
-          else excludedRoleKeys.add(input.value);
-          writeExcludedRoles();
-          renderControlledRoles();
-          syncRoleOptions();
-          render();
-        });
-      });
-    }
     function syncRoleOptions(){const current=$("roleFilter").value;const roles=allRoles.length?allRoles:uniqueRoles();$("roleFilter").innerHTML='<option value="">Todos los roles existentes</option>'+roles.map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");$("roleFilter").value=roles.some(r=>norm(r)===norm(current))?current:""}
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
     function inRange(row,start){const d=parseDate(row.at);return d&&d>=start}
@@ -338,7 +316,7 @@
     }
     async function render(){
       await loadRows();
-      renderControlledRoles();
+      allRoles=uniqueRoles();
       syncRoleOptions();
       const now=new Date(), day=startOfDay(now), week=startOfWeek(now), month=startOfMonth(now);
       const view=filteredRows();

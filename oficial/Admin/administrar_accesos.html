@@ -83,26 +83,35 @@
 
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzgAsPi-0BQW0O7ZrOH2jgoo_jsx-tY9EflYOV2lTmLlJXXRfceLkXUVmHKeUYtA_P1Hw/exec";
-    const ROLE_EXCLUDED_KEY = "opaustro_access_roles_excluded";
     const DEFAULT_EXCLUDED_ROLE_KEYS = new Set(["ADMIN", "ADMINISTRADOR", "GERENCIA", "GERENTE"]);
     const $ = id => document.getElementById(id);
     let allRoles = [];
-    let excludedRoleKeys = readExcludedRoles();
+    let excludedRoleKeys = new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
     let roleCardFilter = null;
 
     function norm(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim()}
     function roleKey(value){return norm(value)}
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
-    function readExcludedRoles(){
+    async function fetchExcludedRoles(){
+      if(!ACCESS_API_URL) return new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
       try{
-        const raw=JSON.parse(localStorage.getItem(ROLE_EXCLUDED_KEY)||"null");
-        return Array.isArray(raw)?new Set(raw.map(roleKey)):new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
+        const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"getExcludedAccessRoles",payload:{}})});
+        const text=await response.text();
+        const data=JSON.parse(String(text||"{}"));
+        return data.success&&Array.isArray(data.excludedRoles)?new Set(data.excludedRoles.map(roleKey)):new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
       }catch(_){
         return new Set(DEFAULT_EXCLUDED_ROLE_KEYS);
       }
     }
-    function writeExcludedRoles(){
-      try{localStorage.setItem(ROLE_EXCLUDED_KEY,JSON.stringify([...excludedRoleKeys]))}catch(_){}
+    async function saveExcludedRoles(){
+      if(!ACCESS_API_URL) return {success:false};
+      try{
+        const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"setExcludedAccessRoles",payload:{excludedRoles:[...excludedRoleKeys]}})});
+        const text=await response.text();
+        return JSON.parse(String(text||"{}"));
+      }catch(_){
+        return {success:false};
+      }
     }
     async function fetchLoginRoles(){
       if(!ACCESS_API_URL) return [];
@@ -138,13 +147,14 @@
       }).join(""):`<span class="role-control-note">${allRoles.length?"Ningun rol coincide con este filtro.":"No se encontraron roles configurados."}</span>`;
       updateMetrics();
       box.querySelectorAll("input[type='checkbox']").forEach(input=>{
-        input.addEventListener("change",()=>{
+        input.addEventListener("change",async()=>{
           if(input.checked) excludedRoleKeys.delete(input.value);
           else excludedRoleKeys.add(input.value);
-          writeExcludedRoles();
           renderControlledRoles();
+          $("saveStatus").innerHTML="Guardando...";
+          const result=await saveExcludedRoles();
           const active=allRoles.filter(role=>!excludedRoleKeys.has(roleKey(role))).length;
-          $("saveStatus").innerHTML=`<strong>Guardado.</strong> El informe tomará ${active} rol(es) activo(s).`;
+          $("saveStatus").innerHTML=result.success?`<strong>Guardado.</strong> El informe tomará ${active} rol(es) activo(s).`:"No se pudo guardar. Intenta de nuevo.";
         });
       });
     }
@@ -157,7 +167,9 @@
     });
     async function init(){
       try{
-        allRoles=(await fetchLoginRoles()).filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+        const [roles,excluded]=await Promise.all([fetchLoginRoles(),fetchExcludedRoles()]);
+        allRoles=roles.filter(Boolean).sort((a,b)=>a.localeCompare(b,"es"));
+        excludedRoleKeys=excluded;
         renderControlledRoles();
       }catch(error){
         $("controlledRoles").innerHTML='<span class="role-control-note">No se pudo cargar la lista de roles.</span>';
