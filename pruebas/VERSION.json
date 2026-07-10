@@ -1,14 +1,15 @@
 {
     "app":  "OPAUSTRO",
-    "version":  "1.0.1",
-    "label":  "OPAUSTRO v1.0.1",
+    "version":  "1.0.2",
+    "label":  "OPAUSTRO v1.0.2",
     "channel":  "oficial",
-    "publishedAt":  "2026-07-09",
+    "publishedAt":  "2026-07-10",
     "notes":  [
-                  "Error de camara Logistica corregido: la captura de fotos en registrar entrada/salida/bodega ahora usa camara en vivo dentro de la pagina en vez de la app de camara del sistema, evitando que el proceso se cerrara sin guardar al tomar la 2da o 3ra foto.",
-                  "Encabezado del modulo Logistica ajustado para moviles: el indicador de sincronizacion y los botones de accion ya no se desbordan a una segunda fila."
+                  "Corregido: registrar Entrada en Logistica podia mostrar 'guardado' sin haberse guardado realmente en el servidor (la foto/placa desaparecian tras sincronizar). Ahora se valida la respuesta del servidor antes de confirmar exito, y si falla se conservan los datos/fotos para reintentar. Mismo fix aplicado a actualizar fotos de bodega, finalizar mantenimiento y cancelar planificacion.",
+                  "Nuevo: cambio de contrasena obligatorio en el primer ingreso (o tras un reseteo del administrador), con opcion de posponerlo. Disponible tambien en todo momento desde el nombre de usuario (menu de perfil), donde tambien se puede subir una foto de perfil.",
+                  "Requiere republicar manualmente Login/Code.gs en el editor de Apps Script para que el cambio de contrasena y la foto de perfil funcionen (agrega columnas Debe_Cambiar_Clave y Foto_Perfil a la hoja BD_Login)."
               ],
-    "releaseKey":  "1.0.1",
+    "releaseKey":  "1.0.2",
     "forceUpdate":  false,
     "rollback":  false
 }

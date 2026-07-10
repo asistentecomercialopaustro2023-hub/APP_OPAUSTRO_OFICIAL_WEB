@@ -1505,6 +1505,96 @@
       }
     }
 
+    .profile-trigger {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 8px;
+      transition: background .15s ease;
+    }
+
+    .profile-trigger:hover,
+    .profile-trigger:focus-visible {
+      background: rgba(0, 0, 0, .06);
+      outline: none;
+    }
+
+    .pwd-field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .pwd-field label {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .pwd-field input {
+      min-height: 46px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 1rem;
+      color: var(--ink);
+      background: #fbfdff;
+    }
+
+    .pwd-field input:focus {
+      border-color: var(--brand);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(7, 95, 155, .13);
+      outline: none;
+    }
+
+    .profile-photo-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 4px 0 18px;
+      text-align: left;
+    }
+
+    .profile-photo-preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e8f6ff;
+      border: 1px solid #c9deec;
+    }
+
+    .profile-photo-actions {
+      display: grid;
+      gap: 6px;
+    }
+
+    .profile-photo-actions label {
+      font-size: .85rem;
+      font-weight: 800;
+      color: #0074a8;
+      cursor: pointer;
+    }
+
+    .profile-meta {
+      text-align: left;
+      margin-bottom: 4px;
+    }
+
+    .profile-meta div {
+      font-size: .9rem;
+      color: var(--muted);
+    }
+
 
     /* Fixed mobile shell: header and bottom navigation stay anchored; only module content scrolls. */
     .app-screen.is-mobile-layout {
@@ -1860,8 +1950,10 @@
       </div>
 
       <div class="user-box">
-        <strong id="sessionUser">Usuario</strong>
-        <span id="sessionRole">Rol</span>
+        <button class="profile-trigger" type="button" id="profileButton" aria-haspopup="dialog" title="Ver perfil y cambiar contrase&ntilde;a">
+          <strong id="sessionUser">Usuario</strong>
+          <span id="sessionRole">Rol</span>
+        </button>
         <button class="logout-btn" type="button" id="logoutButton">Cerrar sesi&oacute;n</button>
       </div>
     </header>
@@ -1903,9 +1995,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
-    const APP_VERSION = '1.0.1';
-    const APP_RELEASE = 'OPAUSTRO v1.0.1';
-    const APP_RELEASE_KEY = '1.0.1';
+    const APP_VERSION = '1.0.2';
+    const APP_RELEASE = 'OPAUSTRO v1.0.2';
+    const APP_RELEASE_KEY = '1.0.2';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -3003,7 +3095,7 @@
       return icePreparationPromise;
     }
 
-    function renderApp(session) {
+    function renderApp(session, credentials) {
       state.currentSession = session;
       if (!state.currentSession.sessionId) state.currentSession.sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       if (!state.currentSession.startedAt) state.currentSession.startedAt = new Date().toISOString();
@@ -3028,6 +3120,181 @@
       if (firstModule) activateModule(firstModule, session, false);
       if (firstModule) history.replaceState({ moduleName: firstModule }, "", "#" + encodeURIComponent(firstModule));
       resetIdleTimer();
+
+      if (session.debeCambiarClave) {
+        openPasswordOverlay({ forced: true, prefillActual: credentials && credentials.password });
+      }
+    }
+
+    function currentSessionIdentity() {
+      const session = state.currentSession || {};
+      return {
+        usuario: session.usuario || session.user || "",
+        rol: session.role || session.rol || ""
+      };
+    }
+
+    function openPasswordOverlay(opts) {
+      opts = opts || {};
+      if (document.querySelector(".pwd-overlay")) return;
+      const forced = !!opts.forced;
+      const prefillActual = opts.prefillActual || "";
+      const overlay = document.createElement("div");
+      overlay.className = "update-overlay pwd-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <div class="update-card">
+          <div class="update-icon">🔑</div>
+          <h2>${forced ? "Cambia tu contraseña" : "Cambiar contraseña"}</h2>
+          <p>${forced ? "Por seguridad, debes establecer una contraseña propia antes de continuar." : "Ingresa tu contraseña actual y la nueva contraseña."}</p>
+          <form id="pwdForm" autocomplete="off">
+            <div class="pwd-field" ${prefillActual ? "hidden" : ""}>
+              <label for="pwdActual">Contraseña actual</label>
+              <input id="pwdActual" name="pwdActual" type="password" ${prefillActual ? "" : "required"}>
+            </div>
+            <div class="pwd-field">
+              <label for="pwdNueva">Nueva contraseña</label>
+              <input id="pwdNueva" name="pwdNueva" type="password" required minlength="4">
+            </div>
+            <div class="pwd-field">
+              <label for="pwdConfirma">Confirmar nueva contraseña</label>
+              <input id="pwdConfirma" name="pwdConfirma" type="password" required minlength="4">
+            </div>
+            <p class="pwd-msg" style="color:#a32d2d;font-size:.85rem;min-height:1.1em;"></p>
+            <div class="update-actions">
+              <button type="button" class="update-later" id="pwdLater">${forced ? "Más tarde" : "Cancelar"}</button>
+              <button type="submit" class="update-now" id="pwdSubmit">Guardar</button>
+            </div>
+          </form>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const closeOverlay = () => overlay.remove();
+      overlay.querySelector("#pwdLater").addEventListener("click", closeOverlay);
+      const form = overlay.querySelector("#pwdForm");
+      const msg = overlay.querySelector(".pwd-msg");
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        msg.textContent = "";
+        const actual = prefillActual || overlay.querySelector("#pwdActual").value.trim();
+        const nueva = overlay.querySelector("#pwdNueva").value.trim();
+        const confirma = overlay.querySelector("#pwdConfirma").value.trim();
+        if (!actual) { msg.textContent = "Ingresa tu contraseña actual."; return; }
+        if (nueva.length < 4) { msg.textContent = "La nueva contraseña debe tener al menos 4 caracteres."; return; }
+        if (nueva !== confirma) { msg.textContent = "Las contraseñas no coinciden."; return; }
+        const submitButton = overlay.querySelector("#pwdSubmit");
+        submitButton.disabled = true;
+        submitButton.textContent = "Guardando...";
+        try {
+          const identity = currentSessionIdentity();
+          const response = await callLoginApi("changePassword", { rol: identity.rol, usuario: identity.usuario, actual, nueva });
+          if (!response || !response.success) {
+            msg.textContent = (response && response.message) || "No se pudo actualizar la contraseña.";
+            return;
+          }
+          if (state.currentSession) state.currentSession.debeCambiarClave = false;
+          persistSession(state.currentSession);
+          closeOverlay();
+        } catch (error) {
+          msg.textContent = "No se pudo contactar el servidor. Intenta de nuevo.";
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Guardar";
+        }
+      });
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function compressProfilePhoto(file) {
+      const dataUrl = await fileToDataUrl(file);
+      const img = document.createElement("img");
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error("Imagen invalida."));
+        img.src = dataUrl;
+      });
+      const max = 480;
+      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+      if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
+      else if (h > max) { w = Math.round(w * max / h); h = max; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      return canvas.toDataURL("image/jpeg", 0.75);
+    }
+
+    function openProfileOverlay() {
+      if (document.querySelector(".profile-overlay")) return;
+      const session = state.currentSession || {};
+      const identity = currentSessionIdentity();
+      const overlay = document.createElement("div");
+      overlay.className = "update-overlay profile-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      const fotoActual = session.fotoPerfil || "";
+      overlay.innerHTML = `
+        <div class="update-card">
+          <div class="update-icon">👤</div>
+          <h2>Mi perfil</h2>
+          <div class="profile-meta">
+            <div><strong>${escapeHtml(session.user || identity.usuario || "Usuario")}</strong></div>
+            <div>${escapeHtml(identity.rol === "admin" ? "Administrador" : identity.rol)} · ${escapeHtml(identity.usuario)}</div>
+          </div>
+          <div class="profile-photo-row">
+            <img class="profile-photo-preview" id="profilePhotoPreview" src="${fotoActual ? escapeHtml(fotoActual) : ''}" alt="" ${fotoActual ? "" : 'style="display:none;"'}>
+            <div class="profile-photo-actions">
+              <label for="profilePhotoInput">📷 ${fotoActual ? "Cambiar foto" : "Subir foto"}</label>
+              <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;">
+              <span class="pwd-msg" id="profilePhotoMsg" style="color:#a32d2d;font-size:.8rem;"></span>
+            </div>
+          </div>
+          <div class="update-actions">
+            <button type="button" class="update-later" id="profileClose">Cerrar</button>
+            <button type="button" class="update-now" id="profileChangePwd">Cambiar contraseña</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const closeOverlay = () => overlay.remove();
+      overlay.querySelector("#profileClose").addEventListener("click", closeOverlay);
+      overlay.querySelector("#profileChangePwd").addEventListener("click", () => {
+        closeOverlay();
+        openPasswordOverlay({ forced: false });
+      });
+      const photoInput = overlay.querySelector("#profilePhotoInput");
+      const photoMsg = overlay.querySelector("#profilePhotoMsg");
+      photoInput.addEventListener("change", async () => {
+        const file = photoInput.files && photoInput.files[0];
+        if (!file) return;
+        photoMsg.textContent = "Subiendo foto...";
+        try {
+          const foto = await compressProfilePhoto(file);
+          const response = await callLoginApi("updateProfilePhoto", { rol: identity.rol, usuario: identity.usuario, foto });
+          if (!response || !response.success) {
+            photoMsg.textContent = (response && response.message) || "No se pudo guardar la foto.";
+            return;
+          }
+          photoMsg.textContent = "";
+          const preview = overlay.querySelector("#profilePhotoPreview");
+          preview.src = foto;
+          preview.style.display = "";
+          if (state.currentSession) state.currentSession.fotoPerfil = response.url || foto;
+          persistSession(state.currentSession);
+        } catch (error) {
+          photoMsg.textContent = "No se pudo subir la foto. Intenta de nuevo.";
+        } finally {
+          try { photoInput.value = ""; } catch (error) {}
+        }
+      });
     }
 
     function activateModule(moduleName, session, pushHistory) {
@@ -3187,6 +3454,7 @@
     });
 
     $("#logoutButton").addEventListener("click", () => logout(false));
+    $("#profileButton").addEventListener("click", () => openProfileOverlay());
     $(".menu-toggle").addEventListener("click", () => {
       const app = $("#appScreen");
       applyResponsiveMode();
@@ -3248,7 +3516,7 @@
         }
 
         recordAccessLog(response, credentials);
-        renderApp(response);
+        renderApp(response, credentials);
         startIcePreparation(response, credentials);
       } catch (error) {
         setMessage("No se pudo validar el acceso. Intente nuevamente.", "error");
