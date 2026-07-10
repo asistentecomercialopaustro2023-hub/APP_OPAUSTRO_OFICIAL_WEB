@@ -3458,14 +3458,24 @@
         img.onerror = () => reject(new Error("Imagen invalida."));
         img.src = dataUrl;
       });
-      const max = 480;
-      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-      if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
-      else if (h > max) { w = Math.round(w * max / h); h = max; }
+      const naturalW = img.naturalWidth || img.width, naturalH = img.naturalHeight || img.height;
       const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      return canvas.toDataURL("image/jpeg", 0.75);
+      const ctx = canvas.getContext("2d");
+      // La foto se guarda en base64 dentro de una celda de Google Sheets (limite ~50000
+      // caracteres): se prueba con calidad/tamano decrecientes hasta quedar comodamente
+      // por debajo de ese limite, en vez de fallar con fotos grandes o muy detalladas.
+      const attempts = [{ max: 480, quality: 0.75 }, { max: 360, quality: 0.6 }, { max: 240, quality: 0.5 }];
+      let result = null;
+      for (const attempt of attempts) {
+        let w = naturalW, h = naturalH;
+        if (w > h) { if (w > attempt.max) { h = Math.round(h * attempt.max / w); w = attempt.max; } }
+        else if (h > attempt.max) { w = Math.round(w * attempt.max / h); h = attempt.max; }
+        canvas.width = w; canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+        result = canvas.toDataURL("image/jpeg", attempt.quality);
+        if (result.length <= 40000) break;
+      }
+      return result;
     }
 
     function openPhotoLightbox(url, identity, previewEl) {

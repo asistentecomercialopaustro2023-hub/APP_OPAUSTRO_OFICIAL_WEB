@@ -462,9 +462,11 @@
       try{
         const data=await api("resetPassword",{row,password:nueva});
         if(!data.success){msg.textContent=data.message||"No se pudo cambiar la contraseña.";msg.className="reset-msg error";return;}
-        msg.textContent="La contraseña se cambió exitosamente.";
+        msg.textContent="✅ Contraseña cambiada exitosamente";
         msg.className="reset-msg ok";
         await loadUsers();
+        setTimeout(closeResetPassword,1200);
+        return;
       }catch(error){
         msg.textContent="No se pudo contactar el servidor. Intente de nuevo.";
         msg.className="reset-msg error";
