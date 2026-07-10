@@ -1720,21 +1720,31 @@ async function confirmarDespacho(){
   if(e.estado!=='BODEGA_OK'&&e.estado!=='MERCADO'){toast('La placa '+placa+' no está disponible para despacho','err');return;}
   var btn=g('btn-dc');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
   var tsDespacho=new Date().toISOString();
-  mov.tsPlanificacion=mov.ts;
-  mov.ts=tsDespacho;
-  mov.estado='DESPACHADO';
-  mov.fotosContrato=fotosContrato;
+  // No alterar el movimiento planificado ni el equipo hasta que Apps Script
+  // confirme el guardado. Antes un error de Drive/Sheets hacía desaparecer el
+  // despacho pendiente de la pantalla aunque nunca se hubiese guardado.
+  var despacho=Object.assign({},mov,{
+    tsPlanificacion:mov.ts,
+    ts:tsDespacho,
+    estado:'DESPACHADO',
+    fotosContrato:fotosContrato
+  });
+  var ok=await push({action:'despacharSalida',data:despacho,planTs:planTs,fotosContrato:fotosContrato});
+  btn.disabled=false;btn.innerHTML='🚚 Confirmar despacho';
+  if(!ok){
+    toast('❌ No se pudo guardar el despacho en el servidor. La planificación y las fotos se conservan para reintentar.','err');
+    return;
+  }
+  Object.assign(mov,despacho);
   e.estado='MERCADO';
   e.cliente=(mov.codCli||'')+' — '+(mov.nomCli||'');
   e.tsSalidaMercado=tsDespacho;
   e.tsUltMov=tsDespacho;
   e.fotosContrato=fotosContrato;
   rAll();
-  var ok=await push({action:'despacharSalida',data:mov,planTs:planTs,fotosContrato:fotosContrato});
-  btn.disabled=false;btn.innerHTML='🚚 Confirmar despacho';
   closeDespacho();
-  toast((ok?'✅ ':'⚠ ')+'Despacho registrado — '+placa+' → '+(mov.nomCli||''),ok?'ok':'warn');
-  if(ok)loadData();
+  toast('✅ Despacho registrado — '+placa+' → '+(mov.nomCli||''),'ok');
+  loadData();
 }
 
 /* SUBIR / EDITAR CONTRATO (desde Movimientos) */
@@ -2140,7 +2150,6 @@ setInterval(function(){
 </script>
 </body>
 </html>
-
 
 
 

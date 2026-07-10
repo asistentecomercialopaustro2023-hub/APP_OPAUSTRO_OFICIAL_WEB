@@ -1839,6 +1839,11 @@
     }
 
     .app-screen.is-mobile-layout .module-list {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-content: flex-start;
+      height: auto !important;
       max-height: 100%;
       overflow-x: hidden;
       overflow-y: auto;
@@ -1846,6 +1851,11 @@
       scrollbar-width: none;
       -ms-overflow-style: none;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .app-screen.is-mobile-layout .module-group {
+      flex: 0 0 auto;
+      width: 100%;
     }
 
     .app-screen.is-mobile-layout .module-list::-webkit-scrollbar {
@@ -3686,7 +3696,6 @@
   </script>
 </body>
 </html>
-
 
 
 
