@@ -12,6 +12,7 @@
                   "Mejora: al resetear la contraseña de un usuario desde Control de usuarios, se muestra un aviso de exito claro y el dialogo se cierra solo.",
                   "Corregido: el menu lateral no mostraba las opciones dentro de 'Control de accesos' en el celular aunque el grupo estuviera abierto (una regla de estilos pensada para el modo de escritorio colapsado se aplicaba tambien en movil).",
                   "Nuevo: los usuarios con rol Vendedor_ICE ahora tambien ven el modulo de Ventas (Mapa, BI Vendedor, BI Cartera, BI Devoluciones, BI Nuevo Dia), ademas del modulo de ICE que ya tenian (Escaneo y Mis visitas).",
+                  "Corregido: el fix anterior del menu lateral fue incompleto — el texto de los enlaces del menu (no solo dentro de un grupo) seguia sin verse en el celular en cualquier rol, por una segunda regla de estilos con el mismo problema. Confirmado y corregido probando en vivo con una cuenta real.",
                   "Requiere republicar manualmente Login/Code.gs (oficial) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
               ],
     "releaseKey":  "1.0.4",

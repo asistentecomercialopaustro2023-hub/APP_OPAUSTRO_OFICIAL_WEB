@@ -465,18 +465,23 @@
       font-size: .72rem;
     }
 
-    .app-screen:not(.sidebar-expanded) .module-sidebar {
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .module-sidebar {
       padding-left: 12px;
       padding-right: 12px;
     }
 
-    .app-screen:not(.sidebar-expanded) .module-sidebar h2,
-    .app-screen:not(.sidebar-expanded) .module-copy,
-    .app-screen:not(.sidebar-expanded) .module-link > span:not(.module-card-icon) {
+    /* Igual que el fix de .group-items: esto es solo para el riel colapsado
+       (solo iconos) del escritorio. Sin el :not(.is-mobile-layout), esta regla
+       ocultaba el texto de TODOS los enlaces del menu lateral en movil (no solo
+       de un grupo) — se veian los iconos pero ningun texto, o nada si el icono
+       tambien fallaba. */
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .module-sidebar h2,
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .module-copy,
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .module-link > span:not(.module-card-icon) {
       display: none;
     }
 
-    .app-screen:not(.sidebar-expanded) .module-link {
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .module-link {
       justify-content: center;
       padding-left: 0;
       padding-right: 0;
@@ -757,7 +762,7 @@
       display: none;
     }
 
-    .app-screen:not(.sidebar-expanded) .group-toggle {
+    .app-screen:not(.is-mobile-layout):not(.sidebar-expanded) .group-toggle {
       justify-content: center;
       padding-left: 0;
       padding-right: 0;
