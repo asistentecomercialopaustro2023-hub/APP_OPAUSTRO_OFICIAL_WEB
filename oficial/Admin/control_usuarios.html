@@ -56,7 +56,12 @@
     .field-hidden{display:none}
     .pwd-input-row{display:flex;gap:8px;align-items:center}
     .pwd-input-row input{flex:1}
-    .pwd-toggle{white-space:nowrap;padding:12px 14px;background:#fff;color:var(--text);border:1px solid var(--line)}
+    .pwd-toggle{flex:0 0 auto;width:46px;min-height:46px;padding:0;background:#fff;color:var(--muted);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;transition:color .15s ease,border-color .15s ease}
+    .pwd-toggle:hover,.pwd-toggle:focus-visible{color:var(--brand);border-color:var(--brand);outline:none}
+    .pwd-toggle svg{width:20px;height:20px;pointer-events:none}
+    .pwd-toggle .icon-eye-off{display:none}
+    .pwd-toggle.is-visible .icon-eye{display:none}
+    .pwd-toggle.is-visible .icon-eye-off{display:block}
     .reset-msg{font-weight:800;font-size:13px;margin-top:10px;min-height:1.2em}
     .reset-msg.ok{color:var(--ok)}
     .reset-msg.error{color:var(--bad)}
@@ -210,7 +215,10 @@
           <label>Nueva contraseña
             <span class="pwd-input-row">
               <input id="resetPwdInput" type="password" required minlength="4" placeholder="Ingrese la nueva contraseña" autocomplete="new-password">
-              <button class="pwd-toggle ghost" type="button" id="toggleResetPwd">Ver</button>
+              <button class="pwd-toggle" type="button" id="toggleResetPwd" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-3.22 4.36"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
             </span>
           </label>
           <div class="modal-actions">
@@ -389,7 +397,7 @@
       $("resetPwdUser").textContent=`${user.usuario}${user.razon?" — "+user.razon:""}`;
       $("resetPwdInput").value="";
       $("resetPwdInput").type="password";
-      $("toggleResetPwd").textContent="Ver";
+      $("toggleResetPwd").classList.remove("is-visible");
       $("resetPwdMsg").textContent="";
       $("resetPwdMsg").className="reset-msg";
       $("resetPwdModal").hidden=false;
@@ -441,7 +449,7 @@
       const input=$("resetPwdInput");
       const showing=input.type==="text";
       input.type=showing?"password":"text";
-      $("toggleResetPwd").textContent=showing?"Ver":"Ocultar";
+      $("toggleResetPwd").classList.toggle("is-visible",!showing);
     });
     $("resetPwdForm").addEventListener("submit",async(event)=>{
       event.preventDefault();

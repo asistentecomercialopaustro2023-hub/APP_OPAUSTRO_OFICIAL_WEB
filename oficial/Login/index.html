@@ -1617,16 +1617,42 @@
 
     .pwd-toggle {
       flex: 0 0 auto;
+      width: 46px;
       min-height: 46px;
-      padding: 0 12px;
+      padding: 0;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
-      color: var(--ink);
-      font-size: .85rem;
-      font-weight: 800;
+      color: var(--muted);
       cursor: pointer;
-      white-space: nowrap;
+      display: grid;
+      place-items: center;
+      transition: color .15s ease, border-color .15s ease;
+    }
+
+    .pwd-toggle:hover,
+    .pwd-toggle:focus-visible {
+      color: var(--brand);
+      border-color: var(--brand);
+      outline: none;
+    }
+
+    .pwd-toggle svg {
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+    }
+
+    .pwd-toggle .icon-eye-off {
+      display: none;
+    }
+
+    .pwd-toggle.is-visible .icon-eye {
+      display: none;
+    }
+
+    .pwd-toggle.is-visible .icon-eye-off {
+      display: block;
     }
 
     .profile-photo-row {
@@ -1644,11 +1670,53 @@
       object-fit: cover;
       background: #e8f6ff;
       border: 1px solid #c9deec;
+      cursor: pointer;
     }
 
     .profile-photo-actions {
       display: grid;
       gap: 6px;
+    }
+
+    .photo-lightbox .lightbox-card {
+      position: relative;
+      width: min(90vw, 380px);
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .lightbox-img {
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 14px;
+      display: block;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .4);
+    }
+
+    .lightbox-delete {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #fff;
+      color: #a32d2d;
+      border: 1px solid #f3b6b6;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .3);
+    }
+
+    .lightbox-delete:hover {
+      background: #fff1f1;
     }
 
     .profile-photo-actions label {
@@ -3274,6 +3342,13 @@
       }
     }
 
+    function eyeToggleButtonHtml(targetId) {
+      return `<button type="button" class="pwd-toggle" data-toggle-for="${targetId}" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+        <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-3.22 4.36"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>`;
+    }
+
     function openPasswordOverlay(opts) {
       opts = opts || {};
       if (document.querySelector(".pwd-overlay")) return;
@@ -3293,21 +3368,21 @@
               <label for="pwdActual">Contraseña actual</label>
               <span class="pwd-input-row">
                 <input id="pwdActual" name="pwdActual" type="password" ${prefillActual ? "" : "required"}>
-                <button type="button" class="pwd-toggle" data-toggle-for="pwdActual">Ver</button>
+                ${eyeToggleButtonHtml("pwdActual")}
               </span>
             </div>
             <div class="pwd-field">
               <label for="pwdNueva">Nueva contraseña</label>
               <span class="pwd-input-row">
                 <input id="pwdNueva" name="pwdNueva" type="password" required minlength="4">
-                <button type="button" class="pwd-toggle" data-toggle-for="pwdNueva">Ver</button>
+                ${eyeToggleButtonHtml("pwdNueva")}
               </span>
             </div>
             <div class="pwd-field">
               <label for="pwdConfirma">Confirmar nueva contraseña</label>
               <span class="pwd-input-row">
                 <input id="pwdConfirma" name="pwdConfirma" type="password" required minlength="4">
-                <button type="button" class="pwd-toggle" data-toggle-for="pwdConfirma">Ver</button>
+                ${eyeToggleButtonHtml("pwdConfirma")}
               </span>
             </div>
             <p class="pwd-msg" style="color:#a32d2d;font-size:.85rem;min-height:1.1em;"></p>
@@ -3327,7 +3402,10 @@
           if (!input) return;
           const showing = input.type === "text";
           input.type = showing ? "password" : "text";
-          toggleBtn.textContent = showing ? "Ver" : "Ocultar";
+          toggleBtn.classList.toggle("is-visible", !showing);
+          const label = showing ? "Mostrar contraseña" : "Ocultar contraseña";
+          toggleBtn.setAttribute("aria-label", label);
+          toggleBtn.setAttribute("title", label);
         });
       });
       const form = overlay.querySelector("#pwdForm");
@@ -3390,6 +3468,50 @@
       return canvas.toDataURL("image/jpeg", 0.75);
     }
 
+    function openPhotoLightbox(url, identity, previewEl) {
+      if (document.querySelector(".photo-lightbox")) return;
+      const overlay = document.createElement("div");
+      overlay.className = "update-overlay photo-lightbox";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <div class="lightbox-card">
+          <img class="lightbox-img" src="${escapeHtml(url)}" alt="Foto de perfil">
+          <button type="button" class="lightbox-delete" id="lightboxDelete" aria-label="Eliminar foto" title="Eliminar foto">✕</button>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const closeOverlay = () => overlay.remove();
+      overlay.addEventListener("click", (event) => { if (event.target === overlay) closeOverlay(); });
+      const onEscape = (event) => {
+        if (event.key === "Escape") { closeOverlay(); document.removeEventListener("keydown", onEscape); }
+      };
+      document.addEventListener("keydown", onEscape);
+
+      overlay.querySelector("#lightboxDelete").addEventListener("click", async () => {
+        if (!confirm("¿Seguro que quieres eliminar la foto?")) return;
+        try {
+          const response = await callLoginApi("deleteProfilePhoto", { rol: identity.rol, usuario: identity.usuario });
+          if (!response || !response.success) {
+            alert((response && response.message) || "No se pudo eliminar la foto.");
+            return;
+          }
+          if (state.currentSession) state.currentSession.fotoPerfil = "";
+          persistSession(state.currentSession);
+          renderHeaderAvatar("");
+          if (previewEl) {
+            previewEl.removeAttribute("src");
+            previewEl.style.display = "none";
+          }
+          const label = document.querySelector('label[for="profilePhotoInput"]');
+          if (label) label.textContent = "📷 Subir foto";
+          closeOverlay();
+        } catch (error) {
+          alert("No se pudo contactar el servidor. Intenta de nuevo.");
+        }
+      });
+    }
+
     function openProfileOverlay() {
       if (document.querySelector(".profile-overlay")) return;
       const session = state.currentSession || {};
@@ -3431,6 +3553,10 @@
       });
       const photoInput = overlay.querySelector("#profilePhotoInput");
       const photoMsg = overlay.querySelector("#profilePhotoMsg");
+      const photoPreview = overlay.querySelector("#profilePhotoPreview");
+      photoPreview.addEventListener("click", () => {
+        if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src, identity, photoPreview);
+      });
       photoInput.addEventListener("change", async () => {
         const file = photoInput.files && photoInput.files[0];
         if (!file) return;
