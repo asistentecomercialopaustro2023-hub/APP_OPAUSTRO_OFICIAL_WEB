@@ -1848,6 +1848,61 @@
       background: #fff1f1;
     }
 
+    .crop-card {
+      text-align: center;
+    }
+
+    .crop-card h2 {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .crop-card p {
+      margin-bottom: 16px;
+    }
+
+    .crop-stage {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #0b2436;
+      cursor: grab;
+      touch-action: none;
+      box-shadow: 0 0 0 4px #ffffff, 0 0 0 5px #d7e8f2, 0 14px 30px rgba(0, 60, 90, .25);
+    }
+
+    .crop-stage:active {
+      cursor: grabbing;
+    }
+
+    .crop-stage img {
+      position: absolute;
+      max-width: none;
+      max-height: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    .crop-zoom-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 auto 18px;
+      color: #7fa8bd;
+      font-size: 1rem;
+    }
+
+    .crop-zoom {
+      width: 200px;
+      accent-color: #0074a8;
+    }
+
     /* Fixed mobile shell: header and bottom navigation stay anchored; only module content scrolls. */
     .app-screen.is-mobile-layout {
       height: var(--app-height, 100dvh) !important;
@@ -3561,6 +3616,113 @@
       });
     }
 
+    // Ventana de recorte/zoom: permite arrastrar la foto y hacer zoom para
+    // centrarla/acomodarla antes de guardarla. Devuelve un <canvas> cuadrado con
+    // la parte elegida, o null si el usuario cancela.
+    function openPhotoCropOverlay(img) {
+      return new Promise((resolve) => {
+        const STAGE = 260;
+        const overlay = document.createElement("div");
+        overlay.className = "update-overlay crop-overlay";
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.innerHTML = `
+          <div class="update-card crop-card">
+            <h2>Acomodar foto</h2>
+            <p>Arrastra para mover y usa el control para hacer zoom.</p>
+            <div class="crop-stage" id="cropStage">
+              <img id="cropImg" alt="">
+            </div>
+            <div class="crop-zoom-row">
+              🔍<input type="range" class="crop-zoom" id="cropZoom" min="100" max="300" value="100">
+            </div>
+            <div class="update-actions">
+              <button type="button" class="update-later" id="cropCancel">Cancelar</button>
+              <button type="button" class="update-now" id="cropConfirm">Usar foto</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        const stage = overlay.querySelector("#cropStage");
+        const cropImg = overlay.querySelector("#cropImg");
+        const zoomInput = overlay.querySelector("#cropZoom");
+        cropImg.src = img.src;
+
+        const naturalW = img.naturalWidth || img.width;
+        const naturalH = img.naturalHeight || img.height;
+        const baseScale = Math.max(STAGE / naturalW, STAGE / naturalH);
+        let zoom = 1, panX = 0, panY = 0;
+
+        function render() {
+          const scale = baseScale * zoom;
+          const dispW = naturalW * scale, dispH = naturalH * scale;
+          const maxPanX = Math.max(0, (dispW - STAGE) / 2);
+          const maxPanY = Math.max(0, (dispH - STAGE) / 2);
+          panX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+          panY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+          cropImg.style.width = dispW + "px";
+          cropImg.style.height = dispH + "px";
+          cropImg.style.left = ((STAGE - dispW) / 2 + panX) + "px";
+          cropImg.style.top = ((STAGE - dispH) / 2 + panY) + "px";
+        }
+        render();
+
+        let dragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+        stage.addEventListener("pointerdown", (event) => {
+          dragging = true;
+          startX = event.clientX; startY = event.clientY;
+          startPanX = panX; startPanY = panY;
+          try { stage.setPointerCapture(event.pointerId); } catch (error) {}
+        });
+        stage.addEventListener("pointermove", (event) => {
+          if (!dragging) return;
+          panX = startPanX + (event.clientX - startX);
+          panY = startPanY + (event.clientY - startY);
+          render();
+        });
+        const stopDrag = () => { dragging = false; };
+        stage.addEventListener("pointerup", stopDrag);
+        stage.addEventListener("pointercancel", stopDrag);
+        stage.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          zoom = Math.min(3, Math.max(1, zoom + (event.deltaY < 0 ? 0.08 : -0.08)));
+          zoomInput.value = String(Math.round(zoom * 100));
+          render();
+        }, { passive: false });
+        zoomInput.addEventListener("input", () => {
+          zoom = Number(zoomInput.value) / 100;
+          render();
+        });
+
+        const onEscape = (event) => {
+          if (event.key === "Escape") finish(null);
+        };
+        document.addEventListener("keydown", onEscape);
+
+        function finish(result) {
+          document.removeEventListener("keydown", onEscape);
+          overlay.remove();
+          resolve(result);
+        }
+
+        overlay.querySelector("#cropCancel").addEventListener("click", () => finish(null));
+        overlay.querySelector("#cropConfirm").addEventListener("click", () => {
+          const scale = baseScale * zoom;
+          const dispW = naturalW * scale, dispH = naturalH * scale;
+          const left = (STAGE - dispW) / 2 + panX;
+          const top = (STAGE - dispH) / 2 + panY;
+          const sSize = STAGE / scale;
+          const sx = Math.min(Math.max(0, -left / scale), naturalW - sSize);
+          const sy = Math.min(Math.max(0, -top / scale), naturalH - sSize);
+          const outCanvas = document.createElement("canvas");
+          outCanvas.width = 480;
+          outCanvas.height = 480;
+          outCanvas.getContext("2d").drawImage(img, sx, sy, sSize, sSize, 0, 0, 480, 480);
+          finish(outCanvas);
+        });
+      });
+    }
+
     async function compressProfilePhoto(file) {
       const dataUrl = await fileToDataUrl(file);
       const img = document.createElement("img");
@@ -3569,7 +3731,8 @@
         img.onerror = () => reject(new Error("Imagen invalida."));
         img.src = dataUrl;
       });
-      const naturalW = img.naturalWidth || img.width, naturalH = img.naturalHeight || img.height;
+      const croppedCanvas = await openPhotoCropOverlay(img);
+      if (!croppedCanvas) return null;
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       // La foto se guarda en base64 dentro de una celda de Google Sheets (limite ~50000
@@ -3578,11 +3741,9 @@
       const attempts = [{ max: 480, quality: 0.75 }, { max: 360, quality: 0.6 }, { max: 240, quality: 0.5 }];
       let result = null;
       for (const attempt of attempts) {
-        let w = naturalW, h = naturalH;
-        if (w > h) { if (w > attempt.max) { h = Math.round(h * attempt.max / w); w = attempt.max; } }
-        else if (h > attempt.max) { w = Math.round(w * attempt.max / h); h = attempt.max; }
-        canvas.width = w; canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
+        canvas.width = attempt.max;
+        canvas.height = attempt.max;
+        ctx.drawImage(croppedCanvas, 0, 0, attempt.max, attempt.max);
         result = canvas.toDataURL("image/jpeg", attempt.quality);
         if (result.length <= 40000) break;
       }
@@ -3708,9 +3869,10 @@
       photoInput.addEventListener("change", async () => {
         const file = photoInput.files && photoInput.files[0];
         if (!file) return;
-        photoMsg.textContent = "Subiendo foto...";
         try {
           const foto = await compressProfilePhoto(file);
+          if (!foto) return; // el usuario cancelo el recorte
+          photoMsg.textContent = "Subiendo foto...";
           const response = await callLoginApi("updateProfilePhoto", { rol: identity.rol, usuario: identity.usuario, foto });
           if (!response || !response.success) {
             photoMsg.textContent = (response && response.message) || "No se pudo guardar la foto.";
