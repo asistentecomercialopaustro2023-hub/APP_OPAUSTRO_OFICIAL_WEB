@@ -1826,7 +1826,7 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, .4);
     }
 
-    .lightbox-delete {
+    .lightbox-close {
       position: absolute;
       top: -14px;
       right: -14px;
@@ -1834,8 +1834,8 @@
       height: 38px;
       border-radius: 50%;
       background: #fff;
-      color: #a32d2d;
-      border: 1px solid #f3b6b6;
+      color: #33495c;
+      border: 1px solid #d7e8f2;
       font-size: 18px;
       font-weight: 900;
       cursor: pointer;
@@ -1844,8 +1844,8 @@
       box-shadow: 0 10px 22px rgba(0, 0, 0, .3);
     }
 
-    .lightbox-delete:hover {
-      background: #fff1f1;
+    .lightbox-close:hover {
+      background: #eef4f8;
     }
 
     .crop-card {
@@ -3769,7 +3769,7 @@
       }
     }
 
-    function openPhotoLightbox(url, identity, previewEl) {
+    function openPhotoLightbox(url) {
       if (document.querySelector(".photo-lightbox")) return;
       const overlay = document.createElement("div");
       overlay.className = "update-overlay photo-lightbox";
@@ -3778,7 +3778,7 @@
       overlay.innerHTML = `
         <div class="lightbox-card">
           <img class="lightbox-img" src="${escapeHtml(url)}" alt="Foto de perfil">
-          <button type="button" class="lightbox-delete" id="lightboxDelete" aria-label="Eliminar foto" title="Eliminar foto">✕</button>
+          <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Cerrar" title="Cerrar">✕</button>
         </div>`;
       document.body.appendChild(overlay);
 
@@ -3789,10 +3789,7 @@
       };
       document.addEventListener("keydown", onEscape);
 
-      overlay.querySelector("#lightboxDelete").addEventListener("click", async () => {
-        const removed = await removeProfilePhoto_(identity, () => resetProfilePhotoUi_(previewEl));
-        if (removed) closeOverlay();
-      });
+      overlay.querySelector("#lightboxClose").addEventListener("click", closeOverlay);
     }
 
     function resetProfilePhotoUi_(previewEl) {
@@ -3861,7 +3858,7 @@
       const deleteLink = overlay.querySelector("#profileDeletePhoto");
       const placeholder = overlay.querySelector("#profileAvatarPlaceholder");
       photoPreview.addEventListener("click", () => {
-        if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src, identity, photoPreview);
+        if (photoPreview.src && photoPreview.style.display !== "none") openPhotoLightbox(photoPreview.src);
       });
       deleteLink.addEventListener("click", async () => {
         await removeProfilePhoto_(identity, () => resetProfilePhotoUi_(photoPreview));
