@@ -1604,6 +1604,31 @@
       outline: none;
     }
 
+    .pwd-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pwd-input-row input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pwd-toggle {
+      flex: 0 0 auto;
+      min-height: 46px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font-size: .85rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
     .profile-photo-row {
       display: flex;
       align-items: center;
@@ -2938,12 +2963,20 @@
       return button;
     }
 
+    function goHome(session, visibleModules) {
+      if (!session || !visibleModules) return;
+      const preferred = preferredInitialModule(session, visibleModules);
+      const home = preferred || visibleModules[0];
+      if (home) activateModule(home, session, true);
+    }
+
     function renderBottomGroups(session, visibleModules) {
       const bottomModules = $("#bottomModules");
       bottomModules.innerHTML = "";
       bottomModules.classList.remove("is-submenu");
       const groups = visibleAreaGroups(visibleModules, session);
-      bottomModules.style.setProperty("--bottom-count", Math.max(groups.length, 1));
+      bottomModules.style.setProperty("--bottom-count", Math.max(groups.length + 1, 1));
+      bottomModules.appendChild(createBottomButton("Inicio", "🏠", () => goHome(session, visibleModules), "bottom-home"));
       groups.forEach((group) => {
         bottomModules.appendChild(createBottomButton(group.label, group.iconPath || group.icon, () => {
           if (group.modules.length === 1) {
@@ -3248,15 +3281,24 @@
           <form id="pwdForm" autocomplete="off">
             <div class="pwd-field" ${prefillActual ? "hidden" : ""}>
               <label for="pwdActual">Contraseña actual</label>
-              <input id="pwdActual" name="pwdActual" type="password" ${prefillActual ? "" : "required"}>
+              <span class="pwd-input-row">
+                <input id="pwdActual" name="pwdActual" type="password" ${prefillActual ? "" : "required"}>
+                <button type="button" class="pwd-toggle" data-toggle-for="pwdActual">Ver</button>
+              </span>
             </div>
             <div class="pwd-field">
               <label for="pwdNueva">Nueva contraseña</label>
-              <input id="pwdNueva" name="pwdNueva" type="password" required minlength="4">
+              <span class="pwd-input-row">
+                <input id="pwdNueva" name="pwdNueva" type="password" required minlength="4">
+                <button type="button" class="pwd-toggle" data-toggle-for="pwdNueva">Ver</button>
+              </span>
             </div>
             <div class="pwd-field">
               <label for="pwdConfirma">Confirmar nueva contraseña</label>
-              <input id="pwdConfirma" name="pwdConfirma" type="password" required minlength="4">
+              <span class="pwd-input-row">
+                <input id="pwdConfirma" name="pwdConfirma" type="password" required minlength="4">
+                <button type="button" class="pwd-toggle" data-toggle-for="pwdConfirma">Ver</button>
+              </span>
             </div>
             <p class="pwd-msg" style="color:#a32d2d;font-size:.85rem;min-height:1.1em;"></p>
             <div class="update-actions">
@@ -3269,6 +3311,15 @@
 
       const closeOverlay = () => overlay.remove();
       overlay.querySelector("#pwdLater").addEventListener("click", closeOverlay);
+      overlay.querySelectorAll(".pwd-toggle").forEach((toggleBtn) => {
+        toggleBtn.addEventListener("click", () => {
+          const input = overlay.querySelector("#" + toggleBtn.dataset.toggleFor);
+          if (!input) return;
+          const showing = input.type === "text";
+          input.type = showing ? "password" : "text";
+          toggleBtn.textContent = showing ? "Ver" : "Ocultar";
+        });
+      });
       const form = overlay.querySelector("#pwdForm");
       const msg = overlay.querySelector(".pwd-msg");
       form.addEventListener("submit", async (event) => {
@@ -3362,6 +3413,7 @@
       document.body.appendChild(overlay);
 
       const closeOverlay = () => overlay.remove();
+      overlay.addEventListener("click", (event) => { if (event.target === overlay) closeOverlay(); });
       overlay.querySelector("#profileClose").addEventListener("click", closeOverlay);
       overlay.querySelector("#profileChangePwd").addEventListener("click", () => {
         closeOverlay();
