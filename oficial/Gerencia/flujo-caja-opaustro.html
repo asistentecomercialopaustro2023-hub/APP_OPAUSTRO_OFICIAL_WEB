@@ -51,7 +51,7 @@ body::before {
 
 /* SIDEBAR */
 .sidebar {
-  width: 220px; min-width: 220px;
+  width: 172px; min-width: 172px;
   background: var(--s1);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
@@ -66,31 +66,31 @@ body::before {
 }
 
 .logo-area {
-  padding: 20px 18px 16px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid var(--border);
 }
-.logo-img { width: 140px; opacity: .95; display: block; }
+.logo-img { width: 96px; opacity: .95; display: block; }
 .logo-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  margin-top: 10px;
+  margin-top: 7px;
   background: linear-gradient(135deg, rgba(91,143,255,.15), rgba(0,212,255,.1));
   border: 1px solid rgba(91,143,255,.3);
-  color: var(--cyan); font-size: 9px; font-weight: 700;
+  color: var(--cyan); font-size: 8px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;
-  padding: 4px 8px; border-radius: 20px;
+  padding: 3px 7px; border-radius: 20px;
 }
 .logo-badge::before { content: "●"; font-size: 5px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-.nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
+.nav { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; gap: 1px; }
 .nav-section-label {
-  font-size: 9px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--muted); padding: 10px 10px 5px;
+  font-size: 8px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted); padding: 8px 8px 4px;
 }
 .nav-btn {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 8px;
-  font-size: 12px; font-weight: 500; color: var(--muted2);
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 7px;
+  font-size: 11px; font-weight: 500; color: var(--muted2);
   cursor: pointer; border: none; background: none;
   width: 100%; text-align: left; font-family: var(--sans);
   transition: all .15s; position: relative;
@@ -108,8 +108,8 @@ body::before {
   border-radius: 0 2px 2px 0;
   box-shadow: 0 0 8px var(--cyan);
 }
-.nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
-.nav-bottom { padding: 12px 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+.nav-icon { font-size: 12px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-bottom { padding: 10px 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px; }
 
 /* MAIN */
 .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
@@ -197,9 +197,10 @@ body::before {
 .card-title { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted2); }
 
 /* TABLE */
+.tbl-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; }
 .tbl th { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.tbl td { padding: 11px 16px; font-size: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl td { padding: 11px 16px; font-size: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
 .tbl tr:last-child td { border-bottom: none; }
 .tbl tr:hover td { background: rgba(91,143,255,.03); }
 .tbl tfoot td { background: var(--s2); font-weight: 700; border-top: 2px solid var(--border2); }
@@ -522,8 +523,8 @@ body::before {
 
         <div class="card">
           <div class="card-h"><span class="card-title">Pagos pendientes próximos</span></div>
-          <table class="tbl"><thead><tr><th>Vence</th><th>Proveedor</th><th>Categoría</th><th>PP %</th><th class="num">A Pagar</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="tbody-pend"><tr><td colspan="7" class="empty">Sin pagos pendientes</td></tr></tbody></table>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vence</th><th>Proveedor</th><th>Categoría</th><th>PP %</th><th class="num">A Pagar</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="tbody-pend"><tr><td colspan="7" class="empty">Sin pagos pendientes</td></tr></tbody></table></div>
         </div>
       </div>
 
@@ -534,8 +535,8 @@ body::before {
             <span class="card-title">Historial mensual</span>
             <input type="month" class="fi" id="filtro-mes" style="padding:5px 10px;font-size:11px;width:140px;" onchange="renderHistorial()">
           </div>
-          <table class="tbl"><thead><tr><th>Fecha</th><th>Venta Total</th><th>Contado</th><th>Crédito</th><th>Cobro Cartera</th><th class="num">Total Entró</th><th class="num">Total Salió</th><th class="num">Neto</th><th class="num">Saldo Acum.</th><th></th></tr></thead>
-          <tbody id="tbody-hist"><tr><td colspan="10" class="empty">Sin registros</td></tr></tbody></table>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Venta Total</th><th>Contado</th><th>Crédito</th><th>Cobro Cartera</th><th class="num">Total Entró</th><th class="num">Total Salió</th><th class="num">Neto</th><th class="num">Saldo Acum.</th><th></th></tr></thead>
+          <tbody id="tbody-hist"><tr><td colspan="10" class="empty">Sin registros</td></tr></tbody></table></div>
         </div>
       </div>
 
@@ -543,8 +544,8 @@ body::before {
       <div class="panel" id="panel-pagos">
         <div class="card">
           <div class="card-h"><span class="card-title">Todos los pagos y gastos</span></div>
-          <table class="tbl"><thead><tr><th>Vence</th><th>Proveedor / Concepto</th><th>Categoría</th><th>PP %</th><th class="num">Original</th><th class="num">A Pagar</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="tbody-pagos"><tr><td colspan="8" class="empty">Sin pagos</td></tr></tbody></table>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vence</th><th>Proveedor / Concepto</th><th>Categoría</th><th>PP %</th><th class="num">Original</th><th class="num">A Pagar</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="tbody-pagos"><tr><td colspan="8" class="empty">Sin pagos</td></tr></tbody></table></div>
         </div>
       </div>
 
