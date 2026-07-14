@@ -957,6 +957,13 @@ function editarDia(fecha){
     calcPreview();
   },100);
 }
+async function deleteDia(fecha){
+  if(!confirm('¿Eliminar el registro del '+fmtDate(fecha)+'? Esta acción no se puede deshacer.'))return;
+  spin('Eliminando...');
+  try{await api('deleteDia',{fecha});dias=dias.filter(x=>x.fecha!==fecha);renderAll();toast('Eliminado ✓');}
+  catch(e){toast('Error: '+e.message,'var(--red)');}
+  unspin();
+}
 
 // ======== RENDERIZADO GENERAL ========
 function renderAll(){
@@ -1057,7 +1064,7 @@ function renderHistorial(){
     const ent=(+d.contado||0)+(+d.cartera||0);
     const sal=pagos.filter(p=>p.estado==='pagado'&&p.fecha===d.fecha).reduce((s,p)=>s+(+p.montoFinal||0),0);
     const neto=ent-sal; saldo+=neto;
-    return `<tr><td style="font-family:var(--mono)">${fmtDate(d.fecha)}</td><td class="num">${fmt(+d.ventaTotal)}</td><td class="num" style="color:var(--green)">${fmt(+d.contado)}</td><td class="num">${fmt(+d.credito)}</td><td class="num" style="color:var(--cyan)">${fmt(+d.cartera)}</td><td class="num" style="color:var(--green)">${fmt(ent)}</td><td class="num" style="color:var(--red)">${fmt(sal)}</td><td class="num" style="color:${neto>=0?'var(--green)':'var(--red)'}">${fmt(neto)}</td><td class="num" style="color:var(--blue)">${fmt(saldo)}</td><td><button class="btn btn-ghost btn-xs" onclick="editarDia('${d.fecha}')">Editar</button></td></tr>`;
+    return `<tr><td style="font-family:var(--mono)">${fmtDate(d.fecha)}</td><td class="num">${fmt(+d.ventaTotal)}</td><td class="num" style="color:var(--green)">${fmt(+d.contado)}</td><td class="num">${fmt(+d.credito)}</td><td class="num" style="color:var(--cyan)">${fmt(+d.cartera)}</td><td class="num" style="color:var(--green)">${fmt(ent)}</td><td class="num" style="color:var(--red)">${fmt(sal)}</td><td class="num" style="color:${neto>=0?'var(--green)':'var(--red)'}">${fmt(neto)}</td><td class="num" style="color:var(--blue)">${fmt(saldo)}</td><td style="display:flex;gap:4px;"><button class="btn btn-ghost btn-xs" onclick="editarDia('${d.fecha}')">Editar</button><button class="btn btn-red btn-xs" onclick="deleteDia('${d.fecha}')">Eliminar</button></td></tr>`;
   }).join('');
 }
 
