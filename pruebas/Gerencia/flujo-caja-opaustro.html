@@ -9,27 +9,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  --bg: #070810;
-  --s1: #0d0f1a;
-  --s2: #141728;
-  --s3: #1c2035;
-  --border: #1e2340;
-  --border2: #252b4a;
-  --blue: #5b8fff;
-  --blue2: #3d6ee8;
-  --cyan: #00d4ff;
-  --green: #00e5a0;
-  --red: #ff4d6d;
-  --yellow: #ffb800;
-  --purple: #a855f7;
-  --text: #eef0f8;
-  --muted: #4a5070;
-  --muted2: #7b82a8;
+  --bg: #f5f7fb;
+  --s1: #ffffff;
+  --s2: #f2f5fa;
+  --s3: #e8edf6;
+  --border: #e5e9f2;
+  --border2: #d4dce9;
+  --blue: #2f6bff;
+  --blue2: #1e4fd8;
+  --cyan: #0e8fb3;
+  --green: #0a9d6c;
+  --red: #e23859;
+  --yellow: #c07d12;
+  --purple: #7c3aed;
+  --text: #1b2238;
+  --muted: #98a1b8;
+  --muted2: #5c6580;
   --mono: "JetBrains Mono", monospace;
   --sans: "Space Grotesk", sans-serif;
-  --glow-blue: 0 0 20px rgba(91,143,255,.25);
-  --glow-green: 0 0 20px rgba(0,229,160,.2);
-  --glow-red: 0 0 20px rgba(255,77,109,.2);
+  --glow-blue: 0 8px 24px rgba(47,107,255,.16);
+  --glow-green: 0 8px 24px rgba(10,157,108,.16);
+  --glow-red: 0 8px 24px rgba(226,56,89,.16);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,7 +69,7 @@ body::before {
   padding: 14px 14px 12px;
   border-bottom: 1px solid var(--border);
 }
-.logo-img { width: 96px; opacity: .95; display: block; }
+.logo-img { display: none; }
 .logo-badge {
   display: inline-flex; align-items: center; gap: 5px;
   margin-top: 7px;
@@ -117,7 +117,7 @@ body::before {
 /* TOPBAR */
 .topbar {
   padding: 14px 28px;
-  background: rgba(13,15,26,.8);
+  background: rgba(255,255,255,.85);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -154,9 +154,10 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 14px; padding: 18px 20px;
   position: relative; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(23,34,66,.05);
   transition: transform .2s, box-shadow .2s;
 }
-.kpi:hover { transform: translateY(-2px); }
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(23,34,66,.09); }
 .kpi-glow {
   position: absolute; top: -20px; right: -20px;
   width: 80px; height: 80px; border-radius: 50%;
@@ -179,6 +180,7 @@ body::before {
   background: var(--s1); border: 1px solid var(--border);
   border-radius: 14px; padding: 16px 20px;
   position: relative; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(23,34,66,.05);
 }
 .venta-card-accent {
   position: absolute; top: 0; left: 0; right: 0; height: 1px;
@@ -189,7 +191,7 @@ body::before {
 .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
 
 /* CARD */
-.card { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 18px; }
+.card { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(23,34,66,.05); }
 .card-h {
   padding: 14px 18px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -282,13 +284,13 @@ body::before {
 .preview-total { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 8px; }
 
 /* MODAL */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
-.modal { background: var(--s1); border: 1px solid var(--border2); border-radius: 16px; padding: 28px; width: 480px; box-shadow: 0 25px 60px rgba(0,0,0,.5); }
+.overlay { position: fixed; inset: 0; background: rgba(20,26,45,.45); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--s1); border: 1px solid var(--border2); border-radius: 16px; padding: 28px; width: 480px; box-shadow: 0 25px 60px rgba(20,30,60,.22); }
 .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.02em; }
 .modal-sub { font-size: 12px; color: var(--muted2); margin-bottom: 20px; line-height: 1.5; }
 
 /* SPIN */
-.spin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); z-index: 150; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+.spin-overlay { position: fixed; inset: 0; background: rgba(245,247,251,.75); backdrop-filter: blur(4px); z-index: 150; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
 .loader { width: 32px; height: 32px; border: 3px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin-msg { color: var(--muted2); font-size: 12px; }
@@ -420,6 +422,7 @@ body::before {
       <button class="nav-btn" onclick="ir('historial')"><span class="nav-icon">≡</span>Historial</button>
       <button class="nav-btn" onclick="ir('pagos')"><span class="nav-icon">↑</span>Pagos / Gastos</button>
       <button class="nav-btn" onclick="ir('proyeccion')"><span class="nav-icon">◎</span>Proyección</button>
+      <button class="nav-btn" onclick="ir('utilidad')"><span class="nav-icon">▤</span>Situación Financiera</button>
     </div>
     <div class="nav-bottom">
       <div class="nav-section-label" style="padding-top:0;">Registrar</div>
@@ -651,8 +654,79 @@ body::before {
 
       </div>
 
+      <!-- ===== SITUACION FINANCIERA / UTILIDAD ===== -->
+      <div class="panel" id="panel-utilidad">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <div id="bal-alerta" style="flex:1;min-width:260px;"></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;">Balance con corte a</span>
+            <input type="text" class="fi" id="bal-corte" placeholder="ej. Junio 2026" style="width:140px;padding:6px 10px;font-size:11px;" onchange="guardarCorte()">
+          </div>
+        </div>
+
+        <!-- KPIs: la utilidad -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--green)"></div>
+            <div class="kpi-label">Utilidad de este año</div>
+            <div class="kpi-val" id="bal-util-actual" style="color:var(--green)">S/ 0</div>
+            <div class="kpi-sub" id="bal-util-actual-sub">Ganancia del ejercicio</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--cyan)"></div>
+            <div class="kpi-label">Utilidad años anteriores</div>
+            <div class="kpi-val" id="bal-util-previa" style="color:var(--cyan)">S/ 0</div>
+            <div class="kpi-sub">Ganancias acumuladas</div>
+          </div>
+          <div class="kpi" style="border-color:rgba(0,229,160,.35);box-shadow:var(--glow-green);">
+            <div class="kpi-glow" style="background:var(--green)"></div>
+            <div class="kpi-label" style="color:var(--green)">Utilidad acumulada total</div>
+            <div class="kpi-val" id="bal-util-total" style="color:var(--green)">S/ 0</div>
+            <div class="kpi-sub">Todo lo ganado hasta hoy</div>
+            <div class="kpi-bar" style="color:var(--green)"></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--blue)"></div>
+            <div class="kpi-label">Efectivo disponible</div>
+            <div class="kpi-val" id="bal-efectivo" style="color:var(--blue)">S/ 0</div>
+            <div class="kpi-sub" id="bal-efectivo-sub">En bancos y caja</div>
+          </div>
+        </div>
+
+        <!-- ¿Donde esta el dinero? -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h"><span class="card-title">¿Dónde está el dinero? — En qué se convirtió la utilidad</span></div>
+          <div style="padding:16px;">
+            <div id="bal-insight" class="alert a-info" style="margin-bottom:14px;">Sin datos del balance todavía.</div>
+            <div id="bal-traza" style="font-size:12px;line-height:1.6;color:var(--text);background:rgba(0,229,160,.06);border-left:3px solid var(--green);padding:11px 14px;border-radius:6px;margin-bottom:18px;"></div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Composición de los activos — dónde está metido el dinero</div>
+            <div id="bal-dist"></div>
+          </div>
+        </div>
+
+        <!-- Indicadores financieros -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h"><span class="card-title">Indicadores financieros</span><span style="font-size:10px;color:var(--muted2);">🟢 sano · 🟡 ajustado · 🔴 atención</span></div>
+          <div id="bal-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px;"></div>
+        </div>
+
+        <!-- ¿Y si cierro mañana? -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h"><span class="card-title">¿Y si cierro mañana? — Escenario de liquidación</span></div>
+          <div id="bal-cierre" style="padding:16px;"></div>
+        </div>
+
+        <!-- referencia rapida -->
+        <div style="display:flex;gap:26px;flex-wrap:wrap;font-size:11px;color:var(--muted2);padding:2px 4px 0;">
+          <span>Total activos: <strong id="bal-ref-activos" style="color:var(--text)">S/ 0</strong></span>
+          <span>Total pasivos (deudas): <strong id="bal-ref-pasivos" style="color:var(--text)">S/ 0</strong></span>
+          <span>Patrimonio (lo que es tuyo): <strong id="bal-ref-patrimonio" style="color:var(--text)">S/ 0</strong></span>
+        </div>
+      </div>
+
             <!-- ===== NUEVO DIA ===== -->
       <div class="panel" id="panel-nuevo-dia">
+
         <div class="card">
           <div class="card-h"><span class="card-title">Movimiento del día</span><span id="nd-fecha-lbl" style="font-size:10px;color:var(--muted2);font-family:var(--mono);"></span></div>
           <div style="padding:20px;">
@@ -726,11 +800,13 @@ body::before {
 
 <script>
 // ======== CONFIG ========
-let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxts1tEthoi4bt8ZOnLy6aUL6gM_I_li7WcRHtozP22h1gyYqkzpy_B_8l0KYG_E3tB/exec'; localStorage.setItem('opa_url', SCRIPT_URL);
+let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzP14GJJwCp-PZTe3biMFPj4rCKCtwOLpfOKXT588mE_x6M_g5Non7nRUvdAw6vlEPa/exec'; localStorage.setItem('opa_url', SCRIPT_URL);
 let saldo0 = null;
 let dias = [];
 let pagos = [];
 let ventas = [];
+let balance = [];
+let balanceCorte = '';
 
 
 // ======== HELPERS ========
@@ -800,6 +876,12 @@ async function guardarSaldoInicial() {
   catch(e){ toast('Error: '+e.message,'var(--red)'); }
   unspin();
 }
+async function guardarCorte() {
+  const v=(document.getElementById('bal-corte').value||'').trim();
+  balanceCorte=v;
+  try { await api('saveCfg',{clave:'balanceCorte',valor:v}); renderBalance(); toast('Corte guardado ✓'); }
+  catch(e){ toast('Error: '+e.message,'var(--red)'); }
+}
 
 // ======== CARGAR ========
 async function cargarDatos() {
@@ -810,6 +892,8 @@ async function cargarDatos() {
     console.log('Dias cargados:',dias.length,'primer fecha:',dias[0]?.fecha);
     pagos = (rp.pagos||[]).map(p=>({...p,monto:+p.monto,pp:+p.pp,montoFinal:+p.montoFinal,fecha:cleanFecha(p.fecha)}));
     saldo0 = rc.cfg&&rc.cfg.saldo0!==undefined ? +rc.cfg.saldo0 : null;
+    balanceCorte = rc.cfg&&rc.cfg.balanceCorte!==undefined ? String(rc.cfg.balanceCorte) : balanceCorte;
+    try { const rbal = await api('getBalance'); balance = rbal.balance||[]; } catch(_) { balance = []; }
     setConnected(true); renderAll();
     if(saldo0===null) document.getElementById('modal-saldo').style.display='flex';
   } catch(e){ setConnected(false); toast('Error al cargar: '+e.message,'var(--red)'); }
@@ -823,6 +907,7 @@ const panelMeta = {
   'historial':['Historial','Movimientos registrados'],
   'pagos':['Pagos / Gastos','Obligaciones y gastos'],
   'proyeccion':['Proyección de Caja','Proyecta entradas y salidas por días'],
+  'utilidad':['Situación Financiera','Balance y dónde está la utilidad'],
   'nuevo-dia':['Movimiento del día','Registrar entradas'],
   'nuevo-pago':['Pago / Gasto','Registrar obligación'],
 };
@@ -834,7 +919,7 @@ function ir(id) {
   document.getElementById('top-title').textContent=m[0];
   document.getElementById('top-sub').textContent=m[1];
   document.querySelectorAll('.nav-btn').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('active');});
-  if(['resumen','historial','pagos','proyeccion'].includes(id)) renderAll();
+  if(['resumen','historial','pagos','proyeccion','utilidad'].includes(id)) renderAll();
 }
 
 // ======== FORM CALCS ========
@@ -972,6 +1057,7 @@ function renderAll(){
   renderHistorial();
   renderPagosPanel();
   renderProyeccion();
+  renderBalance();
 }
 
 function renderResumen(){
@@ -1087,6 +1173,138 @@ function getSaldo(){
   const sal=pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+(+p.montoFinal||0),0);
   return (saldo0||0)+ent-sal;
 }
+
+// ======== SITUACION FINANCIERA / UTILIDAD ========
+function renderBalance(){
+  const g=id=>document.getElementById(id);
+  if(!g('bal-dist')) return;
+  const norm=s=>(s||'').toString().toLowerCase();
+  const clean=s=>(s||'').toString().replace(/^[.·\s]+/,'').trim();
+
+  // etiqueta de corte (no la sobrescribe si el usuario la está editando)
+  const cInp=g('bal-corte'); if(cInp && document.activeElement!==cInp) cInp.value=balanceCorte||'';
+  const corteTxt = balanceCorte ? (' (corte '+balanceCorte+')') : '';
+
+  const ids=['bal-util-actual','bal-util-previa','bal-util-total','bal-efectivo','bal-ref-activos','bal-ref-pasivos','bal-ref-patrimonio'];
+  if(!balance.length){
+    ids.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
+    g('bal-insight').innerHTML='Aún no hay datos del balance. Verifica la conexión en Configuración y presiona Sync.';
+    g('bal-dist').innerHTML=''; g('bal-alerta').innerHTML='';
+    return;
+  }
+
+  const rows=balance.map(b=>({exp:(b.exp||'').toString().trim(), grupo:(b.exp||'').toString().trim().charAt(0), nombre:clean(b.desc), saldo:+b.saldo||0}));
+  const get=e=>{const r=rows.find(x=>x.exp===e);return r?r.saldo:0;};
+  const sum=(...es)=>es.reduce((s,e)=>s+get(e),0);
+  // codeVal: busca por código de cuenta, ya sea grupo (exp) o cuenta de detalle (código embebido en el nombre)
+  const codeVal=(...codes)=>codes.reduce((s,code)=>{const r=rows.find(x=>x.exp===code)||rows.find(x=>(x.nombre||'').indexOf(code)===0);return s+(r?r.saldo:0);},0);
+  const totA=get('1'), totP=get('2'), totPat=get('3');
+
+  // === UTILIDAD ===
+  const utilRe=/(utilidad|ganancia|p[eé]rdida|resultado).*(ejercicio|per[ií]odo|periodo)/i;
+  const exclRe=/acumulad|retenid|anterior/i;
+  const isLeaf=r=>!rows.some(o=>o!==r && o.exp && r.exp && o.exp.length>r.exp.length && o.exp.indexOf(r.exp)===0);
+  const utilActual=rows.filter(r=>r.grupo==='3' && r.exp && utilRe.test(norm(r.nombre)) && !exclRe.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
+  // Utilidad de años anteriores: grupo 306 "resultados acumulados"; si no existe, se busca por nombre
+  const utilPrevia = get('306') || rows.filter(r=>r.grupo==='3' && exclRe.test(norm(r.nombre)) && /(utilidad|ganancia|resultado)/.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
+  const utilTotal=utilActual+utilPrevia;
+
+  // === CATEGORÍAS DE ACTIVOS (dónde está el dinero) ===
+  // Agrupadas por código de cuenta del plan (Ecuador/NIIF). "Otros" recoge lo no clasificado
+  // para que siempre cuadre con el total de activos.
+  const cats=[
+    {label:'Efectivo y bancos', icon:'💵', color:'var(--green)', hint:'Dinero líquido disponible en caja y bancos', val:sum('10101','1010201')},
+    {label:'Por cobrar (cartera)', icon:'📄', color:'var(--cyan)', hint:'Clientes nacionales + cheques postfechados (lo realmente cobrable)', val:codeVal('1010203','1010205001')},
+    {label:'Inventario (mercadería)', icon:'🏭', color:'var(--blue)', hint:'Mercadería comprada, esperando venderse', val:sum('10103')},
+    {label:'Impuestos por cobrar', icon:'🏛️', color:'var(--yellow)', hint:'Crédito tributario a favor (IVA / Renta)', val:sum('10105','10205')},
+    {label:'Activos fijos', icon:'🚚', color:'var(--purple)', hint:'Vehículos, equipos y muebles (neto de depreciación)', val:sum('10201')},
+  ];
+  const clasificado=cats.reduce((s,c)=>s+c.val,0);
+  const otros=totA-clasificado;
+  if(Math.abs(otros)>1) cats.push({label:'Otros activos', icon:'📦', color:'var(--muted)', hint:'Anticipos, seguros y otros activos menores', val:otros});
+
+  const efectivo=cats[0].val, cobrar=cats[1].val, inventario=cats[2].val;
+  const pctEf=totA>0?efectivo/totA*100:0;
+  const pctInv=totA>0?inventario/totA*100:0;
+  const pctCob=totA>0?cobrar/totA*100:0;
+
+  // === KPIs ===
+  g('bal-util-actual').textContent=fmt(utilActual);
+  g('bal-util-actual-sub').textContent='Ganancia del ejercicio'+corteTxt;
+  g('bal-util-previa').textContent=fmt(utilPrevia);
+  g('bal-util-total').textContent=fmt(utilTotal);
+  g('bal-efectivo').textContent=fmt(efectivo);
+  g('bal-efectivo-sub').textContent=pctEf.toFixed(0)+'% de los activos';
+  g('bal-ref-activos').textContent=fmt(totA);
+  g('bal-ref-pasivos').textContent=fmt(totP);
+  g('bal-ref-patrimonio').textContent=fmt(totPat);
+
+  // === ALERTA (cuadre del balance) ===
+  const dif=totA-(totP+totPat), cuadra=Math.abs(dif)<1;
+  g('bal-alerta').innerHTML=cuadra
+    ? `<div class="alert a-ok">✓ El balance cuadra: Activos ${fmt(totA)} = Pasivos ${fmt(totP)} + Patrimonio ${fmt(totPat)}</div>`
+    : `<div class="alert a-warn">⚠ El balance no cuadra por ${fmt(Math.abs(dif))}. Revisa la pestaña "balance" del Sheet.</div>`;
+
+  // === BARRAS: composición de activos ===
+  const catsOrden=[...cats].sort((a,b)=>b.val-a.val);
+  g('bal-dist').innerHTML=catsOrden.map(c=>{
+    const p=totA>0?(c.val/totA*100):0;
+    return `<div class="prog-row" title="${c.hint}" style="margin-bottom:8px;">
+      <span class="prog-label" style="width:220px;font-size:11px;color:${c.color};">${c.icon} ${c.label}</span>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.max(p,0).toFixed(1)}%;background:${c.color}"></div></div>
+      <span class="prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fmt(c.val)} · ${p.toFixed(0)}%</span>
+    </div>`;
+  }).join('');
+
+  // === NARRATIVA para gerencia (un solo <span> para no romper el layout flex del .alert) ===
+  g('bal-insight').innerHTML =
+    `<span style="display:block;">La empresa ha ganado <strong>${fmt(utilTotal)}</strong> en total (${fmt(utilActual)} este año + ${fmt(utilPrevia)} de años anteriores), pero <strong>esa utilidad no está en el banco</strong>. En efectivo solo tienes <strong>${fmt(efectivo)}</strong>, el ${pctEf.toFixed(0)}% de todo. El resto se reinvirtió en el negocio: <strong>inventario</strong> (${pctInv.toFixed(0)}%) y <strong>cartera por cobrar</strong> (${pctCob.toFixed(0)}%). Para volverla efectivo hay que vender inventario y cobrar más rápido a los clientes.</span>`;
+
+  // === TRAZA: "¿dónde está tu utilidad?" (equivalencias, para dimensionar) ===
+  const eq=(a,b)=>b>0?(a/b*100):0;
+  const tz=g('bal-traza');
+  if(tz) tz.innerHTML=`📍 <strong>¿Dónde está tu utilidad?</strong> Tus <strong>${fmt(utilTotal)}</strong> de utilidad acumulada equivalen al <strong>${eq(utilTotal,totA).toFixed(0)}%</strong> de todo lo que tiene la empresa, o al <strong>${eq(utilTotal,inventario).toFixed(0)}%</strong> de tu inventario. En pocas palabras: está reinvertida, sobre todo en mercadería y en lo que te deben los clientes.`;
+
+  // === INDICADORES FINANCIEROS ===
+  const AC=get('101'), PC=get('201');
+  const kb=g('bal-kpis');
+  if(kb){
+    const sem=(v,gd,yl)=> v>=gd?'var(--green)': v>=yl?'var(--yellow)':'var(--red)';
+    const semInv=(v,gd,yl)=> v<=gd?'var(--green)': v<=yl?'var(--yellow)':'var(--red)';
+    const rc = PC>0? AC/PC : 0;
+    const pa = PC>0? (AC-inventario)/PC : 0;
+    const endeud = totA>0? totP/totA : 0;
+    const solv = totP>0? totA/totP : 0;
+    const roe = totPat>0? utilActual/totPat : 0;
+    const inds=[
+      {l:'Razón corriente', v:rc.toFixed(2), c:sem(rc,1.5,1), h:'Activo corriente ÷ pasivo corriente. Ideal ≥ 1,5. Mide si puedes pagar lo de corto plazo.'},
+      {l:'Prueba ácida', v:pa.toFixed(2), c:sem(pa,1,0.5), h:'Igual pero SIN inventario. Ideal ≥ 1. Muestra la liquidez real sin depender de vender mercadería.'},
+      {l:'Endeudamiento', v:(endeud*100).toFixed(0)+'%', c:semInv(endeud,0.5,0.7), h:'Deuda ÷ activos. Ideal < 50%. Qué parte de la empresa se financia con deuda.'},
+      {l:'Solvencia', v:solv.toFixed(2)+'x', c:sem(solv,1.5,1), h:'Activos ÷ pasivos. Cuántas veces puedes cubrir TODAS tus deudas.'},
+      {l:'ROE', v:(roe*100).toFixed(1)+'%', c:sem(roe*100,15,5), h:'Utilidad ÷ patrimonio. Rentabilidad del dinero de los socios.'},
+    ];
+    kb.innerHTML=inds.map(k=>`<div title="${k.h}" style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;min-height:22px;">${k.l}</div>
+      <div style="font-family:var(--mono);font-size:22px;font-weight:600;color:${k.c};line-height:1;">${k.v}</div>
+      <div style="margin-top:8px;width:7px;height:7px;border-radius:50%;background:${k.c};margin-left:auto;margin-right:auto;box-shadow:0 0 6px ${k.c};"></div>
+    </div>`).join('');
+  }
+
+  // === ¿Y SI CIERRO MAÑANA? (liquidación) ===
+  const cb=g('bal-cierre');
+  if(cb){
+    const fila=(lbl,val,col,strong)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 2px;${strong?'border-top:1px solid var(--border);margin-top:4px;':''}">
+      <span style="font-size:${strong?'13':'12'}px;${strong?'font-weight:700;color:var(--text);':'color:var(--muted2);'}">${lbl}</span>
+      <span class="num" style="font-size:${strong?'16':'13'}px;font-weight:${strong?'700':'600'};color:${col};">${val}</span></div>`;
+    cb.innerHTML =
+      fila('Vendo todo lo que tiene la empresa (activos)', fmt(totA), 'var(--blue)') +
+      fila('− Pago todas las deudas (pasivos)', '− '+fmt(totP), 'var(--red)') +
+      fila('= Queda para los socios (patrimonio)', fmt(totPat), 'var(--green)', true) +
+      `<div class="alert a-ok" style="margin-top:14px;"><span style="display:block;">✓ La empresa es <strong>solvente</strong>: si cerrara hoy alcanzaría de sobra para pagar todo, y aún quedarían <strong>${fmt(totPat)}</strong> para los socios (de eso, ${fmt(utilTotal)} son utilidades). El reto no es la solvencia sino la <strong>liquidez</strong>: ese dinero está en inventario y cartera, no en el banco.</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">* Cálculo a valor en libros. En un cierre real, el inventario y la cartera podrían venderse o cobrarse por menos.</div>`;
+  }
+}
+
 
 // ======== PROYECCION ========
 let gastosProj = JSON.parse(localStorage.getItem('opa_gastos_proj') || '[{"id":1,"concepto":"Utilidades","fecha":"2026-07-10","monto":235506.14,"cat":"Utilidades","nota":"15% utilidades"}]');
