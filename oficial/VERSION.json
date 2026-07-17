@@ -1,15 +1,13 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.5",
-    "label": "OPAUSTRO v1.0.5 - Situacion Financiera en Flujo de Caja",
+    "version": "1.0.6",
+    "label": "OPAUSTRO v1.0.6 - Ajuste de seguridad en Flujo de Caja",
     "channel": "oficial",
     "publishedAt": "2026-07-16",
     "notes": [
-        "Nuevo (Gerencia / Flujo de Caja): pestana \"Situacion Financiera\" que responde donde esta la utilidad de la empresa. Muestra la utilidad (de este ano, de anos anteriores y acumulada), en que activos esta invertida (efectivo, cartera por cobrar, inventario, impuestos, activos fijos), indicadores financieros (razon corriente, prueba acida, endeudamiento, solvencia, ROE) y un escenario de liquidacion (\"si cierro manana\").",
-        "Rediseno visual de Flujo de Caja a tema claro (fondo blanco, tarjetas con sombra suave).",
-        "Requiere republicar manualmente Gerencia/Code.gs (oficial) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+        "Cambio (Gerencia / Flujo de Caja): se quito la opcion \"Configuracion\" del menu lateral. La URL de conexion (Apps Script) queda fija en el codigo y el saldo inicial se gestiona desde la pestana Config del Sheet, para evitar que un usuario los cambie por error y rompa la app."
     ],
-    "releaseKey": "1.0.5",
+    "releaseKey": "1.0.6",
     "forceUpdate": false,
     "rollback": false
 }
