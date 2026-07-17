@@ -1,21 +1,15 @@
 {
-    "app":  "OPAUSTRO",
-    "version":  "1.0.4",
-    "label":  "OPAUSTRO v1.0.4 - Version en produccion inicial",
-    "channel":  "oficial",
-    "publishedAt":  "2026-07-10",
-    "notes":  [
-                  "Corregido: al cambiar o resetear la contrasena, ahora la nueva clave se puede ver en texto plano en la columna Contraseña del Sheet BD_Login (lo que realmente valida el ingreso sigue siendo Password_Hash/Password_Salt, no esta columna). Antes esa columna se dejaba vacia.",
-                  "Corregido: subir la foto de perfil podia fallar con 'Acceso denegado: DriveApp' o verse bien al subirla pero desaparecer al recargar. La foto ya no depende de un link de Drive (que requiere permisos de compartir que la organizacion puede bloquear): se guarda directamente como imagen en la columna Foto_Perfil. El archivo se sigue subiendo a Drive como respaldo.",
-                  "Nuevo: al elegir una foto de perfil se abre una ventana para acomodarla (arrastrar para centrar y hacer zoom) antes de guardarla.",
-                  "Rediseño de la ventana 'Mi perfil': foto grande y centrada, enlaces 'Cambiar foto' / 'Eliminar foto', nombre y rol como insignia, y botones de 'Cambiar contraseña' / 'Cerrar' mas claros. La 'X' de la vista ampliada de la foto ahora solo cierra esa vista (ya no elimina la foto).",
-                  "Mejora: al resetear la contraseña de un usuario desde Control de usuarios, se muestra un aviso de exito claro y el dialogo se cierra solo.",
-                  "Corregido: el menu lateral no mostraba las opciones dentro de 'Control de accesos' en el celular aunque el grupo estuviera abierto (una regla de estilos pensada para el modo de escritorio colapsado se aplicaba tambien en movil).",
-                  "Nuevo: los usuarios con rol Vendedor_ICE ahora tambien ven el modulo de Ventas (Mapa, BI Vendedor, BI Cartera, BI Devoluciones, BI Nuevo Dia), ademas del modulo de ICE que ya tenian (Escaneo y Mis visitas).",
-                  "Corregido: el fix anterior del menu lateral fue incompleto — el texto de los enlaces del menu (no solo dentro de un grupo) seguia sin verse en el celular en cualquier rol, por una segunda regla de estilos con el mismo problema. Confirmado y corregido probando en vivo con una cuenta real.",
-                  "Requiere republicar manualmente Login/Code.gs (oficial) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
-              ],
-    "releaseKey":  "1.0.4",
-    "forceUpdate":  false,
-    "rollback":  false
+    "app": "OPAUSTRO",
+    "version": "1.0.5",
+    "label": "OPAUSTRO v1.0.5 - Situacion Financiera en Flujo de Caja",
+    "channel": "oficial",
+    "publishedAt": "2026-07-16",
+    "notes": [
+        "Nuevo (Gerencia / Flujo de Caja): pestana \"Situacion Financiera\" que responde donde esta la utilidad de la empresa. Muestra la utilidad (de este ano, de anos anteriores y acumulada), en que activos esta invertida (efectivo, cartera por cobrar, inventario, impuestos, activos fijos), indicadores financieros (razon corriente, prueba acida, endeudamiento, solvencia, ROE) y un escenario de liquidacion (\"si cierro manana\").",
+        "Rediseno visual de Flujo de Caja a tema claro (fondo blanco, tarjetas con sombra suave).",
+        "Requiere republicar manualmente Gerencia/Code.gs (oficial) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+    ],
+    "releaseKey": "1.0.5",
+    "forceUpdate": false,
+    "rollback": false
 }
