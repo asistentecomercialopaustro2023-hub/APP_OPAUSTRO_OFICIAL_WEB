@@ -1,4 +1,4 @@
-const CACHE_NAME = 'opaustro-logistica-v1.0.2-cache-auto';
+const CACHE_NAME = 'opaustro-logistica-v1.0.3-cache-auto';
 const APP_SHELL = [
   './',
   './index.html',

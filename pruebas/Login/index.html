@@ -2347,6 +2347,7 @@
   <script>
     const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec';
     const ICE_API_URL = 'https://script.google.com/macros/s/AKfycbxW_bcqSmzevC4SEgXOjX3JRUchBD7Bu3HHLSYamQ367Ie0W46ucQvHNrp7ad1ykk_B/exec';
+    const INTERNAL_API_KEY = 'OPA-INTERNAL-2026';
     function isLocalEnv() {
       return /^(localhost|127\.)/i.test(location.hostname);
     }
@@ -2356,9 +2357,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
-    const APP_VERSION = '1.0.4';
-    const APP_RELEASE = 'OPAUSTRO v1.0.4';
-    const APP_RELEASE_KEY = '1.0.4';
+    const APP_VERSION = '1.0.7';
+    const APP_RELEASE = 'OPAUSTRO v1.0.7';
+    const APP_RELEASE_KEY = '1.0.7';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -2873,7 +2874,7 @@
         setMessage("Configura LOGIN_API_URL para validar usuarios reales. Por seguridad no se permite acceso local con contraseñas libres.", "error");
         return;
       }
-      callLoginApi("getLoginData", {}).then((response) => {
+      callLoginApi("getLoginData", { apiKey: INTERNAL_API_KEY }).then((response) => {
         if (!response || !response.success) {
           setMessage((response && (response.detail || response.message)) || "No se pudo preparar el acceso.", "error");
           return;

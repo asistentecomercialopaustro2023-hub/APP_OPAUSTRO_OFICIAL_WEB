@@ -83,6 +83,7 @@
 
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec";
+    const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
     const DEFAULT_EXCLUDED_ROLE_KEYS = new Set(["ADMIN", "ADMINISTRADOR", "GERENCIA", "GERENTE"]);
     const $ = id => document.getElementById(id);
     let allRoles = [];
@@ -115,7 +116,7 @@
     }
     async function fetchLoginRoles(){
       if(!ACCESS_API_URL) return [];
-      const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"getLoginData",payload:{}})});
+      const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action:"getLoginData",payload:{apiKey:INTERNAL_API_KEY}})});
       const text=await response.text();
       const data=JSON.parse(String(text||"{}"));
       if(!data.success||!data.usersByRole) return [];

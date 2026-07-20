@@ -1,16 +1,17 @@
 {
-    "app":  "OPAUSTRO",
-    "version":  "1.0.3",
-    "label":  "OPAUSTRO v1.0.3",
-    "channel":  "oficial",
-    "publishedAt":  "2026-07-10",
-    "notes":  [
-                  "Corregido: error de contrasenas — cambiar/resetear clave y subir foto de perfil no funcionaban en el ambiente de pruebas porque Login tiene dos scripts separados (oficial y pruebas, cada uno con su propio Sheet de accesos) y solo se habia actualizado el de oficial. Ya se sincronizaron ambos.",
-                  "Validacion de fotos de perfil: la foto ahora se guarda en la carpeta compartida 'Fotos usuarios' de Drive (una subcarpeta por usuario), separada para oficial y para pruebas, en vez de crear una carpeta suelta en la raiz de Drive del ejecutor del script.",
-                  "Mensajes de error mas claros en cambio/reseteo de contrasena y subida de foto para poder diagnosticar sin acceso al log de ejecuciones de Apps Script.",
-                  "Requiere republicar manualmente Login/Code.gs (oficial) y AppsScript_PRUEBAS/Login/Code.gs (pruebas) en sus respectivos editores de Apps Script — creando una Nueva version al implementar, no basta con guardar el archivo."
-              ],
-    "releaseKey":  "1.0.3",
-    "forceUpdate":  false,
-    "rollback":  false
+    "app": "OPAUSTRO",
+    "version": "1.0.7",
+    "label": "OPAUSTRO v1.0.7 - Seguridad de acceso y ambientes alineados",
+    "channel": "oficial",
+    "publishedAt": "2026-07-20",
+    "notes": [
+        "Nuevo (seguridad): los endpoints que exponen datos de usuarios/accesos (getLoginData, getUsers, getAccessLogs, getConnectedUsers) ahora requieren una clave interna compartida entre el frontend y Apps Script; sin ella responden \"No autorizado\" en vez de estar abiertos a cualquier fetch() externo.",
+        "Nuevo (seguridad): bloqueo automatico de una cuenta tras 3 intentos de contrasena fallidos (nuevo estado \"Bloqueado\" en Control de usuarios). Se desbloquea guardando el usuario de nuevo desde Control de usuarios.",
+        "Alineacion oficial/pruebas: el ambiente de pruebas (Gerencia) ya tenia la pestana \"Situacion Financiera\" solo en produccion; ahora ambos ambientes quedan con el mismo backend (getBalance_/csvMatrix_ y lectura en vivo de Config).",
+        "Mejora de robustez en Logistica (pruebas): la subida de fotos ya no falla por completo si Drive bloquea el compartir publico del archivo.",
+        "Requiere republicar manualmente Login/Code.gs (oficial y pruebas) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+    ],
+    "releaseKey": "1.0.7",
+    "forceUpdate": false,
+    "rollback": false
 }
