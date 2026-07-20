@@ -81,6 +81,10 @@
     .env-badge.env-local{background:#fff7e6;color:#8a6300}
     .env-badge.env-prod{background:#fdeeee;color:#b3261e}
     .modal-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+    .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .modal-head h2{margin:0}
+    .close{width:34px;height:34px;flex:0 0 auto;border-radius:10px;padding:0;background:#fff;border:1px solid var(--line);font-size:18px;line-height:1;color:var(--muted);cursor:pointer}
+    .close:hover{background:#f5f8fa}
     .danger-outline{color:#b3261e;border-color:#f3c7c4}
     html.embed-mode body{padding:22px}
     @media(max-width:760px){body{padding:16px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:1fr 1fr}.metric strong{font-size:26px}.role-control-head{display:block}.role-control-note{margin-top:6px}.panel-title{flex-wrap:wrap}.modal-actions{justify-content:stretch}.modal-actions button{flex:1}}
@@ -203,7 +207,10 @@
 
   <div class="modal-overlay" id="onlineModalOverlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-label="Usuarios conectados">
-      <h2>Usuarios conectados ahora</h2>
+      <div class="modal-head">
+        <h2>Usuarios conectados ahora</h2>
+        <button class="close" id="closeOnlineModalX" type="button" aria-label="Cerrar">&times;</button>
+      </div>
       <div class="online-users" id="onlineUsers"><div class="empty">Sin usuarios conectados.</div></div>
       <div class="modal-actions">
         <button class="primary" id="closeOnlineModalBtn" type="button">Cerrar</button>
@@ -213,7 +220,10 @@
 
   <div class="modal-overlay" id="uniqueUsersModalOverlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-label="Usuarios unicos">
-      <h2>Usuarios &uacute;nicos en la vista actual</h2>
+      <div class="modal-head">
+        <h2>Usuarios &uacute;nicos en la vista actual</h2>
+        <button class="close" id="closeUniqueModalX" type="button" aria-label="Cerrar">&times;</button>
+      </div>
       <div class="online-users" id="uniqueUsersList"><div class="empty">Sin datos.</div></div>
       <div class="modal-actions">
         <button class="primary" id="closeUniqueModalBtn" type="button">Cerrar</button>
@@ -368,7 +378,7 @@
         if(!byUser.has(key)) byUser.set(key,{user:row.user,role:row.role,last:row.at});
         else if(parseDate(row.at)>parseDate(byUser.get(key).last)) byUser.get(key).last=row.at;
       });
-      const list=[...byUser.values()].sort((a,b)=>a.user.localeCompare(b.user,"es"));
+      const list=[...byUser.values()].sort((a,b)=>parseDate(b.last)-parseDate(a.last));
       box.innerHTML=list.length?list.map(item=>`<div class="online-user"><strong>${escapeHtml(item.user)}</strong><span>${escapeHtml(item.role)} &middot; ultimo ingreso ${escapeHtml(fmt(item.last))}</span></div>`).join(""):`<div class="empty">Sin usuarios en la vista actual.</div>`;
     }
     function updateCardStates(){
@@ -540,9 +550,16 @@
     $("cardMonth").addEventListener("click",()=>toggleQuickRange("month"));
     $("cardUsers").addEventListener("click",()=>{ renderUniqueUsersModal(); $("uniqueUsersModalOverlay").hidden=false; });
     $("closeUniqueModalBtn").addEventListener("click",()=>{ $("uniqueUsersModalOverlay").hidden=true; });
+    $("closeUniqueModalX").addEventListener("click",()=>{ $("uniqueUsersModalOverlay").hidden=true; });
     $("uniqueUsersModalOverlay").addEventListener("click",e=>{ if(e.target.id==="uniqueUsersModalOverlay") $("uniqueUsersModalOverlay").hidden=true; });
+    document.addEventListener("keydown",event=>{
+      if(event.key!=="Escape") return;
+      if(!$("onlineModalOverlay").hidden) $("onlineModalOverlay").hidden=true;
+      if(!$("uniqueUsersModalOverlay").hidden) $("uniqueUsersModalOverlay").hidden=true;
+    });
     $("onlineToggle").addEventListener("click",()=>{ renderOnlineUsers(); $("onlineModalOverlay").hidden=false; });
     $("closeOnlineModalBtn").addEventListener("click",()=>{ $("onlineModalOverlay").hidden=true; });
+    $("closeOnlineModalX").addEventListener("click",()=>{ $("onlineModalOverlay").hidden=true; });
     $("onlineModalOverlay").addEventListener("click",e=>{ if(e.target.id==="onlineModalOverlay") $("onlineModalOverlay").hidden=true; });
     window.addEventListener("storage",event=>{if(event.key===LOG_KEY)render()});
     window.addEventListener("focus",render);
