@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -226,6 +226,7 @@
     function openModal(id){$(id).classList.remove("hidden")}function closeModal(id){$(id).classList.add("hidden")}function setMsg(id,text,kind=""){$(id).textContent=text;$(id).className=`message ${kind}`}function toast(text){const el=$("toast");el.textContent=text;el.classList.remove("hidden");clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.add("hidden"),3500)}
     function stateOption(s){const n=norm(s);if(n.includes("PENDIENTE"))return"Pendiente de visita";if(n.includes("BODEGA"))return"En bodega";if(n.includes("TALLER"))return"En taller";if(n.includes("DAN"))return"Dañado";if(n.includes("FUERA"))return"Fuera de producción";if(n.includes("RETIR"))return"Retirado";return"Operativo"}function stateBadge(s){const n=norm(s),k=n.includes("OPERATIVO")?"ok":n.includes("DAN")||n.includes("FUERA")||n.includes("RETIR")?"bad":"warn";return`<span class="badge ${k}">${esc(s||"Sin estado")}</span>`}function comparisonBadge(c,d){const ok=norm(c)==="OK";return`<span class="badge ${ok?"ok":"bad"}">${esc(c||"Sin comparación")}${d!==""?` · ${esc(d)} m`:""}</span>`}function dateText(v){if(!v)return"Sin registro";const d=new Date(v);return isNaN(d)?esc(v):d.toLocaleString("es-EC")}function dateKey(v){const d=new Date(v);if(!v||isNaN(d))return"";const pad=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}function optionalNumber(v){const t=String(v??"").trim().replace(",", ".");return t===""?"":Number(t)}function norm(v){return String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase()}function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"})[c])}function $(id){return document.getElementById(id)}
   </script>
+<script src="../session-activity.js"></script>
 </body>
 </html>
 
