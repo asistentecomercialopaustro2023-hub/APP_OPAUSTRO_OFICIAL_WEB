@@ -358,7 +358,7 @@
   }
   .kpi-big-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px;
     margin-bottom: 20px;
   }
@@ -373,7 +373,7 @@
   .kpi-big-card.red   { border-left-color: var(--red); }
   .kpi-big-card.amber { border-left-color: var(--amber); }
   .kpi-big-card .kb-label { font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; }
-  .kpi-big-card .kb-value { font-size: 1.2rem; font-weight: 800; color: var(--navy); word-break: break-all; }
+  .kpi-big-card .kb-value { font-size: 1.2rem; font-weight: 800; color: var(--navy); white-space: nowrap; overflow-wrap: normal; }
 
   /* ── KPI CONSOLIDADO ── */
   .kpi-consolidado-grid {
@@ -2305,7 +2305,7 @@ function procesarSheetsTalento(){
     Object.keys(r).forEach(k=>{ obj[nk(k)]=r[k]; });
     return {
       DEPARTAMENTO: cleanStr(obj['DEPARTAMENTO']),
-      FECHA_CORTE:  cleanStr(obj['FECHA CORTE']),
+      FECHA_CORTE:  (function(v){var n=Number(v);if(v!==''&&v!=null&&!isNaN(n)&&n>1000){var d=excelDateToJSDate(n);return d?d.toLocaleDateString('es-EC'):cleanStr(v);}return cleanStr(v);})(obj['FECHA CORTE']),
       OBJETIVO:     cleanNum(obj['PLANTA OBJETIVO']||0),
       REAL:         cleanNum(obj['PLANTA REAL']||0),
       PASANTES:     cleanNum(obj['PASANTES']||0),
@@ -2700,8 +2700,8 @@ function renderRebate(f=getFiltros()){
   const totRow={PROV:'TOTAL',PAGADO:totPag,META:totMeta,PERDIDO:totPerdido,PCT:pctCump,PRONTO:totPronto};
   tblP.querySelector('thead').innerHTML='<tr><th>Proveedor</th><th>Rebate Pagado</th><th>Meta</th><th>% Cumplim.</th><th>Perdido</th><th>Pronto Pago</th></tr>';
   tblP.querySelector('tbody').innerHTML=[...arrProv,totRow].map(r=>`
-    <tr class="${r.PROV==='TOTAL'?'row-total':'row-clickable'}" ${r.PROV!=='TOTAL'?`onclick="mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\'")}',${JSON.stringify([])})"`:''}
-        onclick="${r.PROV!=='TOTAL'?`mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\'")}',window._rebDataGlobal)`:''}">
+    <tr class="${r.PROV==='TOTAL'?'row-total':'row-clickable'}"
+        onclick="${r.PROV!=='TOTAL'?`mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\\'")}',window._rebDataGlobal)`:''}">
       <td>${r.PROV}</td>
       <td>${fmt$(r.PAGADO)}</td>
       <td>${fmt$(r.META)}</td>
@@ -2716,7 +2716,6 @@ function renderRebate(f=getFiltros()){
 
 // Sin drag & drop — datos vienen del servidor
 </script>
-<script src="../session-activity.js"></script>
 </body>
 </html>
 
