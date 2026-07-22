@@ -703,6 +703,16 @@ body::before {
           </div>
         </div>
 
+        <!-- ¿A quién le debes? Composición de pasivos -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h"><span class="card-title">¿A quién le debes? — Composición de las deudas (pasivos)</span></div>
+          <div style="padding:16px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Pasivos por tipo de obligación — en general, no cuenta por cuenta</div>
+            <div id="bal-dist-pasivos"></div>
+            <div id="bal-pas-nota" style="font-size:11px;color:var(--muted2);margin-top:8px;"></div>
+          </div>
+        </div>
+
         <!-- Indicadores financieros -->
         <div class="card" style="margin-bottom:16px;">
           <div class="card-h"><span class="card-title">Indicadores financieros</span><span style="font-size:10px;color:var(--muted2);">🟢 sano · 🟡 ajustado · 🔴 atención</span></div>
@@ -1136,7 +1146,8 @@ function renderResumen(){
   let alertas='';
   if(saldo<0)alertas+=`<div class="alert a-danger">⚠ Saldo negativo: ${fmt(saldo)}</div>`;
   if(vencidos)alertas+=`<div class="alert a-danger">⚠ ${vencidos} pago(s) vencido(s).</div>`;
-  if(!alertas)alertas='<div class="alert a-ok">✓ Datos sincronizados · sin alertas críticas.</div>';
+  if(fechas.length && fechaRef!==hoy)alertas+=`<div class="alert a-warn">📅 Tu última carga fue el <strong>${fmtDate(fechaRef)}</strong>. Aún no registras el movimiento de hoy (${fmtDate(hoy)}).</div>`;
+  if(!alertas)alertas='<div class="alert a-ok">✓ Datos al día · sin alertas críticas.</div>';
   document.getElementById('alertas').innerHTML=alertas;
 }
 
@@ -1254,6 +1265,29 @@ function renderBalance(){
       <span class="prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fmt(c.val)} · ${p.toFixed(0)}%</span>
     </div>`;
   }).join('');
+
+  // === BARRAS: composición de pasivos (deudas) — en general, por subgrupo del plan de cuentas ===
+  const PAL=['var(--blue)','var(--yellow)','var(--cyan)','var(--purple)','var(--green)','var(--red)'];
+  const capL=s=>{const t=(s||'').toString().trim();return t?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t;};
+  let pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===5 && Math.abs(r.saldo)>0.5);
+  if(!pasRows.length) pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===3 && Math.abs(r.saldo)>0.5);
+  let pcats=pasRows.map((r,i)=>({label:capL(r.nombre),color:PAL[i%PAL.length],val:r.saldo})).sort((a,b)=>b.val-a.val);
+  const pClas=pcats.reduce((s,c)=>s+c.val,0);
+  const pOtros=totP-pClas;
+  if(Math.abs(pOtros)>1) pcats.push({label:'Otras obligaciones',color:'var(--muted)',val:pOtros});
+  const pd=g('bal-dist-pasivos');
+  if(pd){
+    pd.innerHTML = totP>0 ? pcats.map(c=>{
+      const p=totP>0?(c.val/totP*100):0;
+      return `<div class="prog-row" style="margin-bottom:8px;">
+        <span class="prog-label" style="width:260px;font-size:11px;color:${c.color};">${c.label}</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.max(p,0).toFixed(1)}%;background:${c.color}"></div></div>
+        <span class="prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fmt(c.val)} · ${p.toFixed(0)}%</span>
+      </div>`;
+    }).join('') : '<div class="empty">Sin datos de pasivos.</div>';
+    const nota=g('bal-pas-nota');
+    if(nota) nota.textContent='Total de deudas (pasivos): '+fmt(totP)+'.';
+  }
 
   // === NARRATIVA para gerencia (un solo <span> para no romper el layout flex del .alert) ===
   g('bal-insight').innerHTML =
