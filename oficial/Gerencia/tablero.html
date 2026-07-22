@@ -358,7 +358,7 @@
   }
   .kpi-big-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px;
     margin-bottom: 20px;
   }
@@ -373,7 +373,7 @@
   .kpi-big-card.red   { border-left-color: var(--red); }
   .kpi-big-card.amber { border-left-color: var(--amber); }
   .kpi-big-card .kb-label { font-size: 11px; font-weight: 700; color: var(--gray3); text-transform: uppercase; letter-spacing:.06em; margin-bottom: 6px; }
-  .kpi-big-card .kb-value { font-size: 1.2rem; font-weight: 800; color: var(--navy); word-break: break-all; }
+  .kpi-big-card .kb-value { font-size: 1.2rem; font-weight: 800; color: var(--navy); white-space: nowrap; overflow-wrap: normal; }
 
   /* ── KPI CONSOLIDADO ── */
   .kpi-consolidado-grid {
@@ -2305,7 +2305,7 @@ function procesarSheetsTalento(){
     Object.keys(r).forEach(k=>{ obj[nk(k)]=r[k]; });
     return {
       DEPARTAMENTO: cleanStr(obj['DEPARTAMENTO']),
-      FECHA_CORTE:  cleanStr(obj['FECHA CORTE']),
+      FECHA_CORTE:  (function(v){var n=Number(v);if(v!==''&&v!=null&&!isNaN(n)&&n>1000){var d=excelDateToJSDate(n);return d?d.toLocaleDateString('es-EC',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'}):cleanStr(v);}return cleanStr(v);})(obj['FECHA CORTE']),
       OBJETIVO:     cleanNum(obj['PLANTA OBJETIVO']||0),
       REAL:         cleanNum(obj['PLANTA REAL']||0),
       PASANTES:     cleanNum(obj['PASANTES']||0),
@@ -2582,29 +2582,26 @@ function mostrarDetalleRebProv(prov, data){
   const badge=$('badge-reb-prov-txt');
   if(!w) return;
   w.style.display='block';
-  if(badge) badge.textContent='Detalle por mes: '+prov;
-  const d=data.filter(r=>r.PROV===prov);
-  const porMes={};
-  d.forEach(r=>{
-    if(!porMes[r.MES]) porMes[r.MES]={MES:r.MES,PAGADO:0,META:0,PRONTO:0};
-    porMes[r.MES].PAGADO+=r.PAGADO; porMes[r.MES].META+=r.META; porMes[r.MES].PRONTO+=r.PRONTO;
-  });
-  const arr=Object.values(porMes).sort((a,b)=>ORDEN_MESES.indexOf(a.MES)-ORDEN_MESES.indexOf(b.MES));
-  arr.forEach(r=>{ r.PERDIDO=Math.max(0,r.META-r.PAGADO); r.PCT=r.META?(r.PAGADO/r.META*100):0; });
-  const tot={MES:'TOTAL',PAGADO:arr.reduce((s,r)=>s+r.PAGADO,0),META:arr.reduce((s,r)=>s+r.META,0),PRONTO:arr.reduce((s,r)=>s+r.PRONTO,0),PERDIDO:arr.reduce((s,r)=>s+r.PERDIDO,0)};
-  tot.PCT=tot.META?(tot.PAGADO/tot.META*100):0;
+  if(badge) badge.textContent='Detalle: '+prov;
+  const d=(data||[]).filter(r=>r.PROV===prov).slice();
+  d.sort((a,b)=>{ const dm=ORDEN_MESES.indexOf(a.MES)-ORDEN_MESES.indexOf(b.MES); if(dm!==0) return dm; const dl=String(a.LINEA||'').localeCompare(String(b.LINEA||'')); return dl!==0?dl:String(a.DET||'').localeCompare(String(b.DET||'')); });
+  const rows=d.map(r=>({MES:r.MES,LINEA:r.LINEA,DET:r.DET,PAGADO:r.PAGADO,META:r.META,PRONTO:r.PRONTO,PERDIDO:Math.max(0,r.META-r.PAGADO),PCT:r.META?(r.PAGADO/r.META*100):0}));
+  const tot={MES:'TOTAL',LINEA:'',DET:'',PAGADO:rows.reduce((s,r)=>s+r.PAGADO,0),META:rows.reduce((s,r)=>s+r.META,0),PRONTO:rows.reduce((s,r)=>s+r.PRONTO,0)};
+  tot.PERDIDO=Math.max(0,tot.META-tot.PAGADO); tot.PCT=tot.META?(tot.PAGADO/tot.META*100):0;
   const tbl=$('tbl-reb-meses');
-  tbl.querySelector('thead').innerHTML='<tr><th>Mes</th><th>Rebate Pagado</th><th>Meta</th><th>% Cumplimiento</th><th>Perdido</th><th>Pronto Pago</th></tr>';
-  tbl.querySelector('tbody').innerHTML=[...arr,tot].map(r=>`
+  tbl.querySelector('thead').innerHTML='<tr><th>Mes</th><th>Línea</th><th>Detalle</th><th>Rebate Pagado</th><th>Meta</th><th>% Cumplimiento</th><th>Perdido</th><th>Pronto Pago</th></tr>';
+  tbl.querySelector('tbody').innerHTML=[...rows,tot].map(r=>`
     <tr ${r.MES==='TOTAL'?'class="row-total"':''}>
       <td>${r.MES}</td>
+      <td>${r.LINEA||''}</td>
+      <td>${r.DET||''}</td>
       <td>${fmt$(r.PAGADO)}</td>
       <td>${fmt$(r.META)}</td>
       <td style="color:${r.PCT>=90?'var(--green)':r.PCT>=70?'var(--amber)':'var(--red)'};font-weight:700">${fmtPct(r.PCT)}</td>
       <td style="color:var(--red);font-weight:700">${fmt$(r.PERDIDO)}</td>
       <td style="color:var(--green)">${fmt$(r.PRONTO)}</td>
     </tr>`).join('');
-  makeTableSortable('tbl-reb-meses',[1,2,4,5],false);
+  makeTableSortable('tbl-reb-meses',[3,4,6,7],false);
 }
 
 function renderRebate(f=getFiltros()){
@@ -2700,8 +2697,8 @@ function renderRebate(f=getFiltros()){
   const totRow={PROV:'TOTAL',PAGADO:totPag,META:totMeta,PERDIDO:totPerdido,PCT:pctCump,PRONTO:totPronto};
   tblP.querySelector('thead').innerHTML='<tr><th>Proveedor</th><th>Rebate Pagado</th><th>Meta</th><th>% Cumplim.</th><th>Perdido</th><th>Pronto Pago</th></tr>';
   tblP.querySelector('tbody').innerHTML=[...arrProv,totRow].map(r=>`
-    <tr class="${r.PROV==='TOTAL'?'row-total':'row-clickable'}" ${r.PROV!=='TOTAL'?`onclick="mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\'")}',${JSON.stringify([])})"`:''}
-        onclick="${r.PROV!=='TOTAL'?`mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\'")}',window._rebDataGlobal)`:''}">
+    <tr class="${r.PROV==='TOTAL'?'row-total':'row-clickable'}"
+        onclick="${r.PROV!=='TOTAL'?`mostrarDetalleRebProv('${r.PROV.replace(/'/g,"\\'")}',window._rebDataGlobal)`:''}">
       <td>${r.PROV}</td>
       <td>${fmt$(r.PAGADO)}</td>
       <td>${fmt$(r.META)}</td>
