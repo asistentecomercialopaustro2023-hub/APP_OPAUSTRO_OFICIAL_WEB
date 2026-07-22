@@ -423,6 +423,7 @@ body::before {
       <button class="nav-btn" onclick="ir('pagos')"><span class="nav-icon">↑</span>Pagos / Gastos</button>
       <button class="nav-btn" onclick="ir('proyeccion')"><span class="nav-icon">◎</span>Proyección</button>
       <button class="nav-btn" onclick="ir('utilidad')"><span class="nav-icon">▤</span>Situación Financiera</button>
+      <button class="nav-btn" onclick="ir('utilidades')"><span class="nav-icon">∑</span>Utilidades Acumuladas</button>
     </div>
     <div class="nav-bottom">
       <div class="nav-section-label" style="padding-top:0;">Registrar</div>
@@ -703,6 +704,16 @@ body::before {
           </div>
         </div>
 
+        <!-- ¿A quién le debes? Composición de pasivos -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-h"><span class="card-title">¿A quién le debes? — Composición de las deudas (pasivos)</span></div>
+          <div style="padding:16px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Pasivos por tipo de obligación — en general, no cuenta por cuenta</div>
+            <div id="bal-dist-pasivos"></div>
+            <div id="bal-pas-nota" style="font-size:11px;color:var(--muted2);margin-top:8px;"></div>
+          </div>
+        </div>
+
         <!-- Indicadores financieros -->
         <div class="card" style="margin-bottom:16px;">
           <div class="card-h"><span class="card-title">Indicadores financieros</span><span style="font-size:10px;color:var(--muted2);">🟢 sano · 🟡 ajustado · 🔴 atención</span></div>
@@ -720,6 +731,28 @@ body::before {
           <span>Total activos: <strong id="bal-ref-activos" style="color:var(--text)">S/ 0</strong></span>
           <span>Total pasivos (deudas): <strong id="bal-ref-pasivos" style="color:var(--text)">S/ 0</strong></span>
           <span>Patrimonio (lo que es tuyo): <strong id="bal-ref-patrimonio" style="color:var(--text)">S/ 0</strong></span>
+        </div>
+      </div>
+
+      <!-- ===== UTILIDADES ACUMULADAS ===== -->
+      <div class="panel" id="panel-utilidades">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="font-size:12px;color:var(--muted2);">Generada = Repartida + Reinvertida (capitalizada) + Retenida (queda en libros)</div>
+          <div id="ua-corte" style="font-size:11px;color:var(--muted2);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
+          <div class="kpi"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label">Utilidad generada (histórico)</div><div class="kpi-val" id="ua-gen" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Suma de todos los años</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--yellow)"></div><div class="kpi-label">Repartida a socios</div><div class="kpi-val" id="ua-rep" style="color:var(--yellow)">S/ 0</div><div class="kpi-sub">Dividendos entregados</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--purple)"></div><div class="kpi-label">Reinvertida / capitalizada</div><div class="kpi-val" id="ua-reinv" style="color:var(--purple)">S/ 0</div><div class="kpi-sub">Utilidad que pasó a capital</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Utilidad acumulada años anteriores</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Queda en libros</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-title">Detalle por año — utilidades, repartos y capitalización</span></div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Año</th><th class="num">Generada</th><th class="num">Repartida</th><th class="num">Reinvertida</th><th class="num">Acumulada</th></tr></thead>
+            <tbody id="ua-tbody"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+          </table></div>
+          <div id="ua-valida" style="font-size:11px;padding:10px 14px;color:var(--muted2);"></div>
         </div>
       </div>
 
@@ -805,6 +838,9 @@ let dias = [];
 let pagos = [];
 let ventas = [];
 let balance = [];
+let utilidades = [];
+let balUtilPrevia = 0;
+let balUtilActual = 0;
 let balanceCorte = '';
 
 
@@ -893,6 +929,7 @@ async function cargarDatos() {
     saldo0 = rc.cfg&&rc.cfg.saldo0!==undefined ? +rc.cfg.saldo0 : null;
     balanceCorte = rc.cfg&&rc.cfg.balanceCorte!==undefined ? String(rc.cfg.balanceCorte) : balanceCorte;
     try { const rbal = await api('getBalance'); balance = rbal.balance||[]; } catch(_) { balance = []; }
+    try { const rut = await api('getUtilidades'); utilidades = rut.utilidades||[]; } catch(_) { utilidades = []; }
     setConnected(true); renderAll();
     if(saldo0===null) document.getElementById('modal-saldo').style.display='flex';
   } catch(e){ setConnected(false); toast('Error al cargar: '+e.message,'var(--red)'); }
@@ -907,6 +944,7 @@ const panelMeta = {
   'pagos':['Pagos / Gastos','Obligaciones y gastos'],
   'proyeccion':['Proyección de Caja','Proyecta entradas y salidas por días'],
   'utilidad':['Situación Financiera','Balance y dónde está la utilidad'],
+  'utilidades':['Utilidades Acumuladas','Detalle de utilidades generadas y repartidas'],
   'nuevo-dia':['Movimiento del día','Registrar entradas'],
   'nuevo-pago':['Pago / Gasto','Registrar obligación'],
 };
@@ -918,7 +956,7 @@ function ir(id) {
   document.getElementById('top-title').textContent=m[0];
   document.getElementById('top-sub').textContent=m[1];
   document.querySelectorAll('.nav-btn').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('active');});
-  if(['resumen','historial','pagos','proyeccion','utilidad'].includes(id)) renderAll();
+  if(['resumen','historial','pagos','proyeccion','utilidad','utilidades'].includes(id)) renderAll();
 }
 
 // ======== FORM CALCS ========
@@ -1057,6 +1095,58 @@ function renderAll(){
   renderPagosPanel();
   renderProyeccion();
   renderBalance();
+  renderUtilidades();
+}
+function renderUtilidades(){
+  const g=id=>document.getElementById(id);
+  if(!g('ua-tbody')) return;
+  const corteEl=g('ua-corte'); if(corteEl) corteEl.textContent = balanceCorte ? ('Corte: '+balanceCorte) : '';
+  const rows=(utilidades||[]).map(u=>({
+    anio: String(u.anio||'').trim(),
+    gen: +u.generada||0,
+    rep: +u.repartida||0,
+    reinv: +u.reinvertida||0
+  })).filter(r=>r.anio).sort((a,b)=>(parseInt(a.anio,10)||0)-(parseInt(b.anio,10)||0));
+  const clearIds=['ua-gen','ua-rep','ua-reinv','ua-ret'];
+  if(!rows.length){
+    g('ua-tbody').innerHTML='<tr><td colspan="5" class="empty">Aún no hay datos. Verifica la hoja UTILIDADES y presiona Sync.</td></tr>';
+    clearIds.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
+    const v0=g('ua-valida'); if(v0) v0.textContent='';
+    return;
+  }
+  let acum=0;
+  const body=rows.map(r=>{const ret=r.gen-r.rep-r.reinv; acum+=ret; return {anio:r.anio,gen:r.gen,rep:r.rep,reinv:r.reinv,acum};});
+  const totGen=body.reduce((s,r)=>s+r.gen,0);
+  const totRep=body.reduce((s,r)=>s+r.rep,0);
+  const totReinv=body.reduce((s,r)=>s+r.reinv,0);
+  const aniosAnt=acum;
+  g('ua-tbody').innerHTML=body.map(r=>`<tr>
+    <td style="font-family:var(--mono)">${r.anio}</td>
+    <td class="num">${fmt(r.gen)}</td>
+    <td class="num" style="color:var(--yellow)">${fmt(r.rep)}</td>
+    <td class="num" style="color:var(--purple)">${fmt(r.reinv)}</td>
+    <td class="num" style="font-weight:700">${fmt(r.acum)}</td>
+  </tr>`).join('')+`<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--s2);">
+    <td>TOTAL</td><td class="num">${fmt(totGen)}</td>
+    <td class="num" style="color:var(--yellow)">${fmt(totRep)}</td>
+    <td class="num" style="color:var(--purple)">${fmt(totReinv)}</td>
+    <td class="num">${fmt(aniosAnt)}</td></tr>`;
+  g('ua-gen').textContent=fmt(totGen);
+  g('ua-rep').textContent=fmt(totRep);
+  g('ua-reinv').textContent=fmt(totReinv);
+  g('ua-ret').textContent=fmt(aniosAnt);
+  const libros=+balUtilPrevia||0;
+  const dif=aniosAnt-libros;
+  const v=g('ua-valida');
+  if(v){
+    if(Math.abs(dif)<1.5){
+      v.style.color='var(--green)';
+      v.innerHTML='<span>&#10003; Cuadra con el balance: la utilidad acumulada de a&#241;os anteriores ('+fmt(aniosAnt)+') coincide con la registrada en libros.</span>';
+    }else{
+      v.style.color='var(--yellow)';
+      v.innerHTML='<span>&#9888; Diferencia de '+fmt(Math.abs(dif))+' frente a los '+fmt(libros)+' de a&#241;os anteriores del balance. Revisa Repartida/Reinvertida en la hoja.</span>';
+    }
+  }
 }
 
 function renderResumen(){
@@ -1136,7 +1226,8 @@ function renderResumen(){
   let alertas='';
   if(saldo<0)alertas+=`<div class="alert a-danger">⚠ Saldo negativo: ${fmt(saldo)}</div>`;
   if(vencidos)alertas+=`<div class="alert a-danger">⚠ ${vencidos} pago(s) vencido(s).</div>`;
-  if(!alertas)alertas='<div class="alert a-ok">✓ Datos sincronizados · sin alertas críticas.</div>';
+  if(fechas.length && fechaRef!==hoy)alertas+=`<div class="alert a-warn">📅 Tu última carga fue el <strong>${fmtDate(fechaRef)}</strong>. Aún no registras el movimiento de hoy (${fmtDate(hoy)}).</div>`;
+  if(!alertas)alertas='<div class="alert a-ok">✓ Datos al día · sin alertas críticas.</div>';
   document.getElementById('alertas').innerHTML=alertas;
 }
 
@@ -1207,6 +1298,8 @@ function renderBalance(){
   // Utilidad de años anteriores: grupo 306 "resultados acumulados"; si no existe, se busca por nombre
   const utilPrevia = get('306') || rows.filter(r=>r.grupo==='3' && exclRe.test(norm(r.nombre)) && /(utilidad|ganancia|resultado)/.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
   const utilTotal=utilActual+utilPrevia;
+  balUtilPrevia=utilPrevia;
+  balUtilActual=utilActual;
 
   // === CATEGORÍAS DE ACTIVOS (dónde está el dinero) ===
   // Agrupadas por código de cuenta del plan (Ecuador/NIIF). "Otros" recoge lo no clasificado
@@ -1254,6 +1347,29 @@ function renderBalance(){
       <span class="prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fmt(c.val)} · ${p.toFixed(0)}%</span>
     </div>`;
   }).join('');
+
+  // === BARRAS: composición de pasivos (deudas) — en general, por subgrupo del plan de cuentas ===
+  const PAL=['var(--blue)','var(--yellow)','var(--cyan)','var(--purple)','var(--green)','var(--red)'];
+  const capL=s=>{const t=(s||'').toString().trim();return t?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t;};
+  let pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===5 && Math.abs(r.saldo)>0.5);
+  if(!pasRows.length) pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===3 && Math.abs(r.saldo)>0.5);
+  let pcats=pasRows.map((r,i)=>({label:capL(r.nombre),color:PAL[i%PAL.length],val:r.saldo})).sort((a,b)=>b.val-a.val);
+  const pClas=pcats.reduce((s,c)=>s+c.val,0);
+  const pOtros=totP-pClas;
+  if(Math.abs(pOtros)>1) pcats.push({label:'Otras obligaciones',color:'var(--muted)',val:pOtros});
+  const pd=g('bal-dist-pasivos');
+  if(pd){
+    pd.innerHTML = totP>0 ? pcats.map(c=>{
+      const p=totP>0?(c.val/totP*100):0;
+      return `<div class="prog-row" style="margin-bottom:8px;">
+        <span class="prog-label" style="width:260px;font-size:11px;color:${c.color};">${c.label}</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.max(p,0).toFixed(1)}%;background:${c.color}"></div></div>
+        <span class="prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fmt(c.val)} · ${p.toFixed(0)}%</span>
+      </div>`;
+    }).join('') : '<div class="empty">Sin datos de pasivos.</div>';
+    const nota=g('bal-pas-nota');
+    if(nota) nota.textContent='Total de deudas (pasivos): '+fmt(totP)+'.';
+  }
 
   // === NARRATIVA para gerencia (un solo <span> para no romper el layout flex del .alert) ===
   g('bal-insight').innerHTML =
