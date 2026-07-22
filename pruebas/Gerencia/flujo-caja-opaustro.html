@@ -423,6 +423,7 @@ body::before {
       <button class="nav-btn" onclick="ir('pagos')"><span class="nav-icon">↑</span>Pagos / Gastos</button>
       <button class="nav-btn" onclick="ir('proyeccion')"><span class="nav-icon">◎</span>Proyección</button>
       <button class="nav-btn" onclick="ir('utilidad')"><span class="nav-icon">▤</span>Situación Financiera</button>
+      <button class="nav-btn" onclick="ir('utilidades')"><span class="nav-icon">∑</span>Utilidades Acumuladas</button>
     </div>
     <div class="nav-bottom">
       <div class="nav-section-label" style="padding-top:0;">Registrar</div>
@@ -733,6 +734,24 @@ body::before {
         </div>
       </div>
 
+      <!-- ===== UTILIDADES ACUMULADAS ===== -->
+      <div class="panel" id="panel-utilidades">
+        <div id="ua-recon" class="alert a-info" style="margin-bottom:16px;">Sin datos de utilidades todavía.</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+          <div class="kpi"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label">Utilidad generada (total)</div><div class="kpi-val" id="ua-gen" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Suma de todos los años</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--yellow)"></div><div class="kpi-label">Repartida a socios (total)</div><div class="kpi-val" id="ua-rep" style="color:var(--yellow)">S/ 0</div><div class="kpi-sub">Dividendos entregados</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Retenida acumulada</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Generada − repartida</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--blue)"></div><div class="kpi-label">Según balance (años ant.)</div><div class="kpi-val" id="ua-balance" style="color:var(--blue)">S/ 0</div><div class="kpi-sub">Referencia para cuadrar</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-title">Detalle por año — utilidades generadas y repartidas</span></div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Año</th><th class="num">Generada</th><th class="num">Repartida</th><th class="num">Retenida</th><th class="num">Acumulada</th></tr></thead>
+            <tbody id="ua-tbody"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+
             <!-- ===== NUEVO DIA ===== -->
       <div class="panel" id="panel-nuevo-dia">
 
@@ -815,6 +834,8 @@ let dias = [];
 let pagos = [];
 let ventas = [];
 let balance = [];
+let utilidades = [];
+let balUtilPrevia = 0;
 let balanceCorte = '';
 
 
@@ -903,6 +924,7 @@ async function cargarDatos() {
     saldo0 = rc.cfg&&rc.cfg.saldo0!==undefined ? +rc.cfg.saldo0 : null;
     balanceCorte = rc.cfg&&rc.cfg.balanceCorte!==undefined ? String(rc.cfg.balanceCorte) : balanceCorte;
     try { const rbal = await api('getBalance'); balance = rbal.balance||[]; } catch(_) { balance = []; }
+    try { const rut = await api('getUtilidades'); utilidades = rut.utilidades||[]; } catch(_) { utilidades = []; }
     setConnected(true); renderAll();
     if(saldo0===null) document.getElementById('modal-saldo').style.display='flex';
   } catch(e){ setConnected(false); toast('Error al cargar: '+e.message,'var(--red)'); }
@@ -917,6 +939,7 @@ const panelMeta = {
   'pagos':['Pagos / Gastos','Obligaciones y gastos'],
   'proyeccion':['Proyección de Caja','Proyecta entradas y salidas por días'],
   'utilidad':['Situación Financiera','Balance y dónde está la utilidad'],
+  'utilidades':['Utilidades Acumuladas','Detalle de utilidades generadas y repartidas'],
   'nuevo-dia':['Movimiento del día','Registrar entradas'],
   'nuevo-pago':['Pago / Gasto','Registrar obligación'],
 };
@@ -928,7 +951,7 @@ function ir(id) {
   document.getElementById('top-title').textContent=m[0];
   document.getElementById('top-sub').textContent=m[1];
   document.querySelectorAll('.nav-btn').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('active');});
-  if(['resumen','historial','pagos','proyeccion','utilidad'].includes(id)) renderAll();
+  if(['resumen','historial','pagos','proyeccion','utilidad','utilidades'].includes(id)) renderAll();
 }
 
 // ======== FORM CALCS ========
@@ -1067,6 +1090,55 @@ function renderAll(){
   renderPagosPanel();
   renderProyeccion();
   renderBalance();
+  renderUtilidades();
+}
+function renderUtilidades(){
+  const g=id=>document.getElementById(id);
+  if(!g('ua-tbody')) return;
+  const rows=(utilidades||[]).map(u=>({
+    anio: String(u.anio||'').trim(),
+    gen: +u.generada||0,
+    rep: +u.repartida||0
+  })).filter(r=>r.anio).sort((a,b)=>(parseInt(a.anio,10)||0)-(parseInt(b.anio,10)||0));
+  const kpis=['ua-gen','ua-rep','ua-ret','ua-balance'];
+  if(!rows.length){
+    g('ua-tbody').innerHTML='<tr><td colspan="5" class="empty">Aún no hay datos. Verifica que exista la hoja UTILIDADES en el Sheet y presiona Sync.</td></tr>';
+    kpis.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
+    const rec0=g('ua-recon'); if(rec0){rec0.className='alert a-info';rec0.textContent='Sin datos de utilidades todavía.';}
+    return;
+  }
+  let acum=0;
+  const body=rows.map(r=>{const ret=r.gen-r.rep; acum+=ret; return {anio:r.anio,gen:r.gen,rep:r.rep,ret,acum};});
+  const totGen=body.reduce((s,r)=>s+r.gen,0);
+  const totRep=body.reduce((s,r)=>s+r.rep,0);
+  const totRet=totGen-totRep;
+  g('ua-tbody').innerHTML=body.map(r=>`<tr>
+    <td style="font-family:var(--mono)">${r.anio}</td>
+    <td class="num">${fmt(r.gen)}</td>
+    <td class="num" style="color:var(--yellow)">${fmt(r.rep)}</td>
+    <td class="num" style="color:var(--green)">${fmt(r.ret)}</td>
+    <td class="num" style="font-weight:700">${fmt(r.acum)}</td>
+  </tr>`).join('')+`<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--s2);">
+    <td>TOTAL</td><td class="num">${fmt(totGen)}</td>
+    <td class="num" style="color:var(--yellow)">${fmt(totRep)}</td>
+    <td class="num" style="color:var(--green)">${fmt(totRet)}</td>
+    <td class="num">${fmt(acum)}</td></tr>`;
+  g('ua-gen').textContent=fmt(totGen);
+  g('ua-rep').textContent=fmt(totRep);
+  g('ua-ret').textContent=fmt(totRet);
+  const libros=+balUtilPrevia||0;
+  g('ua-balance').textContent=fmt(libros);
+  const dif=totRet-libros;
+  const rec=g('ua-recon');
+  if(rec){
+    if(Math.abs(dif)<1){
+      rec.className='alert a-ok';
+      rec.innerHTML=`✓ Cuadra: la utilidad retenida acumulada (<strong>${fmt(totRet)}</strong>) coincide con la de años anteriores del balance (<strong>${fmt(libros)}</strong>).`;
+    }else{
+      rec.className='alert a-warn';
+      rec.innerHTML=`⚠ Diferencia de <strong>${fmt(Math.abs(dif))}</strong>. Este cuadro muestra <strong>${fmt(totRet)}</strong> retenido, pero el balance registra <strong>${fmt(libros)}</strong> de años anteriores. Esa diferencia son <strong>repartos a socios aún no asignados por año</strong> — complétalos en la columna REPARTIDA de la hoja.`;
+    }
+  }
 }
 
 function renderResumen(){
@@ -1218,6 +1290,7 @@ function renderBalance(){
   // Utilidad de años anteriores: grupo 306 "resultados acumulados"; si no existe, se busca por nombre
   const utilPrevia = get('306') || rows.filter(r=>r.grupo==='3' && exclRe.test(norm(r.nombre)) && /(utilidad|ganancia|resultado)/.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
   const utilTotal=utilActual+utilPrevia;
+  balUtilPrevia=utilPrevia;
 
   // === CATEGORÍAS DE ACTIVOS (dónde está el dinero) ===
   // Agrupadas por código de cuenta del plan (Ecuador/NIIF). "Otros" recoge lo no clasificado
