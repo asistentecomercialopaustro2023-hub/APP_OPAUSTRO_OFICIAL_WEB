@@ -746,10 +746,6 @@ body::before {
           <div class="kpi"><div class="kpi-glow" style="background:var(--purple)"></div><div class="kpi-label">Reinvertida / capitalizada</div><div class="kpi-val" id="ua-reinv" style="color:var(--purple)">S/ 0</div><div class="kpi-sub">Utilidad que pasó a capital</div></div>
           <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Utilidad acumulada años anteriores</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Queda en libros</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px;">
-          <div class="kpi"><div class="kpi-glow" style="background:var(--blue)"></div><div class="kpi-label">Utilidad del ejercicio actual</div><div class="kpi-val" id="ua-actual" style="color:var(--blue)">S/ 0</div><div class="kpi-sub" id="ua-actual-sub">Del balance</div></div>
-          <div class="kpi" style="border-color:rgba(0,229,160,.35);box-shadow:var(--glow-green);"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label" style="color:var(--green)">Utilidad acumulada TOTAL</div><div class="kpi-val" id="ua-total" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Años anteriores + ejercicio actual</div></div>
-        </div>
         <div class="card">
           <div class="card-h"><span class="card-title">Detalle por año — utilidades, repartos y capitalización</span></div>
           <div class="tbl-wrap"><table class="tbl">
@@ -1111,7 +1107,7 @@ function renderUtilidades(){
     rep: +u.repartida||0,
     reinv: +u.reinvertida||0
   })).filter(r=>r.anio).sort((a,b)=>(parseInt(a.anio,10)||0)-(parseInt(b.anio,10)||0));
-  const clearIds=['ua-gen','ua-rep','ua-reinv','ua-ret','ua-actual','ua-total'];
+  const clearIds=['ua-gen','ua-rep','ua-reinv','ua-ret'];
   if(!rows.length){
     g('ua-tbody').innerHTML='<tr><td colspan="5" class="empty">Aún no hay datos. Verifica la hoja UTILIDADES y presiona Sync.</td></tr>';
     clearIds.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
@@ -1124,8 +1120,6 @@ function renderUtilidades(){
   const totRep=body.reduce((s,r)=>s+r.rep,0);
   const totReinv=body.reduce((s,r)=>s+r.reinv,0);
   const aniosAnt=acum;
-  const actual=+balUtilActual||0;
-  const total=aniosAnt+actual;
   g('ua-tbody').innerHTML=body.map(r=>`<tr>
     <td style="font-family:var(--mono)">${r.anio}</td>
     <td class="num">${fmt(r.gen)}</td>
@@ -1141,9 +1135,6 @@ function renderUtilidades(){
   g('ua-rep').textContent=fmt(totRep);
   g('ua-reinv').textContent=fmt(totReinv);
   g('ua-ret').textContent=fmt(aniosAnt);
-  g('ua-actual').textContent=fmt(actual);
-  if(g('ua-actual-sub')) g('ua-actual-sub').textContent = balanceCorte ? ('Ejercicio '+balanceCorte) : 'Del balance';
-  g('ua-total').textContent=fmt(total);
   const libros=+balUtilPrevia||0;
   const dif=aniosAnt-libros;
   const v=g('ua-valida');
