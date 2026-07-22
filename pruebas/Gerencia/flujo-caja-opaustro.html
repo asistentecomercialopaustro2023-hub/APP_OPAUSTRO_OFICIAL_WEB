@@ -740,13 +740,13 @@ body::before {
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
           <div class="kpi"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label">Utilidad generada (total)</div><div class="kpi-val" id="ua-gen" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Suma de todos los años</div></div>
           <div class="kpi"><div class="kpi-glow" style="background:var(--yellow)"></div><div class="kpi-label">Repartida a socios (total)</div><div class="kpi-val" id="ua-rep" style="color:var(--yellow)">S/ 0</div><div class="kpi-sub">Dividendos entregados</div></div>
-          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Retenida acumulada</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Generada − repartida</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Reinvertida acumulada</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Lo que se capitalizó (generada − repartida)</div></div>
           <div class="kpi"><div class="kpi-glow" style="background:var(--blue)"></div><div class="kpi-label">Según balance (años ant.)</div><div class="kpi-val" id="ua-balance" style="color:var(--blue)">S/ 0</div><div class="kpi-sub">Referencia para cuadrar</div></div>
         </div>
         <div class="card">
           <div class="card-h"><span class="card-title">Detalle por año — utilidades generadas y repartidas</span></div>
           <div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Año</th><th class="num">Generada</th><th class="num">Repartida</th><th class="num">Retenida</th><th class="num">Acumulada</th></tr></thead>
+            <thead><tr><th>Año</th><th class="num">Generada</th><th class="num">Repartida</th><th class="num">Reinvertida</th><th class="num">Acumulada</th></tr></thead>
             <tbody id="ua-tbody"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
           </table></div>
         </div>
@@ -1133,10 +1133,10 @@ function renderUtilidades(){
   if(rec){
     if(Math.abs(dif)<1){
       rec.className='alert a-ok';
-      rec.innerHTML=`✓ Cuadra: la utilidad retenida acumulada (<strong>${fmt(totRet)}</strong>) coincide con la de años anteriores del balance (<strong>${fmt(libros)}</strong>).`;
+      rec.innerHTML=`✓ Cuadra: la utilidad reinvertida acumulada (<strong>${fmt(totRet)}</strong>) coincide con la de años anteriores del balance (<strong>${fmt(libros)}</strong>).`;
     }else{
       rec.className='alert a-warn';
-      rec.innerHTML=`⚠ Diferencia de <strong>${fmt(Math.abs(dif))}</strong>. Este cuadro muestra <strong>${fmt(totRet)}</strong> retenido, pero el balance registra <strong>${fmt(libros)}</strong> de años anteriores. Esa diferencia son <strong>repartos a socios aún no asignados por año</strong> — complétalos en la columna REPARTIDA de la hoja.`;
+      rec.innerHTML=`⚠ Diferencia de <strong>${fmt(Math.abs(dif))}</strong>. Este cuadro muestra <strong>${fmt(totRet)}</strong> reinvertido, pero el balance registra <strong>${fmt(libros)}</strong> de años anteriores. Esa diferencia son <strong>repartos a socios aún no asignados por año</strong> — complétalos en la columna REPARTIDA de la hoja.`;
     }
   }
 }
