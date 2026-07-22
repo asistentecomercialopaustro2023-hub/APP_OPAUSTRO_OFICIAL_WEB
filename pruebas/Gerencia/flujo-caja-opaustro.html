@@ -736,19 +736,27 @@ body::before {
 
       <!-- ===== UTILIDADES ACUMULADAS ===== -->
       <div class="panel" id="panel-utilidades">
-        <div id="ua-recon" class="alert a-info" style="margin-bottom:16px;">Sin datos de utilidades todavía.</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
-          <div class="kpi"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label">Utilidad generada (total)</div><div class="kpi-val" id="ua-gen" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Suma de todos los años</div></div>
-          <div class="kpi"><div class="kpi-glow" style="background:var(--yellow)"></div><div class="kpi-label">Repartida a socios (total)</div><div class="kpi-val" id="ua-rep" style="color:var(--yellow)">S/ 0</div><div class="kpi-sub">Dividendos entregados</div></div>
-          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Reinvertida acumulada</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Lo que se capitalizó (generada − repartida)</div></div>
-          <div class="kpi"><div class="kpi-glow" style="background:var(--blue)"></div><div class="kpi-label">Según balance (años ant.)</div><div class="kpi-val" id="ua-balance" style="color:var(--blue)">S/ 0</div><div class="kpi-sub">Referencia para cuadrar</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="font-size:12px;color:var(--muted2);">Generada = Repartida + Reinvertida (capitalizada) + Retenida (queda en libros)</div>
+          <div id="ua-corte" style="font-size:11px;color:var(--muted2);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
+          <div class="kpi"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label">Utilidad generada (histórico)</div><div class="kpi-val" id="ua-gen" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Suma de todos los años</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--yellow)"></div><div class="kpi-label">Repartida a socios</div><div class="kpi-val" id="ua-rep" style="color:var(--yellow)">S/ 0</div><div class="kpi-sub">Dividendos entregados</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--purple)"></div><div class="kpi-label">Reinvertida / capitalizada</div><div class="kpi-val" id="ua-reinv" style="color:var(--purple)">S/ 0</div><div class="kpi-sub">Utilidad que pasó a capital</div></div>
+          <div class="kpi"><div class="kpi-glow" style="background:var(--cyan)"></div><div class="kpi-label">Utilidad acumulada años anteriores</div><div class="kpi-val" id="ua-ret" style="color:var(--cyan)">S/ 0</div><div class="kpi-sub">Queda en libros</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px;">
+          <div class="kpi"><div class="kpi-glow" style="background:var(--blue)"></div><div class="kpi-label">Utilidad del ejercicio actual</div><div class="kpi-val" id="ua-actual" style="color:var(--blue)">S/ 0</div><div class="kpi-sub" id="ua-actual-sub">Del balance</div></div>
+          <div class="kpi" style="border-color:rgba(0,229,160,.35);box-shadow:var(--glow-green);"><div class="kpi-glow" style="background:var(--green)"></div><div class="kpi-label" style="color:var(--green)">Utilidad acumulada TOTAL</div><div class="kpi-val" id="ua-total" style="color:var(--green)">S/ 0</div><div class="kpi-sub">Años anteriores + ejercicio actual</div></div>
         </div>
         <div class="card">
-          <div class="card-h"><span class="card-title">Detalle por año — utilidades generadas y repartidas</span></div>
+          <div class="card-h"><span class="card-title">Detalle por año — utilidades, repartos y capitalización</span></div>
           <div class="tbl-wrap"><table class="tbl">
             <thead><tr><th>Año</th><th class="num">Generada</th><th class="num">Repartida</th><th class="num">Reinvertida</th><th class="num">Acumulada</th></tr></thead>
             <tbody id="ua-tbody"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
           </table></div>
+          <div id="ua-valida" style="font-size:11px;padding:10px 14px;color:var(--muted2);"></div>
         </div>
       </div>
 
@@ -836,6 +844,7 @@ let ventas = [];
 let balance = [];
 let utilidades = [];
 let balUtilPrevia = 0;
+let balUtilActual = 0;
 let balanceCorte = '';
 
 
@@ -1095,48 +1104,56 @@ function renderAll(){
 function renderUtilidades(){
   const g=id=>document.getElementById(id);
   if(!g('ua-tbody')) return;
+  const corteEl=g('ua-corte'); if(corteEl) corteEl.textContent = balanceCorte ? ('Corte: '+balanceCorte) : '';
   const rows=(utilidades||[]).map(u=>({
     anio: String(u.anio||'').trim(),
     gen: +u.generada||0,
-    rep: +u.repartida||0
+    rep: +u.repartida||0,
+    reinv: +u.reinvertida||0
   })).filter(r=>r.anio).sort((a,b)=>(parseInt(a.anio,10)||0)-(parseInt(b.anio,10)||0));
-  const kpis=['ua-gen','ua-rep','ua-ret','ua-balance'];
+  const clearIds=['ua-gen','ua-rep','ua-reinv','ua-ret','ua-actual','ua-total'];
   if(!rows.length){
-    g('ua-tbody').innerHTML='<tr><td colspan="5" class="empty">Aún no hay datos. Verifica que exista la hoja UTILIDADES en el Sheet y presiona Sync.</td></tr>';
-    kpis.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
-    const rec0=g('ua-recon'); if(rec0){rec0.className='alert a-info';rec0.textContent='Sin datos de utilidades todavía.';}
+    g('ua-tbody').innerHTML='<tr><td colspan="5" class="empty">Aún no hay datos. Verifica la hoja UTILIDADES y presiona Sync.</td></tr>';
+    clearIds.forEach(id=>{const el=g(id);if(el)el.textContent=fmt(0);});
+    const v0=g('ua-valida'); if(v0) v0.textContent='';
     return;
   }
   let acum=0;
-  const body=rows.map(r=>{const ret=r.gen-r.rep; acum+=ret; return {anio:r.anio,gen:r.gen,rep:r.rep,ret,acum};});
+  const body=rows.map(r=>{const ret=r.gen-r.rep-r.reinv; acum+=ret; return {anio:r.anio,gen:r.gen,rep:r.rep,reinv:r.reinv,acum};});
   const totGen=body.reduce((s,r)=>s+r.gen,0);
   const totRep=body.reduce((s,r)=>s+r.rep,0);
-  const totRet=totGen-totRep;
+  const totReinv=body.reduce((s,r)=>s+r.reinv,0);
+  const aniosAnt=acum;
+  const actual=+balUtilActual||0;
+  const total=aniosAnt+actual;
   g('ua-tbody').innerHTML=body.map(r=>`<tr>
     <td style="font-family:var(--mono)">${r.anio}</td>
     <td class="num">${fmt(r.gen)}</td>
     <td class="num" style="color:var(--yellow)">${fmt(r.rep)}</td>
-    <td class="num" style="color:var(--green)">${fmt(r.ret)}</td>
+    <td class="num" style="color:var(--purple)">${fmt(r.reinv)}</td>
     <td class="num" style="font-weight:700">${fmt(r.acum)}</td>
   </tr>`).join('')+`<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--s2);">
     <td>TOTAL</td><td class="num">${fmt(totGen)}</td>
     <td class="num" style="color:var(--yellow)">${fmt(totRep)}</td>
-    <td class="num" style="color:var(--green)">${fmt(totRet)}</td>
-    <td class="num">${fmt(acum)}</td></tr>`;
+    <td class="num" style="color:var(--purple)">${fmt(totReinv)}</td>
+    <td class="num">${fmt(aniosAnt)}</td></tr>`;
   g('ua-gen').textContent=fmt(totGen);
   g('ua-rep').textContent=fmt(totRep);
-  g('ua-ret').textContent=fmt(totRet);
+  g('ua-reinv').textContent=fmt(totReinv);
+  g('ua-ret').textContent=fmt(aniosAnt);
+  g('ua-actual').textContent=fmt(actual);
+  if(g('ua-actual-sub')) g('ua-actual-sub').textContent = balanceCorte ? ('Ejercicio '+balanceCorte) : 'Del balance';
+  g('ua-total').textContent=fmt(total);
   const libros=+balUtilPrevia||0;
-  g('ua-balance').textContent=fmt(libros);
-  const dif=totRet-libros;
-  const rec=g('ua-recon');
-  if(rec){
-    if(Math.abs(dif)<1){
-      rec.className='alert a-ok';
-      rec.innerHTML=`✓ Cuadra: la utilidad reinvertida acumulada (<strong>${fmt(totRet)}</strong>) coincide con la de años anteriores del balance (<strong>${fmt(libros)}</strong>).`;
+  const dif=aniosAnt-libros;
+  const v=g('ua-valida');
+  if(v){
+    if(Math.abs(dif)<1.5){
+      v.style.color='var(--green)';
+      v.innerHTML='<span>&#10003; Cuadra con el balance: la utilidad acumulada de a&#241;os anteriores ('+fmt(aniosAnt)+') coincide con la registrada en libros.</span>';
     }else{
-      rec.className='alert a-warn';
-      rec.innerHTML=`⚠ Diferencia de <strong>${fmt(Math.abs(dif))}</strong>. Este cuadro muestra <strong>${fmt(totRet)}</strong> reinvertido, pero el balance registra <strong>${fmt(libros)}</strong> de años anteriores. Esa diferencia son <strong>repartos a socios aún no asignados por año</strong> — complétalos en la columna REPARTIDA de la hoja.`;
+      v.style.color='var(--yellow)';
+      v.innerHTML='<span>&#9888; Diferencia de '+fmt(Math.abs(dif))+' frente a los '+fmt(libros)+' de a&#241;os anteriores del balance. Revisa Repartida/Reinvertida en la hoja.</span>';
     }
   }
 }
@@ -1291,6 +1308,7 @@ function renderBalance(){
   const utilPrevia = get('306') || rows.filter(r=>r.grupo==='3' && exclRe.test(norm(r.nombre)) && /(utilidad|ganancia|resultado)/.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
   const utilTotal=utilActual+utilPrevia;
   balUtilPrevia=utilPrevia;
+  balUtilActual=utilActual;
 
   // === CATEGORÍAS DE ACTIVOS (dónde está el dinero) ===
   // Agrupadas por código de cuenta del plan (Ecuador/NIIF). "Otros" recoge lo no clasificado
