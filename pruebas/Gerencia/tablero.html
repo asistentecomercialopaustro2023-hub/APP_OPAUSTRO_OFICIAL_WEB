@@ -680,6 +680,7 @@
   <button class="tab-btn" onclick="switchTab(7)">💰 NCS Financieras</button>
   <button class="tab-btn" onclick="switchTab(8)">👥 Talento Humano</button>
   <button class="tab-btn" onclick="switchTab(9)">💎 Rebate</button>
+  <button class="tab-btn" onclick="switchTab(10)">📦 Inventario</button>
 
 </div>
 
@@ -938,6 +939,36 @@
         <span id="badge-reb-prov-txt"></span> &nbsp;✕
       </div>
       <div class="table-wrap"><table id="tbl-reb-meses"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TAB 10: INVENTARIO -->
+  <div class="tab-panel" id="panel-10">
+    <div class="section-title">📦 Inventario — Análisis por Proveedor</div>
+    <div class="kpi-grid" id="kpi-inv"></div>
+    <hr class="divider"/>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="filtro-group">
+        <label>Proveedor</label>
+        <select id="sel-inv-prov" onchange="renderInventario()"><option value="TODOS">TODOS</option></select>
+      </div>
+      <div class="filtro-group">
+        <label>Categoría</label>
+        <select id="sel-inv-cat" onchange="renderInventario()"><option value="TODAS">TODAS</option></select>
+      </div>
+    </div>
+    <div class="chart-grid" style="margin-bottom:18px">
+      <div class="chart-box"><h3>Valor de inventario por proveedor (a costo)</h3><canvas id="chart-inv-prov"></canvas></div>
+      <div class="chart-box"><h3>Distribución del valor</h3><canvas id="chart-inv-dist"></canvas></div>
+    </div>
+    <hr class="divider"/>
+    <div class="section-title" style="font-size:13px">📋 Detalle por Proveedor <small style="color:var(--gray3);font-size:11px;font-weight:400">(clic para ver los productos)</small></div>
+    <div class="table-wrap" style="margin-bottom:12px"><table id="tbl-inv-prov"><thead></thead><tbody></tbody></table></div>
+    <div id="inv-prod-detalle" style="display:none;margin-bottom:18px">
+      <div id="badge-inv-prov" class="filtro-activo" onclick="cerrarDetalleInvProv()">
+        <span id="badge-inv-prov-txt"></span> &nbsp;✕
+      </div>
+      <div class="table-wrap"><table id="tbl-inv-prod"><thead></thead><tbody></tbody></table></div>
     </div>
   </div>
 
@@ -1348,6 +1379,24 @@ function procesarSheets(){
       PRONTO_PAGO: cleanNum(obj['PRONTO PAGO'])
     };
   });
+
+  // INVENTARIO — headers con <br>; se normalizan
+  const nkInv=k=>String(k).replace(/<br\s*\/?>/gi,' ').replace(/\s+/g,' ').trim().toUpperCase();
+  sheets.inventario = sheetToJSON('inventario').map(r=>{
+    const obj={};
+    Object.keys(r).forEach(k=>{ obj[nkInv(k)]=r[k]; });
+    return {
+      PROV:  cleanStr(obj['PROVEEDOR']),
+      DIV:   cleanStr(obj['DIVISION']),
+      CAT:   cleanStr(obj['CATEGORIA']),
+      MARCA: cleanStr(obj['MARCA']),
+      ART:   cleanStr(obj['ARTICULO']),
+      COD:   cleanStr(obj['CODIGO']),
+      UNID:  cleanNum(obj['UNIDADES']),
+      COSTO: cleanNum(obj['COSTO TOTAL']),
+      DIAS:  cleanNum(obj['DIAS INVENTARIO'])
+    };
+  }).filter(r=>r.PROV);
 }
 
 // ══════════════════════════════════════════════════
@@ -1423,6 +1472,90 @@ function filtrarBase(data, {año,mes,linea}, campoLinea='LINEA'){
 function aplicarFiltros(){ switchTab(activeTab); }
 
 // ══════════════════════════════════════════════════
+// TAB 10 – INVENTARIO
+// ══════════════════════════════════════════════════
+const fmtU = n => Math.round(+n||0).toLocaleString('en-US');
+function renderInventario(){
+  const inv = sheets.inventario || [];
+  const cont = $('kpi-inv');
+  if(!inv.length){ if(cont) cont.innerHTML='<div class="kpi-card"><div class="kpi-label">Inventario</div><div class="kpi-value" style="font-size:1rem">Sin datos en la hoja "inventario"</div></div>'; return; }
+
+  // poblar filtros una sola vez
+  const sp=$('sel-inv-prov'), sc=$('sel-inv-cat');
+  if(sp && sp.options.length<=1){ [...new Set(inv.map(r=>r.PROV))].filter(Boolean).sort().forEach(p=>{ sp.innerHTML+=`<option>${p}</option>`; }); }
+  if(sc && sc.options.length<=1){ [...new Set(inv.map(r=>r.CAT))].filter(Boolean).sort().forEach(c=>{ sc.innerHTML+=`<option>${c}</option>`; }); }
+
+  const provSel = sp ? sp.value : 'TODOS';
+  const catSel  = sc ? sc.value : 'TODAS';
+  let data = inv;
+  if(provSel!=='TODOS') data = data.filter(r=>r.PROV===provSel);
+  if(catSel!=='TODAS')  data = data.filter(r=>r.CAT===catSel);
+
+  const totVal = data.reduce((s,r)=>s+r.COSTO,0);
+  const totUds = data.reduce((s,r)=>s+r.UNID,0);
+  const nProd  = data.length;
+  const nProv  = new Set(data.map(r=>r.PROV)).size;
+
+  renderKPI('kpi-inv',[
+    {label:'📦 Valor inventario (costo)', value:fmt$(totVal), cls:'green'},
+    {label:'🔢 Unidades totales', value:fmtU(totUds), cls:''},
+    {label:'🏷️ Productos (SKUs)', value:nProd.toLocaleString('en-US'), cls:''},
+    {label:'🏭 Proveedores', value:nProv, cls:''},
+  ]);
+
+  // agrupar por proveedor
+  const porProv={};
+  data.forEach(r=>{ if(!porProv[r.PROV]) porProv[r.PROV]={PROV:r.PROV,VAL:0,UDS:0,N:0}; porProv[r.PROV].VAL+=r.COSTO; porProv[r.PROV].UDS+=r.UNID; porProv[r.PROV].N++; });
+  const arrProv=Object.values(porProv).sort((a,b)=>b.VAL-a.VAL);
+  const CL=['#1A7A8A','#F0A500','#1DB87A','#E05252','#7B6CF6','#2BAFCA','#9AADB5','#0B3C49','#E39A00','#1D8FB8','#7A5AF0','#C4463C'];
+
+  destroyChart('chart-inv-prov');
+  charts['chart-inv-prov']=new Chart($('chart-inv-prov'),{
+    type:'bar',
+    data:{labels:arrProv.slice(0,10).map(r=>r.PROV),datasets:[{label:'Valor (costo)',data:arrProv.slice(0,10).map(r=>r.VAL),backgroundColor:'#1A7A8A',borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt$(ctx.raw)}}},scales:{x:{ticks:{callback:v=>fmt$(v)}}}}
+  });
+  destroyChart('chart-inv-dist');
+  charts['chart-inv-dist']=new Chart($('chart-inv-dist'),{
+    type:'doughnut',
+    data:{labels:arrProv.map(r=>r.PROV),datasets:[{data:arrProv.map(r=>r.VAL),backgroundColor:CL,borderWidth:2}]},
+    options:{responsive:true,plugins:{legend:{position:'right'},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt$(ctx.raw)} (${totVal?((ctx.raw/totVal)*100).toFixed(1):0}%)`}}}}
+  });
+
+  const tbl=$('tbl-inv-prov');
+  const totRow={PROV:'TOTAL',VAL:totVal,UDS:totUds,N:nProd};
+  tbl.querySelector('thead').innerHTML='<tr><th>Proveedor</th><th># Productos</th><th>Unidades</th><th>Valor (costo)</th><th>% del total</th></tr>';
+  tbl.querySelector('tbody').innerHTML=[...arrProv,totRow].map(r=>{
+    const pct=totVal>0?(r.VAL/totVal*100):0;
+    return `<tr class="${r.PROV==='TOTAL'?'row-total':'row-clickable'}" ${r.PROV!=='TOTAL'?`onclick="mostrarDetalleInvProv('${r.PROV.replace(/'/g,"\\'")}')"`:''}>
+      <td>${r.PROV}</td>
+      <td>${r.N.toLocaleString('en-US')}</td>
+      <td>${fmtU(r.UDS)}</td>
+      <td style="font-weight:700">${fmt$(r.VAL)}</td>
+      <td>${pct.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+  window._invDataGlobal=data;
+  makeTableSortable('tbl-inv-prov',[1,2,3,4]);
+  cerrarDetalleInvProv();
+}
+function cerrarDetalleInvProv(){ const w=$('inv-prod-detalle'); if(w) w.style.display='none'; }
+function mostrarDetalleInvProv(prov){
+  const data=(window._invDataGlobal||[]).filter(r=>r.PROV===prov).sort((a,b)=>b.COSTO-a.COSTO);
+  const w=$('inv-prod-detalle'), badge=$('badge-inv-prov-txt');
+  if(!w) return; w.style.display='block';
+  if(badge) badge.textContent='Productos: '+prov+' ('+data.length+')';
+  const tbl=$('tbl-inv-prod');
+  tbl.querySelector('thead').innerHTML='<tr><th>Artículo</th><th>Categoría</th><th>Marca</th><th>Unidades</th><th>Valor (costo)</th></tr>';
+  const tU=data.reduce((s,r)=>s+r.UNID,0), tV=data.reduce((s,r)=>s+r.COSTO,0);
+  tbl.querySelector('tbody').innerHTML=data.map(r=>`<tr>
+    <td>${r.ART}</td><td>${r.CAT}</td><td>${r.MARCA}</td>
+    <td>${fmtU(r.UNID)}</td><td style="font-weight:700">${fmt$(r.COSTO)}</td>
+  </tr>`).join('')+`<tr class="row-total"><td>TOTAL</td><td></td><td></td><td>${fmtU(tU)}</td><td>${fmt$(tV)}</td></tr>`;
+  makeTableSortable('tbl-inv-prod',[3,4],false);
+}
+
+// ══════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════
 function switchTab(idx){
@@ -1431,8 +1564,9 @@ function switchTab(idx){
   document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
   if(!WB) return;
   const f = getFiltros();
+  const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate,renderInventario];
+  if(idx===10){ renders[10](f); return; }   // Inventario no depende del año
   if(!f.año) return;
-  const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate];
   renders[idx](f);
 }
 
