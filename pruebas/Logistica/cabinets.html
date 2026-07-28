@@ -164,8 +164,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .thumb:hover{border-color:var(--acc);}
 .thumb-add{width:44px;height:44px;border-radius:4px;border:2px dashed var(--brd);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:700;vertical-align:middle;}
 .thumb-add:hover{border-color:var(--acc);color:var(--acc);}
-.foto3-edit{display:none;position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:pointer;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.35);}
-.foto3-area.done .foto3-edit{display:block;}
+.foto3-check-edit{cursor:pointer;}
 .lb-bg{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
 .lb-bg.on{display:flex;}
 .lb-img{max-width:90vw;max-height:85vh;border-radius:var(--r);object-fit:contain;}
@@ -834,10 +833,9 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-f" onclick="verOEditarFoto('ct','f',event)">
             <input type="file" id="ct-inp-f" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-f" src="" alt="">
-            <div class="foto3-icon">📷</div>
+            <div class="foto3-icon">+</div>
             <div class="foto3-txt">Frente del contrato</div>
-            <div class="foto3-check">✅</div>
-            <div class="foto3-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','f',event)">✎</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','f',event)">✎</div>
           </div>
         </div>
         <div class="foto3-item">
@@ -845,10 +843,9 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-r" onclick="verOEditarFoto('ct','r',event)">
             <input type="file" id="ct-inp-r" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-r" src="" alt="">
-            <div class="foto3-icon">📷</div>
+            <div class="foto3-icon">+</div>
             <div class="foto3-txt">Reverso del contrato</div>
-            <div class="foto3-check">✅</div>
-            <div class="foto3-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','r',event)">✎</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','r',event)">✎</div>
           </div>
         </div>
         <div class="foto3-item">
@@ -856,10 +853,9 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-l" onclick="verOEditarFoto('ct','l',event)">
             <input type="file" id="ct-inp-l" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-l" src="" alt="">
-            <div class="foto3-icon">📷</div>
+            <div class="foto3-icon">+</div>
             <div class="foto3-txt">Portada o fachada del local</div>
-            <div class="foto3-check">✅</div>
-            <div class="foto3-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','l',event)">✎</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','l',event)">✎</div>
           </div>
         </div>
       </div>
@@ -1240,6 +1236,9 @@ function openLB(src, cap) {
   g('lb').classList.add('on');
 }
 function closeLB() { g('lb').classList.remove('on'); g('lb-img').src=''; }
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Escape'&&g('lb').classList.contains('on')) closeLB();
+});
 
 function thumbImg(url, cap, alt){
   var src=fotoSrc(url,false);
