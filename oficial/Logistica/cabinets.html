@@ -141,6 +141,11 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .foto3-area.done .foto3-check{display:block;}
 .foto3-area.done .foto3-icon{display:none;}
 .foto3-area.done .foto3-txt{display:none;}
+.foto3-status{display:none;position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:var(--surf);font-size:12px;line-height:18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.foto3-status-bad{display:block;}
+.foto3-area.done .foto3-status-bad{display:none;}
+.foto3-area.done .foto3-status-ok{display:block;}
+.foto3-check-edit{width:22px;height:22px;border-radius:50%;background:#7c3aed;color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.4);margin:4px auto 0;}
 .foto3-counter{font-size:11px;font-weight:700;margin-bottom:8px;}
 .foto3-counter.ok{color:var(--ok-c);}
 .foto3-counter.pend{color:var(--mv-c);}
@@ -162,6 +167,9 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 
 .thumb{width:44px;height:44px;object-fit:cover;border-radius:4px;cursor:pointer;border:2px solid var(--brd);margin:1px;}
 .thumb:hover{border-color:var(--acc);}
+.thumb-add{width:44px;height:44px;border-radius:4px;border:2px dashed var(--brd);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:700;vertical-align:middle;}
+.thumb-add:hover{border-color:var(--acc);color:var(--acc);}
+.foto3-check-edit{cursor:pointer;}
 .lb-bg{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
 .lb-bg.on{display:flex;}
 .lb-img{max-width:90vw;max-height:85vh;border-radius:var(--r);object-fit:contain;}
@@ -416,9 +424,10 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
   <div class="modal">
     <div class="mh"><h2>📅 Planificar salida</h2><button class="mc" onclick="closeSal()">✕</button></div>
     <p style="font-size:11px;color:var(--mut);margin-bottom:12px;">Reserva un equipo de Bodega OK. La captación se registrará cuando pulses Despachar.</p>
-    <div class="fgrid">
-      <div class="fg"><label>Placa <span class="req">*</span></label><input type="text" id="s-placa" list="s-placas-ok" placeholder="Buscar placa OK..." oninput="syncSalidaPlaca()" style="text-transform:uppercase;font-weight:700;font-family:monospace;"><datalist id="s-placas-ok"></datalist></div>
-      <div class="fg"><label>Modelo <span class="req">*</span></label><select id="s-mod"><option value="">Seleccionar...</option>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <div class="fgrid" style="flex:1;margin-bottom:10px;">
+        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="s-placa" list="s-placas-ok" placeholder="Buscar placa OK..." oninput="syncSalidaPlaca()" style="text-transform:uppercase;font-weight:700;font-family:monospace;"><datalist id="s-placas-ok"></datalist></div>
+        <div class="fg" style="margin-bottom:0;"><label>Modelo <span class="req">*</span></label><select id="s-mod"><option value="">Seleccionar...</option>
 <option value="UDD-300">UDD-300</option>
 <option value="UDD-600">UDD-600</option>
 <option value="VITRINA PEQUEÑA">VITRINA PEQUEÑA</option>
@@ -430,6 +439,11 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 <option value="CONERA">CONERA</option>
 <option value="VITRINA GRANDE">VITRINA GRANDE</option>
 <option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option></select></div>
+      </div>
+      <button type="button" class="btn" onclick="abrirCamaraSalida()" title="Abrir cámara" style="flex:0 0 auto;width:38px;height:38px;padding:0;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">📷</button>
+      <input type="file" id="s-cam-inp" accept="image/*" capture="environment" style="display:none;">
+    </div>
+    <div class="fgrid">
       <div class="fg"><label>Código cliente <span class="req">*</span></label><input type="text" id="s-codcli" placeholder="Cód. numérico" style="font-family:monospace;font-weight:700;"></div>
       <div class="fg"><label>Nombre cliente <span class="req">*</span></label><input type="text" id="s-nomcli" placeholder="Nombre del cliente"></div>
       <div class="fg fspan">
@@ -470,6 +484,32 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
   <div class="modal">
     <div class="mh"><h2>↓ Entrada de equipo</h2><button class="mc" onclick="closeCap()">✕</button></div>
     <p style="font-size:11px;color:var(--mut);margin-bottom:12px;">Equipo que regresa del mercado o ingresa nuevo. Fecha/hora automática.</p>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <div class="fgrid" style="flex:1;margin-bottom:10px;">
+        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="c-placa" placeholder="Ej: 70391" style="text-transform:uppercase;font-weight:700;font-family:monospace;"></div>
+        <div class="fg" style="margin-bottom:0;"><label>Modelo <span class="req">*</span></label><select id="c-mod"><option value="">Seleccionar...</option>
+<option value="UDD-300">UDD-300</option>
+<option value="UDD-600">UDD-600</option>
+<option value="VITRINA PEQUEÑA">VITRINA PEQUEÑA</option>
+<option value="RIO">RIO</option>
+<option value="UDD-200">UDD-200</option>
+<option value="UDD-400">UDD-400</option>
+<option value="UDD-500">UDD-500</option>
+<option value="DOUBLE DECKER">DOUBLE DECKER</option>
+<option value="CONERA">CONERA</option>
+<option value="VITRINA GRANDE">VITRINA GRANDE</option>
+<option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option></select></div>
+      </div>
+      <button type="button" class="btn" onclick="abrirCamaraIngreso()" title="Abrir cámara" style="flex:0 0 auto;width:38px;height:38px;padding:0;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">📷</button>
+      <input type="file" id="c-cam-inp" accept="image/*" capture="environment" style="display:none;">
+    </div>
+    <div class="fgrid">
+      <div class="fg fspan">
+        <label>Delegado</label>
+        <div class="del-box">MANUEL GUAMAN</div>
+        <input type="hidden" id="c-del" value="MANUEL GUAMAN">
+      </div>
+    </div>
     <div style="margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">¿A qué estado ingresa? <span class="req">*</span></div>
       <div class="esg">
@@ -515,27 +555,6 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:3px 0;"><input type="checkbox" id="cc_VIDRIOS_DAÑADOS" value="VIDRIOS DAÑADOS"> VIDRIOS DAÑADOS</label>
 <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:3px 0;"><input type="checkbox" id="cc_CAMBIO_DE_VISAGRAS_VITRINAS" value="CAMBIO DE VISAGRAS (VITRINAS)"> CAMBIO DE VISAGRAS (VITRINAS)</label>
 </div>
-    </div>
-    <div class="fgrid">
-      <div class="fg"><label>Placa <span class="req">*</span></label><input type="text" id="c-placa" placeholder="Ej: 70391" style="text-transform:uppercase;font-weight:700;font-family:monospace;"></div>
-      <div class="fg"><label>Modelo <span class="req">*</span></label><select id="c-mod"><option value="">Seleccionar...</option>
-<option value="UDD-300">UDD-300</option>
-<option value="UDD-600">UDD-600</option>
-<option value="VITRINA PEQUEÑA">VITRINA PEQUEÑA</option>
-<option value="RIO">RIO</option>
-<option value="UDD-200">UDD-200</option>
-<option value="UDD-400">UDD-400</option>
-<option value="UDD-500">UDD-500</option>
-<option value="DOUBLE DECKER">DOUBLE DECKER</option>
-<option value="CONERA">CONERA</option>
-<option value="VITRINA GRANDE">VITRINA GRANDE</option>
-<option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option></select></div>
-      <div class="fg fspan">
-        <label>Delegado</label>
-        <div class="del-box">MANUEL GUAMAN</div>
-        <input type="hidden" id="c-del" value="MANUEL GUAMAN">
-      </div>
-
     </div>
     <div class="fg fspan" id="cap-fotos-box">
       <label>📷 Fotos de entrada — cómo llegó el equipo <span class="req">*</span> <span style="color:var(--mut);font-weight:400;">(3 fotos obligatorias)</span></label>
@@ -759,7 +778,8 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <div class="foto3-grid">
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Frontal</div>
-          <div class="foto3-area" id="dc-area-f" onclick="openCameraCapture('dc','f')">
+          <div class="foto3-area" id="dc-area-f" onclick="fotoMenu('dc','f',event)">
+            <input type="file" id="dc-inp-f" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="dc-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Frente del contrato</div>
@@ -768,7 +788,8 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Reverso</div>
-          <div class="foto3-area" id="dc-area-r" onclick="openCameraCapture('dc','r')">
+          <div class="foto3-area" id="dc-area-r" onclick="fotoMenu('dc','r',event)">
+            <input type="file" id="dc-inp-r" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="dc-prev-r" src="" alt="">
             <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Reverso del contrato</div>
@@ -777,7 +798,8 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">🏪 Portada / Fachada</div>
-          <div class="foto3-area" id="dc-area-l" onclick="openCameraCapture('dc','l')">
+          <div class="foto3-area" id="dc-area-l" onclick="fotoMenu('dc','l',event)">
+            <input type="file" id="dc-inp-l" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="dc-prev-l" src="" alt="">
             <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Portada o fachada del local</div>
@@ -808,32 +830,49 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
     <input type="hidden" id="ct-placa">
     <input type="hidden" id="ct-ts">
     <div class="fg fspan" style="margin-bottom:12px;">
-      <label>📄 Fotos del contrato <span class="req">*</span> <span style="color:var(--mut);font-weight:400;">(frontal y reverso obligatorios)</span></label>
-      <div class="foto3-counter pend" id="ct-cnt">0 / 2 fotos tomadas</div>
-      <div class="foto3-grid" style="grid-template-columns:1fr 1fr;">
+      <label>📄 Fotos del contrato <span class="req">*</span> <span style="color:var(--mut);font-weight:400;">(frontal, reverso y portada/fachada obligatorios)</span></label>
+      <div class="foto3-counter pend" id="ct-cnt">0 / 3 fotos tomadas</div>
+      <div class="foto3-grid">
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Frontal</div>
-          <div class="foto3-area" id="ct-area-f" onclick="pickFoto('ct','f',event)">
-            <input type="file" id="ct-inp-f" accept="image/jpeg,image/png,image/*" capture="environment">
+          <div class="foto3-area" id="ct-area-f" onclick="verOEditarFoto('ct','f',event)">
+            <input type="file" id="ct-inp-f" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-f" src="" alt="">
             <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Frente del contrato</div>
-            <div class="foto3-check">✅</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','f',event)">✎</div>
           </div>
         </div>
         <div class="foto3-item">
           <div class="foto3-lbl">📄 Reverso</div>
-          <div class="foto3-area" id="ct-area-r" onclick="pickFoto('ct','r',event)">
-            <input type="file" id="ct-inp-r" accept="image/jpeg,image/png,image/*" capture="environment">
+          <div class="foto3-area" id="ct-area-r" onclick="verOEditarFoto('ct','r',event)">
+            <input type="file" id="ct-inp-r" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-r" src="" alt="">
             <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Reverso del contrato</div>
-            <div class="foto3-check">✅</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','r',event)">✎</div>
+          </div>
+        </div>
+        <div class="foto3-item">
+          <div class="foto3-lbl">🏪 Portada / Fachada</div>
+          <div class="foto3-area" id="ct-area-l" onclick="verOEditarFoto('ct','l',event)">
+            <input type="file" id="ct-inp-l" accept="image/jpeg,image/png,image/*">
+            <img class="foto3-prev" id="ct-prev-l" src="" alt="">
+            <div class="foto3-icon">📷</div>
+            <div class="foto3-txt">Portada o fachada del local</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
+            <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','l',event)">✎</div>
           </div>
         </div>
       </div>
       <input type="hidden" id="ct-foto-f">
       <input type="hidden" id="ct-foto-r">
+      <input type="hidden" id="ct-foto-l">
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-ok" onclick="confirmarContrato()" id="btn-ct" style="flex:1;">💾 Guardar contrato</button>
@@ -853,6 +892,18 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
         <button class="btn btn-ok" type="button" onclick="captureCameraPhoto()">📷 Capturar foto</button>
         <button class="btn" type="button" onclick="closeCameraCapture()">Cancelar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="mbg" id="modal-foto-choice">
+  <div class="modal" style="max-width:340px;">
+    <div class="mh"><h2>📷 Agregar foto</h2><button class="mc" onclick="closeFotoChoice()">✕</button></div>
+    <p style="font-size:11px;color:var(--mut);margin-bottom:12px;">Elige cómo quieres agregar esta foto.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-ok" type="button" onclick="elegirTomarFoto()">📷 Tomar foto</button>
+      <button class="btn" type="button" onclick="elegirSubirFoto()">🖼️ Subir foto</button>
+      <button class="btn" type="button" onclick="closeFotoChoice()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -894,6 +945,19 @@ function dt(ts){if(!ts)return'—';try{var d=new Date(ts);return d.toLocaleDateS
 function dd(ts){if(!ts)return 0;return Math.floor((Date.now()-new Date(ts).getTime())/86400000);}
 function fechaEtapa(e){return e&&(e.tsEtapa||e.tsIngresoBodega||e.tsUltMov||e.fechaIngreso||e.ingreso||'');}
 function dBadge(ts){var d=dd(ts);var c=d<=3?'tr-ok':d<=14?'tr-wn':'tr-dn';return'<span class="tr '+c+'">'+d+'d</span>';}
+function diasLaborables(ts){
+  if(!ts)return 0;
+  var start=new Date(ts);start.setHours(0,0,0,0);
+  var end=new Date();end.setHours(0,0,0,0);
+  var dias=0,cur=new Date(start);
+  while(cur<end){
+    var dow=cur.getDay();
+    if(dow!==0&&dow!==6)dias++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return dias;
+}
+function dBadgeLab(ts){var d=diasLaborables(ts);var c=d<=3?'tr-ok':d<=14?'tr-wn':'tr-dn';return'<span class="tr '+c+'">'+d+'d</span>';}
 function horasDesde(ts){
   if(!ts)return null;
   var h=Math.max(0,Math.floor((Date.now()-new Date(ts).getTime())/3600000));
@@ -1008,12 +1072,43 @@ var CAM_LABELS={
   'ml:f':'frontal del equipo','ml:t':'trasera del equipo','ml:i':'interior del equipo',
   'fk:f':'frontal del equipo','fk:t':'trasera del equipo','fk:i':'interior del equipo',
   'dc:f':'frontal del contrato','dc:r':'reverso del contrato','dc:l':'portada o fachada del local',
-  'ct:f':'frontal del contrato','ct:r':'reverso del contrato'
+  'ct:f':'frontal del contrato','ct:r':'reverso del contrato','ct:l':'portada o fachada del local'
 };
 function pickFoto(prefix, vista, ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
   openCameraCapture(prefix,vista);
   return false;
+}
+var _fotoChoiceState={prefix:'',vista:''};
+function fotoMenu(prefix, vista, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  _fotoChoiceState.prefix=prefix; _fotoChoiceState.vista=vista;
+  g('modal-foto-choice').classList.add('on');
+  return false;
+}
+function closeFotoChoice(){
+  g('modal-foto-choice').classList.remove('on');
+  _fotoChoiceState={prefix:'',vista:''};
+}
+function elegirTomarFoto(){
+  var p=_fotoChoiceState.prefix, v=_fotoChoiceState.vista;
+  closeFotoChoice();
+  if(p&&v) openCameraCapture(p,v);
+}
+function elegirSubirFoto(){
+  var p=_fotoChoiceState.prefix, v=_fotoChoiceState.vista;
+  closeFotoChoice();
+  if(p&&v) pickFotoNativa(p,v);
+}
+function verOEditarFoto(prefix, vista, ev){
+  var area=g(prefix+'-area-'+vista);
+  if(area && area.classList.contains('done')){
+    if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+    var prev=g(prefix+'-prev-'+vista);
+    if(prev && prev.src) openLB(prev.src, CAM_LABELS[prefix+':'+vista]||'Foto');
+    return false;
+  }
+  return fotoMenu(prefix, vista, ev);
 }
 function pickFotoNativa(prefix, vista){
   var inp=g(prefix+'-inp-'+vista);
@@ -1108,7 +1203,7 @@ function actualizarCnt(prefix) {
 function vistas(prefix) {
   if(prefix==='ce') return ['f','t','i','p'];
   if(prefix==='dc') return ['f','r','l'];
-  if(prefix==='ct') return ['f','r'];
+  if(prefix==='ct') return ['f','r','l'];
   return ['f','t','i'];
 }
 
@@ -1152,11 +1247,21 @@ function openLB(src, cap) {
   g('lb').classList.add('on');
 }
 function closeLB() { g('lb').classList.remove('on'); g('lb-img').src=''; }
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Escape'&&g('lb').classList.contains('on')) closeLB();
+});
 
 function thumbImg(url, cap, alt){
   var src=fotoSrc(url,false);
   var full=fotoSrc(url,true);
   return '<img class="thumb" src="'+x(src)+'" data-full="'+x(full)+'" title="'+x(cap)+'" onclick="openLB(this.dataset.full,this.title)" alt="'+x(alt)+'" onerror="this.style.display=\'none\'">';
+}
+function thumbAddContrato(placa, ts, key, label){
+  return '<span class="thumb-add" title="Agregar '+x(label)+'" onclick="editarFotoContrato(\''+x(placa)+'\',\''+x(ts)+'\',\''+x(key)+'\')">+</span>';
+}
+function editarFotoContrato(placa, ts, key){
+  openEditarContrato(placa, ts);
+  fotoMenu('ct', key);
 }
 function thumbs(placa, modo) {
   var eq=DB.equipos[placa]; if(!eq) return '-';
@@ -1270,7 +1375,7 @@ function cargarDesdeExcel(){
 }
 
 function bindFotoInputs(){
-  var pares=[['ce','f'],['ce','t'],['ce','i'],['ce','p'],['ml','f'],['ml','t'],['ml','i'],['fk','f'],['fk','t'],['fk','i'],['dc','f'],['dc','r'],['ct','f'],['ct','r']];
+  var pares=[['ce','f'],['ce','t'],['ce','i'],['ce','p'],['ml','f'],['ml','t'],['ml','i'],['fk','f'],['fk','t'],['fk','i'],['dc','f'],['dc','r'],['dc','l'],['ct','f'],['ct','r'],['ct','l']];
   pares.forEach(function(p){
     var prefix=p[0], vista=p[1];
     var inp=g(prefix+'-inp-'+vista);
@@ -1566,7 +1671,7 @@ function rMnt(){
   if(!eq.length){tb.innerHTML='<tr><td colspan="7" class="empty">Sin equipos</td></tr>';return;}
   tb.innerHTML=eq.map(function(e){
     var tags=(e.trabajos||[]).map(function(t){return'<span class="tag">'+x(t)+'</span>';}).join('');
-    return'<tr><td class="tp">'+x(e.placa)+'</td><td>'+x(e.modelo)+'</td><td>'+bEt(e.etapa)+'</td><td class="tm">'+(e.tsIngresoBodega?fF(e.tsIngresoBodega):'—')+'</td><td>'+dBadge(fechaEtapa(e))+'</td><td>'+(tags||'—')+'</td><td>'+accionMantenimiento(e)+'</td></tr>';
+    return'<tr><td class="tp">'+x(e.placa)+'</td><td>'+x(e.modelo)+'</td><td>'+bEt(e.etapa)+'</td><td class="tm">'+(e.tsIngresoBodega?fF(e.tsIngresoBodega):'—')+'</td><td>'+dBadgeLab(fechaEtapa(e))+'</td><td>'+(tags||'—')+'</td><td>'+accionMantenimiento(e)+'</td></tr>';
   }).join('');
 }
 
@@ -1634,13 +1739,19 @@ function rMov(){
     var estadoActual=eq?bSt(eq):'<span class="badge b-dn">Sin stock</span>';
     // fotos contrato — pueden estar en el movimiento o en el equipo
     var fc=(m.fotosContrato)||(eq&&eq.fotosContrato)||{};
-    var hasFc=!!(fc.f||fc.r);
+    var puedeEditar=canEditBodega();
+    var hasFc=!!(fc.f||fc.r||fc.l);
     var fotosCont='';
-    if(fc.f)fotosCont+=thumbImg(fc.f,'Contrato Frontal — '+m.placa,'CF');
-    if(fc.r)fotosCont+=thumbImg(fc.r,'Contrato Reverso — '+m.placa,'CR');
-    if(fc.l)fotosCont+=thumbImg(fc.l,'Portada/Fachada local — '+m.placa,'PL');
+    [['f','Frontal','CF'],['r','Reverso','CR'],['l','Portada/Fachada','PL']].forEach(function(vc){
+      var key=vc[0], label=vc[1], alt=vc[2];
+      if(fc[key]){
+        fotosCont+=thumbImg(fc[key],'Contrato '+label+' — '+m.placa,alt);
+      } else if(puedeEditar){
+        fotosCont+=thumbAddContrato(m.placa,m.ts,key,label);
+      }
+    });
     if(!fotosCont)fotosCont='<span style="color:var(--mut);font-size:11px;">Sin fotos</span>';
-    if(canEditBodega())fotosCont+=' <button class="btn btn-mini" style="background:var(--c-b);color:var(--c-c);border-color:var(--c-c);vertical-align:middle;" data-p="'+x(m.placa)+'" data-ts="'+x(m.ts)+'" onclick="openEditarContrato(this.dataset.p,this.dataset.ts)">'+(hasFc?'✎':'📷 Subir')+'</button>';
+    if(puedeEditar&&hasFc)fotosCont+=' <button class="btn btn-mini" style="background:var(--c-b);color:var(--c-c);border-color:var(--c-c);vertical-align:middle;" data-p="'+x(m.placa)+'" data-ts="'+x(m.ts)+'" onclick="openEditarContrato(this.dataset.p,this.dataset.ts)">✎</button>';
     var esHoy=(m.ts||'').substring(0,10)===hoy;
     return'<tr'+(esHoy?' style="background:#f0fdf4;"':'')+'>'
       +'<td class="tm">'+dt(m.ts)+'</td>'
@@ -1758,7 +1869,7 @@ function openEditarContrato(placa, ts){
   var eq=DB.equipos&&DB.equipos[placa];
   var fc=(mov&&mov.fotosContrato)||(eq&&eq.fotosContrato)||{};
   g('ct-info').innerHTML='<strong>Placa:</strong> <span style="font-family:monospace;color:var(--acc);font-weight:700;">'+x(placa)+'</span>'+(mov?'&nbsp;&nbsp;<strong>Cliente:</strong> '+x((mov.codCli||'—')+(mov.nomCli?' — '+mov.nomCli:'')):'');
-  ['f','r'].forEach(function(v){
+  ['f','r','l'].forEach(function(v){
     if(fc[v]){
       g('ct-foto-'+v).value=fc[v];
       var prev=g('ct-prev-'+v); if(prev){prev.src=fotoSrc(fc[v]);prev.classList.add('on');}
@@ -1770,7 +1881,7 @@ function openEditarContrato(placa, ts){
 }
 function closeContrato(){ g('modal-contrato').classList.remove('on'); resetFotos3('ct'); }
 async function confirmarContrato(){
-  if(!validarFotos3('ct')){toast('Faltan las 2 fotos del contrato (frontal y reverso)','err');return;}
+  if(!validarFotos3('ct')){toast('Faltan fotos del contrato (frontal, reverso y portada/fachada)','err');return;}
   var placa=g('ct-placa').value, ts=g('ct-ts').value;
   var fotosContrato=getFotos3('ct');
   var mov=(DB.movimientos||[]).find(function(m){return m.placa===placa&&m.ts===ts;});
@@ -1854,6 +1965,8 @@ function openModalCap(){
   updTs('ts-cap');g('modal-cap').classList.add('on');
 }
 function closeCap(){g('modal-cap').classList.remove('on');}
+function abrirCamaraIngreso(){g('c-cam-inp').click();}
+function abrirCamaraSalida(){g('s-cam-inp').click();}
 function selEt(et,btn){
   _et=et;document.querySelectorAll('.esb').forEach(function(b){b.className='esb';});
   var cls={A:'s-a',B:'s-b',C:'s-c',DAÑADO:'s-d',NUEVO:'s-n'};
