@@ -141,6 +141,10 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .foto3-area.done .foto3-check{display:block;}
 .foto3-area.done .foto3-icon{display:none;}
 .foto3-area.done .foto3-txt{display:none;}
+.foto3-status{display:none;position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:var(--surf);font-size:12px;line-height:18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.foto3-status-bad{display:block;}
+.foto3-area.done .foto3-status-bad{display:none;}
+.foto3-area.done .foto3-status-ok{display:block;}
 .foto3-counter{font-size:11px;font-weight:700;margin-bottom:8px;}
 .foto3-counter.ok{color:var(--ok-c);}
 .foto3-counter.pend{color:var(--mv-c);}
@@ -833,8 +837,10 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-f" onclick="verOEditarFoto('ct','f',event)">
             <input type="file" id="ct-inp-f" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-f" src="" alt="">
-            <div class="foto3-icon">+</div>
+            <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Frente del contrato</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
             <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','f',event)">✎</div>
           </div>
         </div>
@@ -843,8 +849,10 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-r" onclick="verOEditarFoto('ct','r',event)">
             <input type="file" id="ct-inp-r" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-r" src="" alt="">
-            <div class="foto3-icon">+</div>
+            <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Reverso del contrato</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
             <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','r',event)">✎</div>
           </div>
         </div>
@@ -853,8 +861,10 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
           <div class="foto3-area" id="ct-area-l" onclick="verOEditarFoto('ct','l',event)">
             <input type="file" id="ct-inp-l" accept="image/jpeg,image/png,image/*">
             <img class="foto3-prev" id="ct-prev-l" src="" alt="">
-            <div class="foto3-icon">+</div>
+            <div class="foto3-icon">📷</div>
             <div class="foto3-txt">Portada o fachada del local</div>
+            <div class="foto3-status foto3-status-ok">✅</div>
+            <div class="foto3-status foto3-status-bad">❌</div>
             <div class="foto3-check foto3-check-edit" title="Editar foto" onclick="event.stopPropagation();fotoMenu('ct','l',event)">✎</div>
           </div>
         </div>
