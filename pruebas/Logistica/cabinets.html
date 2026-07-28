@@ -162,6 +162,11 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 
 .thumb{width:44px;height:44px;object-fit:cover;border-radius:4px;cursor:pointer;border:2px solid var(--brd);margin:1px;}
 .thumb:hover{border-color:var(--acc);}
+.thumb-wrap{position:relative;display:inline-block;margin:1px;vertical-align:middle;line-height:0;}
+.thumb-wrap .thumb{margin:0;}
+.thumb-edit{position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--acc);color:#fff;font-size:10px;line-height:17px;text-align:center;cursor:pointer;border:1.5px solid var(--surf);box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.thumb-add{width:44px;height:44px;border-radius:4px;border:2px dashed var(--brd);color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:700;vertical-align:middle;}
+.thumb-add:hover{border-color:var(--acc);color:var(--acc);}
 .lb-bg{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
 .lb-bg.on{display:flex;}
 .lb-img{max-width:90vw;max-height:85vh;border-radius:var(--r);object-fit:contain;}
@@ -1229,6 +1234,18 @@ function thumbImg(url, cap, alt){
   var full=fotoSrc(url,true);
   return '<img class="thumb" src="'+x(src)+'" data-full="'+x(full)+'" title="'+x(cap)+'" onclick="openLB(this.dataset.full,this.title)" alt="'+x(alt)+'" onerror="this.style.display=\'none\'">';
 }
+function thumbImgEdit(url, cap, alt, placa, ts, key){
+  return '<span class="thumb-wrap">'+thumbImg(url,cap,alt)
+    +'<span class="thumb-edit" title="Editar '+x(cap)+'" onclick="editarFotoContrato(\''+x(placa)+'\',\''+x(ts)+'\',\''+x(key)+'\')">✎</span>'
+    +'</span>';
+}
+function thumbAddContrato(placa, ts, key, label){
+  return '<span class="thumb-add" title="Agregar '+x(label)+'" onclick="editarFotoContrato(\''+x(placa)+'\',\''+x(ts)+'\',\''+x(key)+'\')">+</span>';
+}
+function editarFotoContrato(placa, ts, key){
+  openEditarContrato(placa, ts);
+  fotoMenu('ct', key);
+}
 function thumbs(placa, modo) {
   var eq=DB.equipos[placa]; if(!eq) return '-';
   var out='';
@@ -1705,13 +1722,19 @@ function rMov(){
     var estadoActual=eq?bSt(eq):'<span class="badge b-dn">Sin stock</span>';
     // fotos contrato — pueden estar en el movimiento o en el equipo
     var fc=(m.fotosContrato)||(eq&&eq.fotosContrato)||{};
-    var hasFc=!!(fc.f||fc.r);
+    var puedeEditar=canEditBodega();
     var fotosCont='';
-    if(fc.f)fotosCont+=thumbImg(fc.f,'Contrato Frontal — '+m.placa,'CF');
-    if(fc.r)fotosCont+=thumbImg(fc.r,'Contrato Reverso — '+m.placa,'CR');
-    if(fc.l)fotosCont+=thumbImg(fc.l,'Portada/Fachada local — '+m.placa,'PL');
+    [['f','Frontal','CF'],['r','Reverso','CR'],['l','Portada/Fachada','PL']].forEach(function(vc){
+      var key=vc[0], label=vc[1], alt=vc[2];
+      if(fc[key]){
+        fotosCont+=puedeEditar
+          ? thumbImgEdit(fc[key],'Contrato '+label+' — '+m.placa,alt,m.placa,m.ts,key)
+          : thumbImg(fc[key],'Contrato '+label+' — '+m.placa,alt);
+      } else if(puedeEditar){
+        fotosCont+=thumbAddContrato(m.placa,m.ts,key,label);
+      }
+    });
     if(!fotosCont)fotosCont='<span style="color:var(--mut);font-size:11px;">Sin fotos</span>';
-    if(canEditBodega())fotosCont+=' <button class="btn btn-mini" style="background:var(--c-b);color:var(--c-c);border-color:var(--c-c);vertical-align:middle;" data-p="'+x(m.placa)+'" data-ts="'+x(m.ts)+'" onclick="openEditarContrato(this.dataset.p,this.dataset.ts)">'+(hasFc?'✎':'📷 Subir')+'</button>';
     var esHoy=(m.ts||'').substring(0,10)===hoy;
     return'<tr'+(esHoy?' style="background:#f0fdf4;"':'')+'>'
       +'<td class="tm">'+dt(m.ts)+'</td>'
