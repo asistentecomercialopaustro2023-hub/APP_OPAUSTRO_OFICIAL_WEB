@@ -175,7 +175,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   </div>
 
   <div class="note">
-    Prototipo local. Puntaje: <b>% Llenado 35</b> · <b>Documento 20</b> · <b>Antes/Después 10</b> (vendedor, /65) + <b>Sin contaminación 35</b> (censo del supervisor). Total /100.
+    Puntaje: <b>% Llenado 35</b> · <b>Documento 20</b> · <b>Antes/Después 10</b> (vendedor, /65) + <b>Sin contaminación 35</b> (censo del supervisor). Total /100.
   </div>
 </div>
 
@@ -183,16 +183,16 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 <div class="modal" id="cfgModal"><div class="inner">
   <h2 style="font-size:16px;margin-bottom:14px">⚙️ Configuración de IA (Claude)</h2>
   <div class="field"><label class="slot-title" style="display:flex;align-items:center;gap:9px;text-transform:none;font-weight:400;color:var(--txt);font-size:13px"><input type="checkbox" id="cfgDemo" style="width:18px;height:18px"> Modo demo (simulado, sin clave)</label></div>
-  <div class="field"><label>Clave API de Anthropic (sk-ant-...)</label><input id="cfgKey" type="password" placeholder="Pega tu clave para IA real"></div>
+  <div class="field"><label>Clave API de Anthropic (opcional, solo para pruebas locales)</label><input id="cfgKey" type="password" placeholder="Vacío = usa la clave del servidor"></div>
   <div class="field"><label>Modelo</label><select id="cfgModel">
     <option value="claude-sonnet-5">claude-sonnet-5 (equilibrado)</option>
     <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (más barato)</option>
     <option value="claude-opus-5">claude-opus-5 (máxima calidad)</option>
   </select></div>
   <div class="field"><label>Productos / marcas Mondelez permitidos (uno por línea)</label><textarea id="cfgProd" style="min-height:110px"></textarea></div>
-  <div class="field"><label>URL del servidor (Apps Script /exec) — vacío = solo local</label><input id="cfgApi" placeholder="https://script.google.com/macros/s/.../exec"></div>
+  <div class="field"><label>URL del servidor (Apps Script /exec) — vacío = usa la del módulo</label><input id="cfgApi" placeholder="https://script.google.com/macros/s/.../exec"></div>
   <div class="btnrow"><button class="btn green" id="cfgSave">Guardar</button><button class="btn ghost" id="cfgClose">Cerrar</button></div>
-  <div class="note">La clave queda solo en este equipo. La lista de productos la usa el supervisor para detectar invasiones. Si pones la URL del servidor, las visitas/censo se envían también al Sheet y el reporte se lee de ahí.</div>
+  <div class="note">Normalmente <b>no hay que configurar nada</b>: el servidor del módulo ya trae la URL, la clave de IA y el modelo. La lista de productos la usa el supervisor para detectar invasiones; el modelo y la clave de aquí solo aplican si quieres probar con tu propia clave desde este equipo.</div>
 </div></div>
 
 <script>
@@ -203,12 +203,15 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         K_KEY="opaustro_ia_apikey", K_MODEL="opaustro_ia_modelo", K_DEMO="opaustro_ia_demo",
         K_VEND="opaustro_ultimo_vendedor", K_PROD="opaustro_productos_mondelez", K_APIURL="opaustro_exhibidores_api";
   const VENDEDORES=["Vendedor 1","Vendedor 2","Vendedor 3","Vendedor 4","Vendedor 5"];
+  // Deployment /exec del Apps Script de Exhibidores de ESTE ambiente (pruebas). Asi el
+  // vendedor no tiene que configurar nada: sin esto el envio al Sheet quedaba en silencio.
+  const DEFAULT_API_URL="https://script.google.com/macros/s/AKfycby5-YtM3HZ8lPbZAcRXqoUoH4OGUpleaYtpVnIEFUJ5mCdZrik_p7F-BhYmJGiS4Arv/exec";
   const DEFAULT_PRODUCTS=["Oreo","Ritz","Club Social","Chips Ahoy","Belvita","Coronita","Galapaguitos","Trident","Chiclets","Halls","Bubbaloo","Clorets","Festival"];
   const META_VISITAS=15, META_CENSO=20;
   const VISTA=(new URLSearchParams(location.search).get("vista")||"vendedor").toLowerCase();
 
   function productos(){ try{const v=JSON.parse(localStorage.getItem(K_PROD));return Array.isArray(v)&&v.length?v:DEFAULT_PRODUCTS.slice();}catch(e){return DEFAULT_PRODUCTS.slice();} }
-  function demoOn(){ const v=localStorage.getItem(K_DEMO); return v===null?!localStorage.getItem(K_KEY):v==="1"; }
+  function demoOn(){ return localStorage.getItem(K_DEMO)==="1"; }
   function refreshPill(){ const p=$("#modePill"); if(demoOn()){p.textContent="demo";p.className="pill demo";}else{p.textContent="IA real";p.className="pill";} }
   function clamp(n){ n=Number(n)||0; return Math.max(0,Math.min(100,n)); }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
@@ -257,7 +260,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function promptLlenado(){ return `Eres un auditor de exhibición Mondelez. Evalúa ÚNICAMENTE, del mueble/rack exhibidor de la foto: qué tan lleno está respecto a su capacidad, y su orden/limpieza. NO evalúes marcas ni invasiones. Ignora estanterías o productos alrededor que no son del exhibidor. Responde SOLO JSON válido: {"porcentaje_llenado":0,"orden_limpieza":"bien|regular|mal","material_pop":true,"observaciones":"texto corto","recomendaciones":["accion"]}`; }
   function promptContaminacion(){ return `Eres un supervisor auditando un exhibidor MONDELEZ. Productos/marcas PERMITIDOS: ${productos().join(", ")}. Evalúa ÚNICAMENTE lo que está DENTRO del mueble exhibidor (ignora estanterías/mostradores alrededor). Detecta si hay productos de OTRAS marcas dentro (invasión/contaminación). Responde SOLO JSON válido: {"contaminado":false,"invasiones":["producto/marca ajena"],"mondelez_presente":true,"observaciones":"texto corto","recomendaciones":["accion"]}`; }
 
-  async function claudeCall(rawB64,prompt){
+  // Ruta normal: el analisis lo hace el servidor (Apps Script), que guarda la clave de
+  // Anthropic y el modelo. Solo si alguien pone una clave propia en la configuracion se
+  // llama directo desde el navegador (util para probar en local sin servidor).
+  async function claudeCall(rawB64,tipo){
+    if(!localStorage.getItem(K_KEY)) return serverAnalizar(rawB64,tipo);
+    return browserCall(rawB64,tipo==="contaminacion"?promptContaminacion():promptLlenado());
+  }
+
+  async function serverAnalizar(rawB64,tipo){
+    const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
+    const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action:"analizarFoto",payload:{imagen:rawB64,tipo:tipo}})});
+    const data=await resp.json();
+    if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
+    return data.resultado;
+  }
+
+  async function browserCall(rawB64,prompt){
     const apiKey=localStorage.getItem(K_KEY); const model=localStorage.getItem(K_MODEL)||"claude-sonnet-5";
     const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
       headers:{"content-type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
@@ -294,7 +314,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const cliente=$("#fCliente").value.trim(); if(!cliente){main("Falta el código de cliente.","err");return;}
     if(!cap.despues){main("Falta la foto DESPUÉS.","err");return;}
     $("#btnSave").disabled=true; main('<span class="spin"></span>Enviando...',"info",true);
-    let r; try{ r=demoOn()?await demoLlenado():await claudeCall(cap.despues.raw.split(",")[1],promptLlenado()); }
+    let r; try{ r=demoOn()?await demoLlenado():await claudeCall(cap.despues.raw.split(",")[1],"llenado"); }
     catch(e){ r={porcentaje_llenado:0,orden_limpieza:"",observaciones:"Sin análisis: "+e.message}; }
     const doc=!!cap.contrato, ev=!!(cap.antes&&cap.despues), ll=clamp(r.porcentaje_llenado);
     const puntaje=Math.round(35*ll/100)+(doc?20:0)+(ev?10:0);
@@ -325,7 +345,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     await analizarCenso();});
   async function analizarCenso(){
     supMsg('<span class="spin"></span>Analizando contaminación...',"info",true); supIA=null;
-    try{ supIA=demoOn()?await demoContam():await claudeCall(capSup.foto.raw.split(",")[1],promptContaminacion()); }
+    try{ supIA=demoOn()?await demoContam():await claudeCall(capSup.foto.raw.split(",")[1],"contaminacion"); }
     catch(e){ supMsg("No se pudo analizar: "+e.message,"err"); return; }
     renderSupIA(supIA); $("#btnSupSave").disabled=false; supMsg("Revisa el resultado y guarda el censo.","ok");
     evalSup();
@@ -360,7 +380,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // ===================== REPORTE =====================
   function avg(a){ return a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):0; }
   // Fuente de datos del reporte: servidor (si hay URL) o local.
-  function apiUrl(){ return localStorage.getItem(K_APIURL)||""; }
+  function apiUrl(){ return localStorage.getItem(K_APIURL)||DEFAULT_API_URL; }
   let srvV=null, srvC=null;
   function dataV(){ return srvV!==null?srvV:loadV(); }
   function dataC(){ return srvC!==null?srvC:loadC(); }

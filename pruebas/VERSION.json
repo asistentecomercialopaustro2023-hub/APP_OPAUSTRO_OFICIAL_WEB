@@ -1,16 +1,16 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.10",
-    "label": "OPAUSTRO v1.0.10 - Nuevo modulo Exhibidores",
+    "version": "1.0.11",
+    "label": "OPAUSTRO v1.0.11 - Exhibidores: IA en el servidor y modulos por rol",
     "channel": "oficial",
     "publishedAt": "2026-07-30",
     "notes": [
-        "Nuevo: modulo \"Exhibidores\" (auditoria de ejecucion Mondelez). Tres submodulos: Vendedor (sube foto antes/despues/contrato de cada visita), Supervisor (censa contaminacion/invasiones con IA) y Reporte (avance por vendedor, visitas y censo, exportar a Excel).",
-        "El modulo se activa por rol desde Control de modulos (Admin > Control de accesos), igual que cualquier otro modulo: no requiere cambios de codigo para asignarlo a un rol nuevo o existente.",
-        "Solo disponible en el ambiente de pruebas por ahora; el Apps Script y el Sheet oficiales de Exhibidores aun no estan desplegados.",
-        "Incluye tambien lo publicado en la version 1.0.9: modulo \"Control de modulos\" (activar/desactivar modulos y submodulos por rol, renombrar/eliminar rol), boton \"Anadir rol\" en Control de usuarios, y correccion de la version mostrada en el pie de inicio de sesion."
+        "Exhibidores: ya no hay que configurar nada en el celular. La URL del servidor viene incluida en el modulo y el analisis con IA (modelo Sonnet) lo hace el servidor con una clave guardada solo ahi, no en el navegador.",
+        "Corregido: los modulos activados en Admin > Control de modulos ahora si se aplican a los roles ya existentes (admin, Gerencia, Vendedor, Supervisor, Logistica). Antes solo surtian efecto en roles nuevos.",
+        "Modulo \"Exhibidores\" (auditoria de ejecucion Mondelez). Tres submodulos: Vendedor (sube foto antes/despues/contrato de cada visita), Supervisor (censa contaminacion/invasiones con IA) y Reporte (avance por vendedor, visitas y censo, exportar a Excel).",
+        "Solo disponible en el ambiente de pruebas por ahora; el Apps Script y el Sheet oficiales de Exhibidores aun no estan desplegados."
     ],
-    "releaseKey": "1.0.10",
+    "releaseKey": "1.0.11",
     "forceUpdate": false,
     "rollback": false
 }
