@@ -15,6 +15,8 @@
 <link rel="apple-touch-icon" href="../Recuros_imagenes/icon-192.png?v=1.0.0">
 <title>Control Cabinets Magnum</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="html5-qrcode.min.js" defer></script>
+<script src="qrcode.min.js" defer></script>
 <style>
 :root{--bg:#eef1f4;--surf:#fff;--surf2:#f7f9fb;--brd:#dfe5eb;--txt:#18202a;--mut:#687386;--acc:#111827;--accl:#eef2f7;--ok-c:#3B6D11;--ok-b:#EAF3DE;--mt-c:#185FA5;--mt-b:#dbeafe;--dn-c:#A32D2D;--dn-b:#FCEBEB;--mv-c:#854F0B;--mv-b:#FAEEDA;--pl-c:#6d28d9;--pl-b:#ede9fe;--a-c:#0f6e56;--a-b:#d1fae5;--b-c:#185FA5;--b-b:#dbeafe;--c-c:#7c3aed;--c-b:#ede9fe;--r:10px;--rs:6px;}
 @media(prefers-color-scheme:dark){:root{--bg:#0f1117;--surf:#1a1d27;--surf2:#21252f;--brd:#2e3340;--txt:#e8eaf0;--mut:#9ca3af;--acc:#5DCAA5;--accl:#04342C;}}
@@ -212,6 +214,12 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 .slbl{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;}
 .sync-row .btn{padding:4px 6px;font-size:9.5px;flex:0 0 auto;letter-spacing:-.01em;}
 }
+.qrgen-item{display:inline-block;text-align:center;margin:6px;padding:8px;border:1px solid var(--brd);border-radius:6px;vertical-align:top;}
+@media print{
+  body *{visibility:hidden;}
+  #qrgen-output, #qrgen-output *{visibility:visible;}
+  #qrgen-output{position:absolute;top:0;left:0;width:100%;}
+}
 </style>
 
 <script>
@@ -269,6 +277,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
     <button class="btn" onclick="loadData()">↻ Sync</button>
     <button class="btn btn-sal role-admin role-tecnico" onclick="openModalSal()">📅 Planificar salida</button>
     <button class="btn btn-cap role-admin role-tecnico" onclick="openModalCap()">↓ Entrada</button>
+    <button class="btn role-admin" onclick="openModalQrGen()">🔳 Generar QR</button>
   </div>
 </div>
 
@@ -426,7 +435,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
     <p style="font-size:11px;color:var(--mut);margin-bottom:12px;">Reserva un equipo de Bodega OK. La captación se registrará cuando pulses Despachar.</p>
     <div style="display:flex;gap:8px;align-items:flex-end;">
       <div class="fgrid" style="flex:1;margin-bottom:10px;">
-        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="s-placa" list="s-placas-ok" placeholder="Buscar placa OK..." oninput="syncSalidaPlaca()" style="text-transform:uppercase;font-weight:700;font-family:monospace;"><datalist id="s-placas-ok"></datalist></div>
+        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="s-placa" list="s-placas-ok" placeholder="Buscar placa OK..." oninput="syncSalidaPlaca()" onchange="buscarModeloInventarioSalida(this.value)" style="text-transform:uppercase;font-weight:700;font-family:monospace;"><datalist id="s-placas-ok"></datalist></div>
         <div class="fg" style="margin-bottom:0;"><label>Modelo <span class="req">*</span></label><select id="s-mod"><option value="">Seleccionar...</option>
 <option value="UDD-300">UDD-300</option>
 <option value="UDD-600">UDD-600</option>
@@ -440,12 +449,31 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 <option value="VITRINA GRANDE">VITRINA GRANDE</option>
 <option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option></select></div>
       </div>
-      <button type="button" class="btn" onclick="abrirCamaraSalida()" title="Abrir cámara" style="flex:0 0 auto;width:38px;height:38px;padding:0;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">📷</button>
-      <input type="file" id="s-cam-inp" accept="image/*" capture="environment" style="display:none;">
+      <button type="button" class="btn" onclick="abrirEscanerQR(validarPlacaSalidaQR)" title="Escanear QR" style="flex:0 0 auto;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="15" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="17.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="1" y="15" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="17.5" width="3" height="3" fill="currentColor"/><rect x="13" y="13" width="2" height="2" fill="currentColor"/><rect x="17" y="13" width="2" height="2" fill="currentColor"/><rect x="21" y="13" width="2" height="2" fill="currentColor"/><rect x="13" y="17" width="2" height="2" fill="currentColor"/><rect x="13" y="21" width="2" height="2" fill="currentColor"/><rect x="17" y="21" width="2" height="2" fill="currentColor"/><rect x="21" y="17" width="2" height="2" fill="currentColor"/></svg></button>
     </div>
     <div class="fgrid">
-      <div class="fg"><label>Código cliente <span class="req">*</span></label><input type="text" id="s-codcli" placeholder="Cód. numérico" style="font-family:monospace;font-weight:700;"></div>
-      <div class="fg"><label>Nombre cliente <span class="req">*</span></label><input type="text" id="s-nomcli" placeholder="Nombre del cliente"></div>
+      <div class="fg"><label>Código cliente <span class="req">*</span></label><input type="text" id="s-codcli" list="s-clientes-dl" autocomplete="off" placeholder="Cód. numérico" style="font-family:monospace;font-weight:700;" oninput="sugerirClientesDebounced(this.value)" onchange="buscarClienteSalida(this.value)"><datalist id="s-clientes-dl"></datalist></div>
+      <div class="fg">
+        <label>Nombre cliente <span class="req">*</span></label>
+        <input type="text" id="s-nomcli" placeholder="Ingresa el código de cliente" readonly>
+        <div id="s-nomcli-msg" style="font-size:10px;margin-top:3px;"></div>
+      </div>
+      <div class="fg fspan">
+        <label>Sucursal <span class="req">*</span></label>
+        <select id="s-sucursal" onchange="onSucursalSalidaChange()"><option value="">Seleccionar...</option><option value="__otra__">+ Nueva sucursal</option></select>
+      </div>
+      <div class="fg" id="s-sucursal-otra-box" style="display:none;">
+        <label>Número de sucursal <span class="req">*</span></label>
+        <input type="text" id="s-sucursal-otra" placeholder="Ej: 3" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="fg" id="s-direccion-otra-box" style="display:none;">
+        <label>Dirección <span class="req">*</span></label>
+        <input type="text" id="s-direccion-otra" placeholder="Dirección de la nueva sucursal">
+      </div>
+      <input type="hidden" id="s-direccion-cliente" value="">
+      <input type="hidden" id="s-razon-cliente" value="">
+      <div class="fg"><label>Cód. vendedor</label><input type="text" id="s-codvend" placeholder="Opcional" style="font-family:monospace;font-weight:700;" onchange="buscarVendedorSalida(this.value)"></div>
+      <div class="fg"><label>Vendedor</label><div class="del-box" id="s-vend-box">—</div></div>
       <div class="fg fspan">
         <label>¿Quién lleva? <span class="req">*</span></label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -486,8 +514,8 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
     <p style="font-size:11px;color:var(--mut);margin-bottom:12px;">Equipo que regresa del mercado o ingresa nuevo. Fecha/hora automática.</p>
     <div style="display:flex;gap:8px;align-items:flex-end;">
       <div class="fgrid" style="flex:1;margin-bottom:10px;">
-        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="c-placa" placeholder="Ej: 70391" style="text-transform:uppercase;font-weight:700;font-family:monospace;"></div>
-        <div class="fg" style="margin-bottom:0;"><label>Modelo <span class="req">*</span></label><select id="c-mod"><option value="">Seleccionar...</option>
+        <div class="fg" style="margin-bottom:0;"><label>Placa <span class="req">*</span></label><input type="text" id="c-placa" placeholder="Ej: 70391" style="text-transform:uppercase;font-weight:700;font-family:monospace;" onchange="validarPlacaEntrada(this.value)"></div>
+        <div class="fg" style="margin-bottom:0;"><label>Modelo <span class="req">*</span></label><select id="c-mod" onchange="onModeloEntradaChange()"><option value="">Seleccionar...</option>
 <option value="UDD-300">UDD-300</option>
 <option value="UDD-600">UDD-600</option>
 <option value="VITRINA PEQUEÑA">VITRINA PEQUEÑA</option>
@@ -498,10 +526,12 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
 <option value="DOUBLE DECKER">DOUBLE DECKER</option>
 <option value="CONERA">CONERA</option>
 <option value="VITRINA GRANDE">VITRINA GRANDE</option>
-<option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option></select></div>
+<option value="VITRINA DOBLE PUERTA">VITRINA DOBLE PUERTA</option>
+<option value="__otro__">Otro (escribir)</option></select>
+        <input type="text" id="c-mod-otro" placeholder="Escribe el modelo" style="display:none;margin-top:6px;">
+        </div>
       </div>
-      <button type="button" class="btn" onclick="abrirCamaraIngreso()" title="Abrir cámara" style="flex:0 0 auto;width:38px;height:38px;padding:0;font-size:16px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">📷</button>
-      <input type="file" id="c-cam-inp" accept="image/*" capture="environment" style="display:none;">
+      <button type="button" class="btn" onclick="abrirEscanerQR(validarPlacaEntrada)" title="Escanear QR" style="flex:0 0 auto;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="15" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="17.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="1" y="15" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="17.5" width="3" height="3" fill="currentColor"/><rect x="13" y="13" width="2" height="2" fill="currentColor"/><rect x="17" y="13" width="2" height="2" fill="currentColor"/><rect x="21" y="13" width="2" height="2" fill="currentColor"/><rect x="13" y="17" width="2" height="2" fill="currentColor"/><rect x="13" y="21" width="2" height="2" fill="currentColor"/><rect x="17" y="21" width="2" height="2" fill="currentColor"/><rect x="21" y="17" width="2" height="2" fill="currentColor"/></svg></button>
     </div>
     <div class="fgrid">
       <div class="fg fspan">
@@ -908,6 +938,33 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
   </div>
 </div>
 
+<div class="mbg" id="modal-qr-scan">
+  <div class="modal" style="max-width:420px;">
+    <div class="mh"><h2>🔳 Escanear QR</h2><button class="mc" onclick="cerrarEscanerQR()">✕</button></div>
+    <div id="qr-reader" style="width:100%;border-radius:8px;overflow:hidden;background:#0f172a;min-height:260px;"></div>
+    <p id="qr-scan-msg" style="font-size:11px;color:var(--mut);margin-top:8px;">Apunta la cámara al código QR del cabinet.</p>
+    <button class="btn" type="button" onclick="cerrarEscanerQR()" style="margin-top:8px;width:100%;">Cancelar</button>
+  </div>
+</div>
+
+<div class="mbg" id="modal-qr-gen">
+  <div class="modal" style="max-width:640px;">
+    <div class="mh"><h2>🔳 Generar códigos QR</h2><button class="mc" onclick="closeModalQrGen()">✕</button></div>
+    <p style="font-size:11px;color:var(--mut);margin-bottom:10px;">Selecciona los cabinets para generar su QR (placa) e imprimir.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;"><input type="checkbox" id="qrgen-all" onchange="toggleQrGenAll(this.checked)"> Todos</label>
+      <input class="fi" placeholder="Buscar placa o modelo..." oninput="renderQrGenLista(this.value)" style="flex:1;">
+    </div>
+    <div id="qrgen-lista" style="max-height:280px;overflow:auto;border:1px solid var(--brd);border-radius:6px;padding:6px;"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-ok" type="button" onclick="generarQrSeleccionados()" style="flex:1;">Generar</button>
+      <button class="btn" type="button" onclick="closeModalQrGen()">Cerrar</button>
+    </div>
+    <div id="qrgen-output"></div>
+    <button class="btn" type="button" id="qrgen-print-btn" onclick="window.print()" style="display:none;width:100%;margin-top:10px;">🖨️ Imprimir</button>
+  </div>
+</div>
+
 <div class="lb-bg" id="lb" onclick="closeLB()">
   <button class="lb-close">✕</button>
   <img class="lb-img" id="lb-img" src="" alt="">
@@ -923,6 +980,7 @@ var AURL=APPS_URL, LOCAL=false;
 var DB={equipos:{},movimientos:[],mantenimientos:[],usuarios:[]};
 var bF='TODOS',bS='',mF='TODOS',mS='',mvF='TODOS',mvS='',plF='TODAS',plS='',rpF='TODOS',rpS='';
 var _et='';
+var _placaEntradaExiste=false;
 var _corrEt='';
 var SI={};
 
@@ -1249,7 +1307,61 @@ function openLB(src, cap) {
 function closeLB() { g('lb').classList.remove('on'); g('lb-img').src=''; }
 document.addEventListener('keydown', function(ev){
   if(ev.key==='Escape'&&g('lb').classList.contains('on')) closeLB();
+  if(ev.key==='Escape'&&g('modal-qr-scan').classList.contains('on')) cerrarEscanerQR();
 });
+
+/* ── QR: escaneo (compatible con el mismo formato que ya usa ICE_Pinguino) ── */
+var _qrScanner=null, _qrScanning=false, _qrOnDecoded=null;
+function extractSeriePlaca(value){
+  var raw=String(value==null?'':value).trim();
+  if(!raw) return '';
+  try{
+    var data=JSON.parse(raw);
+    var fromJson=data.Serie_Cabinet||data.serie_cabinet||data.serieCabinet||data.serie||data.id||data.codigo;
+    if(fromJson!==undefined&&fromJson!==null) return String(fromJson).trim();
+  }catch(e){}
+  var m=raw.match(/[?&](?:serie_cabinet|serieCabinet|serie|qr|token|id)=([^&#]+)/i);
+  if(m){ try{ return decodeURIComponent(m[1]).trim(); }catch(e){ return m[1].trim(); } }
+  return raw.replace(/^(?:CABINET|SERIE_CABINET|SERIE|QR)\s*[:=#-]\s*/i,'').trim();
+}
+function setQrMsg(t,cls){
+  var el=g('qr-scan-msg');
+  if(el){ el.textContent=t; el.style.color = cls==='err' ? 'var(--dn-c)' : 'var(--mut)'; }
+}
+async function abrirEscanerQR(onDecoded){
+  _qrOnDecoded=onDecoded;
+  g('modal-qr-scan').classList.add('on');
+  setQrMsg('Apunta la cámara al código QR del cabinet.');
+  if(!window.isSecureContext && location.hostname!=='localhost'){ setQrMsg('La cámara requiere HTTPS.','err'); return; }
+  if(!window.Html5Qrcode){ setQrMsg('No se cargó el lector QR. Revisa la conexión e inténtalo de nuevo.','err'); return; }
+  try{
+    _qrScanning=false;
+    _qrScanner=_qrScanner||new Html5Qrcode('qr-reader',{formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],experimentalFeatures:{useBarCodeDetectorIfSupported:true}});
+    var cameras=await Html5Qrcode.getCameras();
+    var rear=cameras.find(function(c){return /(back|rear|environment|trasera)/i.test(c.label);})||cameras[cameras.length-1];
+    var camera=(rear&&rear.id)?{deviceId:{exact:rear.id}}:{facingMode:'environment'};
+    await _qrScanner.start(camera,{fps:15,qrbox:function(w,h){var size=Math.floor(Math.min(w,h)*.82);return{width:size,height:size};},disableFlip:false}, onQrDetected, function(){});
+    _qrScanning=true;
+    setQrMsg('Cámara activa. Centra el QR dentro del recuadro.');
+  }catch(e){
+    _qrScanning=false;
+    setQrMsg('No se pudo abrir la cámara. Revisa el permiso de cámara.','err');
+  }
+}
+async function cerrarEscanerQR(){
+  if(_qrScanner && _qrScanning){ try{ await _qrScanner.stop(); }catch(e){} }
+  _qrScanning=false;
+  g('modal-qr-scan').classList.remove('on');
+}
+async function onQrDetected(value){
+  if(!_qrScanning) return;
+  var serie=extractSeriePlaca(value);
+  if(!serie) return;
+  if(navigator.vibrate) navigator.vibrate(120);
+  var cb=_qrOnDecoded;
+  await cerrarEscanerQR();
+  if(cb) cb(serie);
+}
 
 function thumbImg(url, cap, alt){
   var src=fotoSrc(url,false);
@@ -1914,12 +2026,127 @@ function syncSalidaPlaca(){
   var placa=g('s-placa').value.trim().toUpperCase();
   g('s-placa').value=placa;
   var e=DB.equipos&&DB.equipos[placa];
-  if(e&&e.estado==='BODEGA_OK')setSelectVal('s-mod',e.modelo||'');
+  if(e&&e.estado==='BODEGA_OK'){ setSelectVal('s-mod',e.modelo||''); g('s-mod').disabled=true; }
+  else { g('s-mod').disabled=false; }
+}
+function validarPlacaSalidaQR(placa){
+  g('s-placa').value=(placa||'').trim().toUpperCase();
+  syncSalidaPlaca();
+  buscarModeloInventarioSalida(g('s-placa').value);
+}
+async function buscarModeloInventarioSalida(placa){
+  placa=(placa||'').trim().toUpperCase();
+  if(!placa) return;
+  try{
+    var r=await fetch(AURL+'?action=buscarCabinetInv&serie='+encodeURIComponent(placa)+apiKeyParam(),{redirect:'follow'});
+    var d=await r.json();
+    if(d&&d.ok&&d.encontrado&&d.modelo){ setSelectVal('s-mod', d.modelo); g('s-mod').disabled=true; }
+  }catch(e){ /* sin conexion: no bloquea */ }
+}
+var _clienteEsNuevo=false;
+var _clienteSugTimer=null;
+function sugerirClientesDebounced(prefijo){
+  clearTimeout(_clienteSugTimer);
+  _clienteSugTimer=setTimeout(function(){ sugerirClientes(prefijo); }, 250);
+}
+async function sugerirClientes(prefijo){
+  prefijo=(prefijo||'').trim();
+  var dl=g('s-clientes-dl');
+  if(!prefijo){ dl.innerHTML=''; return; }
+  try{
+    var r=await fetch(AURL+'?action=buscarClientesPrefijoInv&prefijo='+encodeURIComponent(prefijo)+'&limite=8'+apiKeyParam(),{redirect:'follow'});
+    var d=await r.json();
+    if(!d||!d.ok) return;
+    dl.innerHTML=(d.resultados||[]).map(function(c){return '<option value="'+x(c.codCliente)+'">'+x(c.codCliente+' — '+c.razonCliente)+'</option>';}).join('');
+  }catch(e){ /* sin conexion: sin sugerencias, no bloquea */ }
+}
+function resetSucursalSalida(){
+  var sel=g('s-sucursal');
+  sel.innerHTML='<option value="">Seleccionar...</option><option value="__otra__">+ Nueva sucursal</option>';
+  g('s-sucursal-otra-box').style.display='none';
+  g('s-direccion-otra-box').style.display='none';
+  g('s-sucursal-otra').value='';
+  g('s-direccion-otra').value='';
+  g('s-direccion-cliente').value='';
+  g('s-razon-cliente').value='';
+  g('s-nomcli').value='';
+  g('s-nomcli').readOnly=true;
+  g('s-nomcli').placeholder='Ingresa el código de cliente';
+  g('s-nomcli-msg').textContent='';
+  _clienteEsNuevo=false;
+}
+function onSucursalSalidaChange(){
+  var sel=g('s-sucursal');
+  if(sel.value==='__otra__'){
+    g('s-sucursal-otra-box').style.display='';
+    g('s-direccion-otra-box').style.display='';
+    g('s-direccion-cliente').value='';
+  } else {
+    g('s-sucursal-otra-box').style.display='none';
+    g('s-direccion-otra-box').style.display='none';
+    var opt=sel.selectedOptions[0];
+    g('s-direccion-cliente').value=opt?(opt.dataset.direccion||''):'';
+  }
+}
+async function buscarClienteSalida(codCli){
+  codCli=(codCli||'').trim();
+  resetSucursalSalida();
+  if(!codCli) return;
+  try{
+    var r=await fetch(AURL+'?action=buscarClienteInv&codCliente='+encodeURIComponent(codCli)+apiKeyParam(),{redirect:'follow'});
+    var d=await r.json();
+    if(!d||!d.ok||!d.encontrado||!d.sucursales||!d.sucursales.length){
+      _clienteEsNuevo=true;
+      g('s-nomcli').readOnly=false;
+      g('s-nomcli').placeholder='Nombre del cliente';
+      g('s-nomcli-msg').textContent='Cliente no encontrado. Digite dos apellidos y un nombre.';
+      g('s-nomcli-msg').style.color='var(--dn-c)';
+      g('s-sucursal').value='__otra__';
+      onSucursalSalidaChange();
+      return;
+    }
+    var razon=d.sucursales[0].razonCliente||'';
+    g('s-nomcli').value=razon;
+    g('s-nomcli').readOnly=true;
+    g('s-razon-cliente').value=razon;
+    var sel=g('s-sucursal');
+    var otraOpt=sel.querySelector('option[value="__otra__"]');
+    d.sucursales.forEach(function(s){
+      var opt=document.createElement('option');
+      opt.value=s.sucursal; opt.textContent='Sucursal '+s.sucursal+(s.direccion?' — '+s.direccion:'');
+      opt.dataset.direccion=s.direccion||'';
+      sel.insertBefore(opt, otraOpt);
+    });
+    if(d.sucursales.length===1){
+      sel.value=d.sucursales[0].sucursal;
+      g('s-direccion-cliente').value=d.sucursales[0].direccion||'';
+    }
+  }catch(e){
+    _clienteEsNuevo=true;
+    g('s-nomcli').readOnly=false;
+    g('s-nomcli').placeholder='Nombre del cliente';
+    g('s-nomcli-msg').textContent='Sin conexión para validar. Digite dos apellidos y un nombre.';
+    g('s-nomcli-msg').style.color='var(--dn-c)';
+    g('s-sucursal').value='__otra__';
+    onSucursalSalidaChange();
+  }
+}
+async function buscarVendedorSalida(codVend){
+  codVend=(codVend||'').trim();
+  g('s-vend-box').textContent='—';
+  if(!codVend) return;
+  try{
+    var r=await fetch(AURL+'?action=buscarVendedorInv&codVendedor='+encodeURIComponent(codVend)+apiKeyParam(),{redirect:'follow'});
+    var d=await r.json();
+    if(d&&d.ok&&d.encontrado) g('s-vend-box').textContent=d.razonVendedor||'—';
+  }catch(e){ /* sin conexion: queda manual */ }
 }
 function openModalSal(){
   if(!(currentRole()==='admin'||currentRole()==='tecnico'||currentRole()==='logistica')){toast('No tienes permiso para registrar salidas','err');return;}
   llenarPlacasSalida();
+  g('s-placa').value=''; setSelectVal('s-mod',''); g('s-mod').disabled=false;
   g('s-del').value='';
+  g('s-codvend').value=''; resetSucursalSalida();
   document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
   var hoy=hoyStr();
   g('s-fecha-plan').value=hoy;
@@ -1940,16 +2167,33 @@ async function saveSal(){
   var transp=g('s-del').value;
   if(!placa||!modelo||!codCli||!nomCli||!fechaPlan){toast('Completa placa, cliente y fecha planificada','err');return;}
   if(!transp){toast('Selecciona quién lleva el equipo','err');return;}
+  var sucSel=g('s-sucursal').value;
+  if(!sucSel){toast('Selecciona la sucursal del cliente','err');return;}
+  var sucursal, direccionCliente;
+  if(sucSel==='__otra__'){
+    sucursal=g('s-sucursal-otra').value.trim();
+    direccionCliente=g('s-direccion-otra').value.trim();
+    if(!sucursal){toast('Escribe el número de la nueva sucursal','err');return;}
+    if(!direccionCliente){toast('Escribe la dirección de la nueva sucursal','err');return;}
+  } else {
+    sucursal=sucSel;
+    direccionCliente=g('s-direccion-cliente').value||'';
+  }
+  if(_clienteEsNuevo && nomCli.trim().split(/\s+/).length<3){toast('Escribe el nombre completo: dos apellidos y un nombre','err');return;}
+  var codVendedor=g('s-codvend').value.trim();
+  var razonVendedor=(g('s-vend-box').textContent||'').trim(); if(razonVendedor==='—') razonVendedor='';
+  var razonCliente=_clienteEsNuevo ? nomCli : (g('s-razon-cliente').value||nomCli);
+  var clienteNuevo=_clienteEsNuevo;
   var ts=new Date().toISOString();
   var yaPlan=(DB.movimientos||[]).some(function(m){return esPlanPendiente(m)&&m.placa===placa;});
   if(yaPlan){toast('La placa '+placa+' ya tiene una planificación pendiente','err');return;}
-  var mov={tipo:'SALIDA',placa:placa,modelo:modelo,codCli:codCli,nomCli:nomCli,cliente:codCli+' — '+nomCli,delegado:transp,fechaPlan:fechaPlan,estado:'PLANIFICADO',ts:ts};
+  var mov={tipo:'SALIDA',placa:placa,modelo:modelo,codCli:codCli,nomCli:nomCli,cliente:codCli+' — '+nomCli,delegado:transp,fechaPlan:fechaPlan,estado:'PLANIFICADO',ts:ts,codVendedor:codVendedor,razonVendedor:razonVendedor,sucursal:sucursal,razonCliente:razonCliente,direccionCliente:direccionCliente,clienteNuevo:clienteNuevo};
   DB.movimientos=DB.movimientos||[];DB.movimientos.push(mov);
   var btn=g('btn-sal');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
   var ok=await push({action:'planificarSalida',data:mov});
   btn.disabled=false;btn.innerHTML='📅 Guardar planificación';
   rAll();closeSal();
-  ['s-placa','s-codcli','s-nomcli'].forEach(function(id){g(id).value='';}); g('s-mod').value=''; g('s-fecha-plan').value=hoyStr(); g('s-del').value=''; document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
+  ['s-placa','s-codcli','s-nomcli','s-codvend'].forEach(function(id){g(id).value='';}); g('s-mod').value=''; g('s-fecha-plan').value=hoyStr(); g('s-del').value=''; g('s-vend-box').textContent='—'; resetSucursalSalida(); document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
   toast((ok?'✅ ':'⚠ ')+'Salida planificada — '+placa+' → '+nomCli+' | '+fF(fechaPlan),ok?'ok':'warn');
 }
 
@@ -1962,12 +2206,91 @@ function openModalCap(){
   ['ck-a','ck-b','ck-c'].forEach(function(id){g(id).className='ck-panel';});
   resetFotos3('ce');
   if(g('cap-fotos-box'))g('cap-fotos-box').style.display='';
+  g('c-placa').value=''; setSelectVal('c-mod',''); g('c-mod').disabled=false; g('c-mod-otro').style.display='none'; g('c-mod-otro').value='';
+  _placaEntradaExiste=false;
   updTs('ts-cap');g('modal-cap').classList.add('on');
 }
 function closeCap(){g('modal-cap').classList.remove('on');}
-function abrirCamaraIngreso(){g('c-cam-inp').click();}
-function abrirCamaraSalida(){g('s-cam-inp').click();}
+function onModeloEntradaChange(){
+  g('c-mod-otro').style.display = g('c-mod').value==='__otro__' ? 'block' : 'none';
+}
+async function validarPlacaEntrada(placa){
+  placa=(placa||'').trim().toUpperCase();
+  g('c-placa').value=placa;
+  g('c-mod').disabled=false;
+  g('c-mod-otro').style.display='none'; g('c-mod-otro').value='';
+  _placaEntradaExiste=false;
+  if(!placa) return;
+  try{
+    var r=await fetch(AURL+'?action=buscarCabinetInv&serie='+encodeURIComponent(placa)+apiKeyParam(),{redirect:'follow'});
+    var d=await r.json();
+    if(!d||!d.ok) return;
+    if(d.encontrado){
+      _placaEntradaExiste=true;
+      if(d.modelo) setSelectVal('c-mod', d.modelo);
+      g('c-mod').disabled=true;
+      var estado=(d.estado||'').trim();
+      if(_et==='NUEVO'){
+        toast('Este cabinet ya existe (estado: '+(estado||'—')+'). No puede ingresar como Nuevo.','err');
+      } else if(estado && estado.toUpperCase()!=='OPERATIVO'){
+        var cont=confirm('Ese cabinet no estaba operativo (estado actual: '+estado+'). ¿Deseas continuar de todas formas?');
+        if(!cont){ g('c-placa').value=''; setSelectVal('c-mod',''); g('c-mod').disabled=false; _placaEntradaExiste=false; }
+      }
+    }
+  }catch(e){ /* sin conexion al inventario externo: no bloquea, sigue el flujo manual */ }
+}
+
+/* ── QR: generacion (solo admin) ── */
+function openModalQrGen(){
+  if(currentRole()!=='admin'){toast('Solo el administrador puede generar QR','err');return;}
+  g('qrgen-output').innerHTML='';
+  g('qrgen-print-btn').style.display='none';
+  g('qrgen-all').checked=false;
+  renderQrGenLista('');
+  g('modal-qr-gen').classList.add('on');
+}
+function closeModalQrGen(){g('modal-qr-gen').classList.remove('on');}
+function renderQrGenLista(filtro){
+  var q=(filtro||'').trim().toUpperCase();
+  var placas=Object.keys(DB.equipos||{}).sort();
+  if(q) placas=placas.filter(function(p){return p.indexOf(q)>=0 || ((DB.equipos[p].modelo||'').toUpperCase().indexOf(q)>=0);});
+  var cont=g('qrgen-lista');
+  if(!placas.length){cont.innerHTML='<div class="empty" style="padding:10px;">Sin resultados</div>';return;}
+  cont.innerHTML=placas.map(function(p){
+    var eq=DB.equipos[p]||{};
+    return '<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:12px;cursor:pointer;"><input type="checkbox" class="qrgen-chk" value="'+x(p)+'"> <strong>'+x(p)+'</strong> — '+x(eq.modelo||'—')+'</label>';
+  }).join('');
+}
+function toggleQrGenAll(checked){
+  document.querySelectorAll('.qrgen-chk').forEach(function(chk){chk.checked=checked;});
+}
+function generarQrSeleccionados(){
+  var seleccion=Array.prototype.slice.call(document.querySelectorAll('.qrgen-chk:checked')).map(function(chk){return chk.value;});
+  if(!seleccion.length){toast('Selecciona al menos un cabinet','err');return;}
+  if(!window.QRCode){toast('No se cargó la librería de generación de QR','err');return;}
+  var out=g('qrgen-output');
+  out.innerHTML='';
+  seleccion.forEach(function(placa){
+    var eq=DB.equipos[placa]||{};
+    var item=document.createElement('div');
+    item.className='qrgen-item';
+    var qrBox=document.createElement('div');
+    item.appendChild(qrBox);
+    var lbl=document.createElement('div');
+    lbl.style.cssText='font-size:11px;font-weight:700;margin-top:4px;';
+    lbl.textContent=placa+(eq.modelo?' · '+eq.modelo:'');
+    item.appendChild(lbl);
+    out.appendChild(item);
+    new QRCode(qrBox,{text:placa,width:120,height:120});
+  });
+  g('qrgen-print-btn').style.display='block';
+  toast('✅ '+seleccion.length+' código(s) QR generado(s)','ok');
+}
 function selEt(et,btn){
+  if(et==='NUEVO' && _placaEntradaExiste){
+    toast('Este cabinet ya existe en la base (ya estuvo en producción, bodega o mantenimiento). No puede ingresar como Nuevo.','err');
+    return;
+  }
   _et=et;document.querySelectorAll('.esb').forEach(function(b){b.className='esb';});
   var cls={A:'s-a',B:'s-b',C:'s-c',DAÑADO:'s-d',NUEVO:'s-n'};
   btn.className='esb '+(cls[et]||'');
@@ -1986,12 +2309,13 @@ function getChecked(){
 }
 async function saveCap(){
   var placa=g('c-placa').value.trim().toUpperCase();
-  var modelo=g('c-mod').value;
+  var modelo=g('c-mod').value==='__otro__' ? g('c-mod-otro').value.trim() : g('c-mod').value;
   var cliente='';
   var trabajos=getChecked();
   if(!_et){toast('Selecciona el estado de ingreso','err');return;}
   if(!placa||!modelo){toast('Completa placa y modelo','err');return;}
   var esNuevo=(_et==='NUEVO');
+  if(esNuevo && _placaEntradaExiste){toast('Esta placa ya existe en la base (ya estuvo en producción, bodega o mantenimiento). No puede registrarse como Nuevo.','err');return;}
   if(!esNuevo && !validarFotos3('ce')){toast('Toma las 4 fotos obligatorias (frontal, trasera, interior, placa)','err');return;}
   var ts=new Date().toISOString();
   var esDan=(_et==='DAÑADO');
