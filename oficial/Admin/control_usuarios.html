@@ -13,7 +13,7 @@
     body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;padding:24px}
     .wrap{max-width:1260px;margin:0 auto;display:grid;gap:16px}
     .hero,.search-panel,.panel{background:linear-gradient(180deg,#fff,#f9fdff);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
-    .hero{display:grid;grid-template-columns:1fr 250px;gap:16px;align-items:stretch;padding:18px}
+    .hero{display:grid;grid-template-columns:1fr 240px 240px;gap:16px;align-items:stretch;padding:18px}
     .hero-copy{display:flex;gap:14px;align-items:center}
     .hero-icon{width:54px;height:54px;border-radius:16px;background:#e8f6fc;border:1px solid #c8e4f0;display:grid;place-items:center}.hero-icon svg{width:30px;height:30px}
     .eyebrow{display:block;color:var(--brand);font-size:11px;font-weight:950;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
@@ -24,6 +24,11 @@
     .add-avatar{width:48px;height:48px;border-radius:16px;background:#fff;border:1px solid #cfe5ef;display:grid;place-items:center}.add-avatar svg{width:26px;height:26px}
     .add-user-card strong{display:block;font-size:16px}
     .add-user-card span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-top:3px}
+    .module-area{border:1px solid var(--line);border-radius:13px;padding:11px 13px;background:#fbfdff}
+    .module-area h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--brand)}
+    .module-check{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px;font-weight:600;color:var(--text)}
+    .module-check input{width:auto}
+    .module-tree{display:grid;gap:12px;margin-top:14px;max-height:46vh;overflow:auto}
     .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
     .kpi{background:#fff;border:1px solid #dbe8f0;border-radius:16px;padding:14px;text-align:left;font-family:inherit;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease}
     .kpi:hover{box-shadow:0 12px 26px rgba(6,43,73,.1)}
@@ -98,6 +103,10 @@
         <span class="add-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#0b7db2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
         <span><strong>Añadir usuario</strong><span>Crear nuevo acceso</span></span>
       </button>
+      <button class="add-user-card" id="addRoleCard" type="button">
+        <span class="add-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#0b7db2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <span><strong>Añadir rol</strong><span>Crear rol y sus accesos</span></span>
+      </button>
     </section>
 
     <section class="kpis" aria-label="Resumen de usuarios">
@@ -169,10 +178,7 @@
           <input id="row" type="hidden">
           <div class="editor-grid">
             <label>Rol
-              <span class="role-entry" id="roleEntry">
-                <select id="rolSelect" required></select>
-                <input class="role-new" id="rol" placeholder="Ingrese el nuevo rol">
-              </span>
+              <select id="rolSelect" required></select>
             </label>
             <label>Nombre / Razón
               <input id="razon" placeholder="Nombre visible">
@@ -197,6 +203,31 @@
             <button class="primary" id="saveUserBtn" type="submit">Confirmar datos</button>
           </div>
           <div class="confirm-card" id="confirmCard"></div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="roleModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="roleModalTitle">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">Gestión de roles</span>
+          <h2 id="roleModalTitle">Añadir rol</h2>
+        </div>
+        <button class="close" id="closeRoleModal" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="roleForm">
+          <label>Nombre del rol
+            <input id="newRoleName" required placeholder="Ej: Coordinacion Bodega">
+          </label>
+          <div class="module-tree" id="roleModulesTree"></div>
+          <div class="modal-actions">
+            <button class="ghost" id="cancelRoleModal" type="button">Cancelar</button>
+            <button class="primary" type="submit">Guardar rol</button>
+          </div>
+          <div class="message" id="roleMessage" style="margin-top:10px"></div>
         </form>
       </div>
     </section>
@@ -239,7 +270,44 @@
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
     const $ = id => document.getElementById(id);
     let users = [];
+    let extraRoles = [];
     let confirmReady = false;
+
+    // Catálogo de módulos/submódulos disponibles para asignar a un rol nuevo.
+    // Debe reflejar MODULE_DEFINITIONS/AREA_GROUPS de Login/index.html — si se
+    // agrega un módulo ahí, agrégalo también aquí (y en control_modulos.html).
+    const MODULE_CATALOG = [
+      { area: "Control de accesos", items: [
+        { key: "ControlAccesoInforme", label: "Informe de accesos" },
+        { key: "ControlAccesoAdmin", label: "Administrar accesos" },
+        { key: "ControlUsuarios", label: "Control de usuarios" },
+        { key: "ControlModulos", label: "Control de módulos" }
+      ]},
+      { area: "Ventas", items: [
+        { key: "MapaVentas", label: "Mapa" },
+        { key: "VentasOperativo", label: "BI Ventas" },
+        { key: "BiVendedor", label: "BI Vendedor" },
+        { key: "Cartera", label: "BI Cartera" },
+        { key: "VentasGerencial", label: "BI Gerencial" },
+        { key: "Retorno", label: "BI Devoluciones" },
+        { key: "NuevoDia", label: "BI Nuevo Dia" }
+      ]},
+      { area: "Logística", items: [
+        { key: "Logistica", label: "Logística" }
+      ]},
+      { area: "Gerencia", items: [
+        { key: "GerenciaTablero", label: "Tablero Control" },
+        { key: "GerenciaRevision", label: "Revisión Costo" },
+        { key: "GerenciaFlujo", label: "Flujo Caja" }
+      ]},
+      { area: "ICE", items: [
+        { key: "IceResumen", label: "Resumen" },
+        { key: "IceInventario", label: "Inventario" },
+        { key: "IceReportes", label: "Reportes" },
+        { key: "IceEscaneo", label: "Escaneo" },
+        { key: "IceMisVisitas", label: "Mis visitas" }
+      ]}
+    ];
 
     function norm(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim()}
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
@@ -258,17 +326,22 @@
       syncUserSuggestions();
       renderUsers();
     }
+    async function loadRoles(){
+      const data=await api("getRoles");
+      if(data.success) extraRoles=data.roles||[];
+      syncRoleOptions();
+    }
     function uniqueSorted(values){
       return [...new Set(values.map(value=>String(value||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
     }
     function syncRoleOptions(){
       const selected=$("roleFilter").value;
       const modalSelected=$("rolSelect") ? $("rolSelect").value : "";
-      const roles=uniqueSorted(users.map(user=>user.rol));
+      const roles=uniqueSorted([...users.map(user=>user.rol),...extraRoles]);
       $("roleFilter").innerHTML=`<option value="">Todos los roles</option>`+roles.map(role=>`<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("");
       if(roles.includes(selected)) $("roleFilter").value=selected;
       if($("rolSelect")){
-        $("rolSelect").innerHTML=`<option value="">Seleccione un rol</option>`+roles.map(role=>`<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("")+`<option value="__new__">+ Nuevo rol</option>`;
+        $("rolSelect").innerHTML=`<option value="">Seleccione un rol</option>`+roles.map(role=>`<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("");
         if(roles.includes(modalSelected)) $("rolSelect").value=modalSelected;
       }
     }
@@ -288,23 +361,10 @@
       });
     }
     function setRoleValue(role){
-      const roles=uniqueSorted(users.map(user=>user.rol));
-      if(role && !roles.includes(role)){
-        $("rolSelect").value="__new__";
-        $("rol").value=role;
-      }else{
-        $("rolSelect").value=role||"";
-        $("rol").value="";
-      }
-      syncRoleEntry();
-    }
-    function syncRoleEntry(){
-      const isNew=$("rolSelect").value==="__new__";
-      $("roleEntry").classList.toggle("is-new",isNew);
-      $("rol").required=isNew;
+      $("rolSelect").value=role||"";
     }
     function selectedRole(){
-      return $("rolSelect").value==="__new__" ? $("rol").value.trim() : $("rolSelect").value.trim();
+      return $("rolSelect").value.trim();
     }
     function resetConfirmation(){
       confirmReady=false;
@@ -321,7 +381,7 @@
       return {row:$("row").value,rol:selectedRole(),razon:$("razon").value,usuario:$("usuario").value,estado:$("estado").value,password:$("password").value};
     }
     function validatePayload(payload){
-      if(!payload.rol) return "Seleccione un rol o ingrese un nuevo rol.";
+      if(!payload.rol) return "Seleccione un rol.";
       if(!payload.usuario) return "Ingrese el usuario.";
       if(!payload.razon) return "Ingrese el nombre o razón.";
       if(!payload.row && !payload.password) return "Ingrese una contraseña para el nuevo usuario.";
@@ -363,6 +423,33 @@
     }
     function closeModal(){
       $("userModal").hidden=true;
+    }
+    function renderModuleTree(checkedKeys){
+      $("roleModulesTree").innerHTML=MODULE_CATALOG.map(group=>`
+        <div class="module-area">
+          <h4>${escapeHtml(group.area)}</h4>
+          ${group.items.map(item=>`<label class="module-check"><input type="checkbox" data-area="${escapeHtml(group.area)}" data-modulo="${escapeHtml(item.key)}" data-etiqueta="${escapeHtml(item.label)}"${checkedKeys.includes(item.key)?" checked":""}> ${escapeHtml(item.label)}</label>`).join("")}
+        </div>
+      `).join("");
+    }
+    function collectCheckedModules(){
+      const areas=new Set();
+      const submodulos=[];
+      document.querySelectorAll("#roleModulesTree input[type=checkbox]:checked").forEach(input=>{
+        areas.add(input.dataset.area);
+        submodulos.push(input.dataset.modulo);
+      });
+      return {modulos:[...areas],submodulos};
+    }
+    function openRoleModal(){
+      $("newRoleName").value="";
+      renderModuleTree([]);
+      $("roleMessage").textContent="";
+      $("roleModal").hidden=false;
+      setTimeout(()=>$("newRoleName").focus(),40);
+    }
+    function closeRoleModal(){
+      $("roleModal").hidden=true;
     }
     function editUser(row){
       const user=users.find(item=>String(item.row)===String(row));
@@ -423,8 +510,29 @@
     $("statusFilter").addEventListener("change",renderUsers);
     $("search").addEventListener("input",renderUsers);
     $("addUserCard").addEventListener("click",clearForm);
-    $("rolSelect").addEventListener("change",()=>{syncRoleEntry();resetConfirmation();});
-    ["rol","razon","usuario","estado","password"].forEach(id=>$(id).addEventListener("input",resetConfirmation));
+    $("addRoleCard").addEventListener("click",openRoleModal);
+    $("closeRoleModal").addEventListener("click",closeRoleModal);
+    $("cancelRoleModal").addEventListener("click",closeRoleModal);
+    $("roleModal").addEventListener("click",event=>{if(event.target===$("roleModal")) closeRoleModal()});
+    document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!$("roleModal").hidden) closeRoleModal()});
+    $("roleForm").addEventListener("submit",async(event)=>{
+      event.preventDefault();
+      const rol=$("newRoleName").value.trim();
+      const msg=$("roleMessage");
+      if(!rol){msg.textContent="Ingrese el nombre del rol.";msg.style.color="#b42318";return;}
+      const {modulos,submodulos}=collectCheckedModules();
+      if(!submodulos.length){msg.textContent="Selecciona al menos un módulo o submódulo.";msg.style.color="#b42318";return;}
+      const data=await api("saveRoleModules",{rol,modulos,submodulos});
+      msg.textContent=data.message||"";
+      msg.style.color=data.success?"#6d8497":"#b42318";
+      if(data.success){
+        closeRoleModal();
+        await loadRoles();
+        setMessage(`Rol "${rol}" creado con sus módulos y submódulos.`);
+      }
+    });
+    $("rolSelect").addEventListener("change",resetConfirmation);
+    ["razon","usuario","estado","password"].forEach(id=>$(id).addEventListener("input",resetConfirmation));
     $("closeModal").addEventListener("click",closeModal);
     $("cancelModal").addEventListener("click",closeModal);
     $("userModal").addEventListener("click",event=>{if(event.target===$("userModal")) closeModal()});
@@ -478,7 +586,7 @@
         confirmBtn.disabled=false;confirmBtn.textContent="Confirmar";
       }
     });
-    loadUsers().catch(error=>setMessage(error.message,"error"));
+    (async()=>{ try{ await loadRoles(); await loadUsers(); }catch(error){ setMessage(error.message,"error"); } })();
   </script>
 <script src="../session-activity.js"></script>
 </body>

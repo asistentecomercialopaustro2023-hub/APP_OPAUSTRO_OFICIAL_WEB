@@ -2357,9 +2357,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
-    const APP_VERSION = '1.0.7';
-    const APP_RELEASE = 'OPAUSTRO v1.0.7';
-    const APP_RELEASE_KEY = '1.0.7';
+    const APP_VERSION = '1.0.9';
+    const APP_RELEASE = 'OPAUSTRO v1.0.9';
+    const APP_RELEASE_KEY = '1.0.9';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -2555,6 +2555,8 @@
         if (!response.ok) return;
         const release = await response.json();
         const current = release && release.version ? String(release.version) : APP_VERSION;
+        const footerVersion = document.getElementById("loginFooterVersion");
+        if (footerVersion) footerVersion.textContent = current;
         const releaseKey = releaseKeyOf(release, current);
         const stored = readStored(RELEASE_KEY);
         const forced = release && (release.forceUpdate === true || release.rollback === true);
@@ -2603,6 +2605,13 @@
         symbol: "users",
         icon: "../Recuros_imagenes/usuario.png?v=1.0.0",
         path: "../Admin/control_usuarios.html?embed=1",
+        embed: true
+      },
+      ControlModulos: {
+        label: "Control de módulos",
+        symbol: "controls",
+        icon: "../Recuros_imagenes/rol.png?v=1.0.0",
+        path: "../Admin/control_modulos.html?embed=1",
         embed: true
       },
       Ventas: {
@@ -2741,8 +2750,8 @@
     const ICE_ADMIN_MODULES = ["IceResumen", "IceInventario", "IceReportes"];
     const ICE_OPERATIVO_MODULES = ["IceEscaneo", "IceMisVisitas"];
     const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"];
-    const ACCESS_CONTROL_MODULES = ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios"];
-    const GERENCIA_CONTROL_MODULES = ["ControlAccesoInforme"];
+    const ACCESS_CONTROL_MODULES = ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"];
+    const GERENCIA_CONTROL_MODULES = ["ControlAccesoInforme", "ControlModulos"];
     const ADMIN_APP_MODULES = [...ACCESS_CONTROL_MODULES];
     const GERENCIA_ACCESS_MODULES = [...ADMIN_VENTAS_MODULES, ...LOGISTICA_MODULES, ...GERENCIA_MODULES, ...ICE_ADMIN_MODULES, ...GERENCIA_CONTROL_MODULES];
     const ADMIN_GERENCIA_MODULES = [...ADMIN_VENTAS_MODULES, ...LOGISTICA_MODULES, ...GERENCIA_MODULES, ...ICE_ADMIN_MODULES, ...ACCESS_CONTROL_MODULES];
@@ -2770,7 +2779,7 @@
         label: "Control de accesos",
         icon: "&#128101;",
         iconPath: "../Recuros_imagenes/usuario.png?v=1.0.0",
-        modules: ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios"]
+        modules: ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"]
       },
       {
         id: "Ventas",

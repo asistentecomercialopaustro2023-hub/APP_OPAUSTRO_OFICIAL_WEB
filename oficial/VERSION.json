@@ -1,17 +1,17 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.8",
-    "label": "OPAUSTRO v1.0.8 - Logistica: QR e inventario de cabinets; ICE: Resumen/Inventario",
+    "version": "1.0.9",
+    "label": "OPAUSTRO v1.0.9 - Control de modulos (roles y permisos)",
     "channel": "oficial",
     "publishedAt": "2026-07-30",
     "notes": [
-        "Nuevo en Logistica: escaneo y generacion de QR, integracion con BD_Inventario_Cabinets (autocompletado de cliente/vendedor/sucursal en Planificar salida, creacion de cliente nuevo con sucursal+direccion, bloqueo de \"Nuevo\" para placas ya existentes, Modelo bloqueado cuando la placa viene de la BD con opcion \"Otro\" para placas nuevas).",
-        "Nuevo en Logistica: Planificar salida ahora valida que la placa/cabinet este en bodega antes de guardar, mostrando de inmediato \"Este cabinet no esta en bodega, verifica la informacion\" si no lo esta.",
-        "Nuevo en ICE_Pinguino: el estado \"En mantenimiento\" es ahora una categoria propia en el resumen/inventario (antes se perdia dentro de \"otros\") y queda protegido del trigger diario que reseteaba estados no reconocidos.",
-        "Mejora en ICE_Pinguino: Resumen muestra las tarjetas de estado mas compactas en una sola fila (se ajustan al ancho de pantalla) mas una tarjeta de Total solo visual, y filtra la lista de cabinets sin salir a Inventario; Inventario muestra el total de cabinets arriba de los filtros de busqueda; ambas vistas muestran la columna real \"Modelo\" del sheet BD_Inventario_Cabinets.",
-        "Requiere republicar manualmente Logistica/Code.gs e ICE_Pinguino/Code.gs (oficial y pruebas) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+        "Nuevo: modulo \"Control de modulos\" dentro de Control de accesos (solo admin y Gerencia). Permite ver y editar, rol por rol, que modulos y submodulos tiene activos, activarlos/desactivarlos, renombrar el rol o eliminarlo si ya no se usa.",
+        "Nuevo: boton \"Anadir rol\" junto a \"Anadir usuario\" en Control de usuarios, para crear un rol nuevo eligiendo directamente sus modulos y submodulos.",
+        "El campo Rol de \"Anadir usuario\" ahora solo permite elegir un rol ya existente (antes tambien dejaba escribir uno nuevo ahi mismo).",
+        "Corrige la version mostrada en el pie de la pantalla de inicio de sesion: antes quedaba fija en un numero de version anterior aunque se publicara una nueva; ahora se actualiza con la version realmente publicada.",
+        "Requiere republicar manualmente Login/Code.gs (oficial y pruebas) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
     ],
-    "releaseKey": "1.0.8",
+    "releaseKey": "1.0.9",
     "forceUpdate": false,
     "rollback": false
 }
