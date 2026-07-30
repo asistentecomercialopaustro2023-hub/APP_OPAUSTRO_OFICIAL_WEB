@@ -451,6 +451,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       </div>
       <button type="button" class="btn" onclick="abrirEscanerQR(validarPlacaSalidaQR)" title="Escanear QR" style="flex:0 0 auto;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="15" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="17.5" y="3.5" width="3" height="3" fill="currentColor"/><rect x="1" y="15" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="17.5" width="3" height="3" fill="currentColor"/><rect x="13" y="13" width="2" height="2" fill="currentColor"/><rect x="17" y="13" width="2" height="2" fill="currentColor"/><rect x="21" y="13" width="2" height="2" fill="currentColor"/><rect x="13" y="17" width="2" height="2" fill="currentColor"/><rect x="13" y="21" width="2" height="2" fill="currentColor"/><rect x="17" y="21" width="2" height="2" fill="currentColor"/><rect x="21" y="17" width="2" height="2" fill="currentColor"/></svg></button>
     </div>
+    <div id="s-placa-msg" style="font-size:11px;font-weight:700;color:var(--dn-c);margin:-4px 0 10px;"></div>
     <div class="fgrid">
       <div class="fg"><label>Código cliente <span class="req">*</span></label><input type="text" id="s-codcli" list="s-clientes-dl" autocomplete="off" placeholder="Cód. numérico" style="font-family:monospace;font-weight:700;" oninput="sugerirClientesDebounced(this.value)" onchange="buscarClienteSalida(this.value)"><datalist id="s-clientes-dl"></datalist></div>
       <div class="fg">
@@ -2028,6 +2029,8 @@ function syncSalidaPlaca(){
   var e=DB.equipos&&DB.equipos[placa];
   if(e&&e.estado==='BODEGA_OK'){ setSelectVal('s-mod',e.modelo||''); g('s-mod').disabled=true; }
   else { g('s-mod').disabled=false; }
+  var msg=g('s-placa-msg');
+  if(msg) msg.textContent=(placa&&(!e||e.estado!=='BODEGA_OK'))?'⚠ Este cabinet no está en bodega, verifica la información.':'';
 }
 function validarPlacaSalidaQR(placa){
   g('s-placa').value=(placa||'').trim().toUpperCase();
@@ -2145,6 +2148,7 @@ function openModalSal(){
   if(!(currentRole()==='admin'||currentRole()==='tecnico'||currentRole()==='logistica')){toast('No tienes permiso para registrar salidas','err');return;}
   llenarPlacasSalida();
   g('s-placa').value=''; setSelectVal('s-mod',''); g('s-mod').disabled=false;
+  if(g('s-placa-msg')) g('s-placa-msg').textContent='';
   g('s-del').value='';
   g('s-codvend').value=''; resetSucursalSalida();
   document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
@@ -2158,7 +2162,7 @@ function closeSal(){g('modal-sal').classList.remove('on');}
 async function saveSal(){
   var placa=g('s-placa').value.trim().toUpperCase();
   var e=DB.equipos&&DB.equipos[placa];
-  if(!e||e.estado!=='BODEGA_OK'){toast('Esa placa no está disponible en BODEGA OK','err');return;}
+  if(!e||e.estado!=='BODEGA_OK'){toast('⚠ Este cabinet no está en bodega, verifica la información.','err');return;}
   var modelo=e.modelo||g('s-mod').value;
   setSelectVal('s-mod',modelo);
   var codCli=g('s-codcli').value.trim();
@@ -2193,7 +2197,7 @@ async function saveSal(){
   var ok=await push({action:'planificarSalida',data:mov});
   btn.disabled=false;btn.innerHTML='📅 Guardar planificación';
   rAll();closeSal();
-  ['s-placa','s-codcli','s-nomcli','s-codvend'].forEach(function(id){g(id).value='';}); g('s-mod').value=''; g('s-fecha-plan').value=hoyStr(); g('s-del').value=''; g('s-vend-box').textContent='—'; resetSucursalSalida(); document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
+  ['s-placa','s-codcli','s-nomcli','s-codvend'].forEach(function(id){g(id).value='';}); g('s-mod').value=''; g('s-fecha-plan').value=hoyStr(); g('s-del').value=''; g('s-vend-box').textContent='—'; if(g('s-placa-msg'))g('s-placa-msg').textContent=''; resetSucursalSalida(); document.querySelectorAll('.transp-btn').forEach(function(b){b.classList.remove('sel');});
   toast((ok?'✅ ':'⚠ ')+'Salida planificada — '+placa+' → '+nomCli+' | '+fF(fechaPlan),ok?'ok':'warn');
 }
 
