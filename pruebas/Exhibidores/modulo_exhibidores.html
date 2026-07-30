@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0a1628">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.bigdatacloud.net https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>Exhibidores — Opaustro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a1628;--panel:#0f1f3a;--border:rgba(255,255,255,.10);--txt:#e6eefb;--mut:rgba(230,238,251,.55);--blue:#0099ff;--blue2:#005B9E;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7}
+body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:16px;padding-bottom:40px}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 18% 12%,rgba(4,120,87,.20),transparent 45%),radial-gradient(ellipse at 85% 88%,rgba(0,91,158,.18),transparent 46%),linear-gradient(135deg,#0a1628,#0d2240 55%,#0a1628);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.logo{background:#fff;border-radius:12px;padding:8px 16px}.logo img{height:28px;display:block}
+.head h1{font-size:20px;font-weight:800}.head .sub{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.spacer{flex:1}
+.iconbtn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+.iconbtn:hover{background:rgba(255,255,255,.13)}
+.card{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+h3.sec{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:11px;color:var(--mut);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+input,select,textarea{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:10px 12px;font-size:14px;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--blue)}
+.field{margin-bottom:12px}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.slot-title{font-size:11px;color:var(--mut);text-transform:uppercase;font-weight:700;margin-bottom:5px;letter-spacing:.05em}
+.slot-box{display:flex;align-items:center;justify-content:center;aspect-ratio:3/4;max-height:40vh;border:1.5px dashed var(--border);border-radius:12px;background:var(--panel);cursor:pointer;overflow:hidden;position:relative}
+.slot-box img{width:100%;height:100%;object-fit:cover;display:none}
+.slot-box .ph{color:var(--mut);font-size:13px;text-align:center;padding:14px;line-height:1.5}
+.slot-box.has{border-style:solid;border-color:var(--green)}.slot-box.has img{display:block}.slot-box.has .ph{display:none}
+.slot-box .chk{position:absolute;top:6px;right:6px;background:var(--green);color:#fff;border-radius:50%;width:24px;height:24px;display:none;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.slot-box.has .chk{display:flex}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{border:none;border-radius:11px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.btn.primary{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff}
+.btn.green{background:linear-gradient(135deg,#047857,var(--green));color:#fff}
+.btn.purple{background:linear-gradient(135deg,#7c3aed,var(--purple));color:#fff}
+.btn.ghost{background:rgba(255,255,255,.07);color:var(--txt);border:1px solid var(--border)}
+.btn.red{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn:hover:not(:disabled){filter:brightness(1.1)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.b-ok{background:rgba(16,185,129,.18);color:#6ee7b7}.b-warn{background:rgba(245,158,11,.18);color:#fcd34d}.b-bad{background:rgba(239,68,68,.18);color:#fca5a5}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.kv{margin:4px 0}.kv b{color:var(--txt)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:3px 9px;font-size:12px}
+.chip.g{background:rgba(16,185,129,.14);color:#6ee7b7;border-color:rgba(16,185,129,.3)}
+.bar{height:9px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-top:4px}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
+.ia-box{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel);margin-top:12px;font-size:13px;line-height:1.6}.ia-box.hidden{display:none}
+.score{font-size:38px;font-weight:800;line-height:1}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border)}
+th{color:var(--mut);text-transform:uppercase;font-size:10.5px;letter-spacing:.05em}
+tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
+.tbox{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+.rank{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.rankcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:210px;flex:1}
+.rankcard .nom{font-size:14px;font-weight:700;margin-bottom:4px}.rankcard .v{font-size:26px;font-weight:800}.rankcard .n{font-size:11.5px;color:var(--mut);margin-top:5px}
+.prog{height:8px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin:8px 0 3px}.prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue))}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.rtab{background:none;border:none;color:var(--mut);padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}.rtab.active{color:var(--txt);border-bottom-color:var(--blue)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+.gitem{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);cursor:pointer;position:relative}.gitem img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.gitem .tag{position:absolute;top:5px;right:5px;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700}
+.empty{color:var(--mut);font-size:13px;text-align:center;padding:22px}
+.status{font-size:14px;margin-top:12px;min-height:18px}.status.err{color:#fca5a5}.status.ok{color:#6ee7b7}.status.info{color:var(--mut)}
+.modal{position:fixed;inset:0;background:rgba(3,8,20,.8);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.modal.open{display:flex}
+.modal .inner{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:20px}.modal .inner img{width:100%;border-radius:12px;margin-bottom:8px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.thumbs figure{font-size:10px;color:var(--mut);text-align:center}.thumbs img{width:100%;border-radius:8px;margin:0 0 3px}
+.note{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.5}
+.pill{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--mut)}.pill.demo{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fcd34d}
+@media(max-width:600px){.grid3,.grid2{grid-template-columns:1fr}body{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo"><img src="../Recuros_imagenes/logo_opaustro.png" alt="Opaustro" onerror="this.parentNode.style.display='none'"></div>
+    <div><h1 id="tituloVista">Exhibidores</h1><div class="sub" id="subVista">Auditoría de ejecución · Mondelez</div></div>
+    <div class="spacer"></div>
+    <span class="pill" id="modePill">demo</span>
+    <button class="iconbtn" id="btnCfg">⚙️ IA</button>
+  </div>
+
+  <!-- ===== VISTA VENDEDOR ===== -->
+  <div class="card" id="cardCaptura">
+    <h2>📷 Nueva visita</h2>
+    <div class="grid3">
+      <div class="field"><label>Vendedor</label><select id="fVendedor"></select></div>
+      <div class="field"><label>Código de cliente</label><input id="fCliente" inputmode="numeric" placeholder="Ej: 1024"></div>
+      <div class="field"><label>Marca</label><input id="fMarca" value="Mondelez"></div>
+    </div>
+    <h3 class="sec">📦 Foto del exhibidor</h3>
+    <div class="slots">
+      <div><div class="slot-title">Antes</div>
+        <label class="slot-box" id="boxAntes" for="inAntes"><span class="ph">＋ Foto ANTES</span><img><span class="chk">✓</span></label>
+        <input type="file" id="inAntes" accept="image/*" capture="environment" hidden></div>
+      <div><div class="slot-title">Después <span style="color:var(--blue)">(la revisa la IA)</span></div>
+        <label class="slot-box" id="boxDespues" for="inDespues"><span class="ph">＋ Foto DESPUÉS</span><img><span class="chk">✓</span></label>
+        <input type="file" id="inDespues" accept="image/*" capture="environment" hidden></div>
+    </div>
+    <h3 class="sec">📄 Contrato del exhibidor</h3>
+    <div class="slots">
+      <div><div class="slot-title">Contrato (1 foto)</div>
+        <label class="slot-box" id="boxContrato" for="inContrato"><span class="ph">＋ Foto del contrato</span><img><span class="chk">✓</span></label>
+        <input type="file" id="inContrato" accept="image/*" capture="environment" hidden></div>
+    </div>
+    <div class="note" style="margin-top:8px">📸 Encuadra <b>solo el exhibidor</b>, de frente y completo.</div>
+    <div class="status" id="mainStatus"></div>
+    <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button><button class="btn ghost" id="btnReset">↺ Limpiar</button></div>
+  </div>
+
+  <!-- ===== VISTA SUPERVISOR ===== -->
+  <div class="card" id="cardSupervisor" style="display:none">
+    <h2>🕵️ Censo del supervisor <span style="color:var(--mut);font-weight:400;font-size:12px">— revisa contaminación / invasiones</span></h2>
+    <div class="grid2">
+      <div class="field"><label>Vendedor a censar</label><select id="sVendedor"></select></div>
+      <div class="field"><label>Código de cliente</label><input id="sCliente" inputmode="numeric" placeholder="Ej: 1024"></div>
+    </div>
+    <div class="slots">
+      <div><div class="slot-title">Foto del exhibidor</div>
+        <label class="slot-box" id="boxSup" for="inSup"><span class="ph">＋ Tomar foto del exhibidor</span><img><span class="chk">✓</span></label>
+        <input type="file" id="inSup" accept="image/*" capture="environment" hidden></div>
+    </div>
+    <div class="status" id="supStatus"></div>
+    <div class="ia-box hidden" id="supIA"></div>
+    <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button><button class="btn ghost" id="btnSupReset">↺ Limpiar</button></div>
+    <div class="note">Meta: <b>20 visitas por vendedor a la semana</b>. El censo del supervisor aporta los <b>35 pts de "sin contaminación"</b> al puntaje total.</div>
+  </div>
+
+  <!-- ===== VISTA REPORTE ===== -->
+  <div class="card" id="cardReporte">
+    <h2>📊 Reportes <span class="pill" id="repCount">0</span></h2>
+    <div class="tabs">
+      <button class="rtab active" data-tab="vendedores">👤 Avance por vendedor</button>
+      <button class="rtab" data-tab="visitas">🗂️ Visitas (vendedor)</button>
+      <button class="rtab" data-tab="censo">🕵️ Censo supervisor</button>
+    </div>
+
+    <div id="tabVendedores" class="tabpane">
+      <div class="note" style="margin:0 0 12px">Total /100 = ejecución del vendedor (/65) + censo del supervisor (/35).</div>
+      <div class="rank" id="rank"></div>
+    </div>
+
+    <div id="tabVisitas" class="tabpane" style="display:none">
+      <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+        <select id="fFiltro" style="max-width:220px"><option value="">Todos los vendedores</option></select>
+        <button class="btn ghost" id="btnExport">⬇️ Exportar visitas (XLSX)</button>
+        <button class="btn red" id="btnClear">🗑️ Vaciar visitas</button>
+      </div>
+      <div class="tbox"><table>
+        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>% Llenado</th><th>Doc</th><th>Antes/Desp</th><th>Puntaje /65</th></tr></thead>
+        <tbody id="repBody"></tbody></table></div>
+      <div class="empty" id="repEmpty">Aún no hay visitas registradas.</div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+
+    <div id="tabCenso" class="tabpane" style="display:none">
+      <div class="rank" id="rankCenso"></div>
+      <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+        <button class="btn ghost" id="btnExportCenso">⬇️ Exportar censo (XLSX)</button>
+        <button class="btn red" id="btnClearCenso">🗑️ Vaciar censo</button>
+      </div>
+      <div class="tbox"><table>
+        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Contaminado</th><th>Invasiones</th><th>Pts /35</th></tr></thead>
+        <tbody id="censoBody"></tbody></table></div>
+      <div class="empty" id="censoEmpty">El supervisor aún no ha censado exhibidores.</div>
+      <div class="gallery" id="galleryCenso"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    Prototipo local. Puntaje: <b>% Llenado 35</b> · <b>Documento 20</b> · <b>Antes/Después 10</b> (vendedor, /65) + <b>Sin contaminación 35</b> (censo del supervisor). Total /100.
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="inner" id="modalInner"></div></div>
+<div class="modal" id="cfgModal"><div class="inner">
+  <h2 style="font-size:16px;margin-bottom:14px">⚙️ Configuración de IA (Claude)</h2>
+  <div class="field"><label class="slot-title" style="display:flex;align-items:center;gap:9px;text-transform:none;font-weight:400;color:var(--txt);font-size:13px"><input type="checkbox" id="cfgDemo" style="width:18px;height:18px"> Modo demo (simulado, sin clave)</label></div>
+  <div class="field"><label>Clave API de Anthropic (sk-ant-...)</label><input id="cfgKey" type="password" placeholder="Pega tu clave para IA real"></div>
+  <div class="field"><label>Modelo</label><select id="cfgModel">
+    <option value="claude-sonnet-5">claude-sonnet-5 (equilibrado)</option>
+    <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (más barato)</option>
+    <option value="claude-opus-5">claude-opus-5 (máxima calidad)</option>
+  </select></div>
+  <div class="field"><label>Productos / marcas Mondelez permitidos (uno por línea)</label><textarea id="cfgProd" style="min-height:110px"></textarea></div>
+  <div class="field"><label>URL del servidor (Apps Script /exec) — vacío = solo local</label><input id="cfgApi" placeholder="https://script.google.com/macros/s/.../exec"></div>
+  <div class="btnrow"><button class="btn green" id="cfgSave">Guardar</button><button class="btn ghost" id="cfgClose">Cerrar</button></div>
+  <div class="note">La clave queda solo en este equipo. La lista de productos la usa el supervisor para detectar invasiones. Si pones la URL del servidor, las visitas/censo se envían también al Sheet y el reporte se lee de ahí.</div>
+</div></div>
+
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  const K_STORE="opaustro_exhibidores", K_CENSO="opaustro_censo", K_IDX="opaustro_exhibidor_indice",
+        K_KEY="opaustro_ia_apikey", K_MODEL="opaustro_ia_modelo", K_DEMO="opaustro_ia_demo",
+        K_VEND="opaustro_ultimo_vendedor", K_PROD="opaustro_productos_mondelez", K_APIURL="opaustro_exhibidores_api";
+  const VENDEDORES=["Vendedor 1","Vendedor 2","Vendedor 3","Vendedor 4","Vendedor 5"];
+  const DEFAULT_PRODUCTS=["Oreo","Ritz","Club Social","Chips Ahoy","Belvita","Coronita","Galapaguitos","Trident","Chiclets","Halls","Bubbaloo","Clorets","Festival"];
+  const META_VISITAS=15, META_CENSO=20;
+  const VISTA=(new URLSearchParams(location.search).get("vista")||"vendedor").toLowerCase();
+
+  function productos(){ try{const v=JSON.parse(localStorage.getItem(K_PROD));return Array.isArray(v)&&v.length?v:DEFAULT_PRODUCTS.slice();}catch(e){return DEFAULT_PRODUCTS.slice();} }
+  function demoOn(){ const v=localStorage.getItem(K_DEMO); return v===null?!localStorage.getItem(K_KEY):v==="1"; }
+  function refreshPill(){ const p=$("#modePill"); if(demoOn()){p.textContent="demo";p.className="pill demo";}else{p.textContent="IA real";p.className="pill";} }
+  function clamp(n){ n=Number(n)||0; return Math.max(0,Math.min(100,n)); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+  function nextIndex(){ let n=Number(localStorage.getItem(K_IDX)||"7000")+1; localStorage.setItem(K_IDX,String(n)); return n; }
+  function loadV(){ try{return JSON.parse(localStorage.getItem(K_STORE)||"[]");}catch(e){return[];} }
+  function loadC(){ try{return JSON.parse(localStorage.getItem(K_CENSO)||"[]");}catch(e){return[];} }
+  function saveV(l){ try{localStorage.setItem(K_STORE,JSON.stringify(l));}catch(e){main("Memoria llena. Exporta y vacía.","err");} }
+  function saveC(l){ try{localStorage.setItem(K_CENSO,JSON.stringify(l));}catch(e){supMsg("Memoria llena. Exporta y vacía.","err");} }
+
+  // ===== Vendedores en selects =====
+  (function(){
+    let last=localStorage.getItem(K_VEND)||"";
+    try{const raw=localStorage.getItem("opaustro_session");if(raw){const s=JSON.parse(raw).session||{};if((s.user||s.usuario)&&!VENDEDORES.includes(s.user))VENDEDORES.unshift(s.user||s.usuario);}}catch(e){}
+    ["#fVendedor","#sVendedor","#fFiltro"].forEach(sel=>{const el=$(sel);if(!el)return;
+      if(sel==="#fFiltro"){el.innerHTML='<option value="">Todos los vendedores</option>';}
+      VENDEDORES.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.appendChild(o);});});
+    if(last){$("#fVendedor").value=last;$("#sVendedor").value=last;}
+    $("#fVendedor").addEventListener("change",()=>localStorage.setItem(K_VEND,$("#fVendedor").value));
+    $("#fFiltro").addEventListener("change",renderVisitas);
+  })();
+  $("#fCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalVend();});
+  $("#sCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalSup();});
+
+  // ===================== FOTO / GEO / SELLO =====================
+  function getGeo(){ return new Promise(res=>{ if(!navigator.geolocation){res(null);return;}
+    navigator.geolocation.getCurrentPosition(async p=>{const g={lat:p.coords.latitude,lng:p.coords.longitude,alt:p.coords.altitude};g.lugar=await revGeo(g.lat,g.lng);g.fecha=new Date().toISOString();res(g);},
+    ()=>res({fecha:new Date().toISOString(),lugar:[]}),{enableHighAccuracy:true,timeout:8000,maximumAge:0}); }); }
+  async function revGeo(lat,lng){ try{const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=es`);const d=await r.json();return [d.locality,d.city,d.principalSubdivision].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);}catch(e){return[];} }
+  function fmtDate(d){const M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+  function escala(img,max){const c=document.createElement("canvas");const k=Math.min(1,max/Math.max(img.width,img.height));c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c;}
+  function fileToImg(file){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>res(img);img.src=e.target.result;};r.readAsDataURL(file);});}
+  function sellar(dataUrl,geo,idx){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=img.width;c.height=img.height;const x=c.getContext("2d");x.drawImage(img,0,0);
+    const lines=[fmtDate(new Date())];((geo&&geo.lugar)||[]).forEach(l=>lines.push(l));
+    if(geo&&geo.lat!=null)lines.push(`Lat ${geo.lat.toFixed(5)}  Lng ${geo.lng.toFixed(5)}`);
+    if(geo&&geo.alt!=null)lines.push(`Altitud: ${geo.alt.toFixed(1)} msnm`);
+    lines.push(`N° índice: ${idx}`);
+    const fs=Math.max(14,Math.round(c.width*0.032)),pad=Math.round(fs*0.6),lh=Math.round(fs*1.35),bh=lines.length*lh+pad*2;
+    const g=x.createLinearGradient(0,c.height-bh-40,0,c.height);g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.62)");
+    x.fillStyle=g;x.fillRect(0,c.height-bh-40,c.width,bh+40);x.font=`700 ${fs}px "Segoe UI",Arial`;x.textBaseline="top";x.shadowColor="rgba(0,0,0,.9)";x.shadowBlur=4;
+    let y=c.height-bh+pad;lines.forEach((t,i)=>{x.fillStyle=i===0?"#ffd24a":"#ff8a1e";x.fillText(t,pad,y);y+=lh;});
+    x.shadowBlur=3;x.font=`800 ${Math.round(fs*0.9)}px "Segoe UI",Arial`;x.fillStyle="rgba(255,255,255,.9)";const tag="OPAUSTRO";x.fillText(tag,c.width-x.measureText(tag).width-pad,pad);
+    res(c.toDataURL("image/jpeg",0.85));};img.src=dataUrl;});}
+  function hacerThumb(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=escala(img,240);res(c.toDataURL("image/jpeg",0.5));};img.onerror=()=>res("");img.src=dataUrl;});}
+
+  // ===================== IA =====================
+  function promptLlenado(){ return `Eres un auditor de exhibición Mondelez. Evalúa ÚNICAMENTE, del mueble/rack exhibidor de la foto: qué tan lleno está respecto a su capacidad, y su orden/limpieza. NO evalúes marcas ni invasiones. Ignora estanterías o productos alrededor que no son del exhibidor. Responde SOLO JSON válido: {"porcentaje_llenado":0,"orden_limpieza":"bien|regular|mal","material_pop":true,"observaciones":"texto corto","recomendaciones":["accion"]}`; }
+  function promptContaminacion(){ return `Eres un supervisor auditando un exhibidor MONDELEZ. Productos/marcas PERMITIDOS: ${productos().join(", ")}. Evalúa ÚNICAMENTE lo que está DENTRO del mueble exhibidor (ignora estanterías/mostradores alrededor). Detecta si hay productos de OTRAS marcas dentro (invasión/contaminación). Responde SOLO JSON válido: {"contaminado":false,"invasiones":["producto/marca ajena"],"mondelez_presente":true,"observaciones":"texto corto","recomendaciones":["accion"]}`; }
+
+  async function claudeCall(rawB64,prompt){
+    const apiKey=localStorage.getItem(K_KEY); const model=localStorage.getItem(K_MODEL)||"claude-sonnet-5";
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"content-type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model,max_tokens:1024,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:rawB64}},{type:"text",text:prompt+"\n\nResponde ÚNICAMENTE el objeto JSON, sin ningún texto antes ni después."}]}]})});
+    const data=await resp.json();
+    if(!resp.ok) throw new Error((data&&data.error&&data.error.message)||("HTTP "+resp.status));
+    if(data.stop_reason==="refusal") throw new Error("la IA rechazó la solicitud (contenido)");
+    let txt=(data.content||[]).filter(b=>b&&b.type==="text").map(b=>b.text).join("").trim();
+    txt=txt.replace(/```json|```/g,"").trim();
+    const m=txt.match(/\{[\s\S]*\}/);          // extrae el primer objeto {...} aunque venga con texto alrededor
+    const jsonStr=m?m[0]:txt;
+    if(!jsonStr){ throw new Error("la IA respondió vacío"); }
+    try{ return JSON.parse(jsonStr); }
+    catch(e){ throw new Error("respuesta no válida de la IA: "+(txt.slice(0,60)||"(vacío)")); }
+  }
+  function demoLlenado(){ return new Promise(r=>setTimeout(()=>{const ll=[40,55,70,85,95][Math.floor(Math.random()*5)];r({porcentaje_llenado:ll,orden_limpieza:ll>70?"bien":"regular",material_pop:Math.random()<0.7,observaciones:"(DEMO) simulado.",recomendaciones:["Reponer para llegar al 100%"]});},800)); }
+  function demoContam(){ return new Promise(r=>setTimeout(()=>{const c=Math.random()<0.4;r({contaminado:c,invasiones:c?["Producto de otra marca"]:[],mondelez_presente:true,observaciones:"(DEMO) simulado.",recomendaciones:c?["Retirar productos ajenos"]:["Exhibidor exclusivo, OK"]});},800)); }
+
+  // ===================== VENDEDOR =====================
+  const cap={antes:null,despues:null,contrato:null}; let geoV=null,idxV=null;
+  [["inAntes","boxAntes","antes",true],["inDespues","boxDespues","despues",true],["inContrato","boxContrato","contrato",false]].forEach(([inp,box,key,exh])=>{
+    $("#"+inp).addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;e.target.value="";
+      const img=await fileToImg(f); const raw=escala(img,1280).toDataURL("image/jpeg",0.82);
+      if(exh){ if(!idxV)idxV=nextIndex(); if(!geoV){main('<span class="spin"></span>Ubicación GPS...',"info",true);geoV=await getGeo();}
+        const sellada=await sellar(raw,geoV,idxV); cap[key]={img:sellada,raw:raw}; pintar(box,sellada);
+      } else { cap[key]={img:raw}; pintar(box,raw); }
+      evalVend();});
+  });
+  function pintar(box,url){const b=$("#"+box);b.querySelector("img").src=url;b.classList.add("has");}
+  function evalVend(){ const ok=$("#fCliente").value.trim()&&cap.despues; $("#btnSave").disabled=!ok;
+    if(ok)main("Listo para enviar.","ok"); else if(cap.despues&&!$("#fCliente").value.trim())main("Falta el código de cliente.","info"); }
+
+  async function enviarVisita(){
+    const cliente=$("#fCliente").value.trim(); if(!cliente){main("Falta el código de cliente.","err");return;}
+    if(!cap.despues){main("Falta la foto DESPUÉS.","err");return;}
+    $("#btnSave").disabled=true; main('<span class="spin"></span>Enviando...',"info",true);
+    let r; try{ r=demoOn()?await demoLlenado():await claudeCall(cap.despues.raw.split(",")[1],promptLlenado()); }
+    catch(e){ r={porcentaje_llenado:0,orden_limpieza:"",observaciones:"Sin análisis: "+e.message}; }
+    const doc=!!cap.contrato, ev=!!(cap.antes&&cap.despues), ll=clamp(r.porcentaje_llenado);
+    const puntaje=Math.round(35*ll/100)+(doc?20:0)+(ev?10:0);
+    const thumb=await hacerThumb(cap.despues.img);
+    const rec={id:Date.now(),index:idxV,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),vendedor:$("#fVendedor").value,cliente:cliente,marca:$("#fMarca").value.trim()||"Mondelez",
+      lat:geoV&&geoV.lat,lng:geoV&&geoV.lng,lugar:(geoV&&geoV.lugar)||[],
+      fotoAntes:cap.antes&&cap.antes.img,fotoDespues:cap.despues.img,contrato:cap.contrato&&cap.contrato.img,thumb:thumb,
+      ia:{porcentaje_llenado:ll,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,documento_firmado:doc,evidencia_completa:ev,puntaje:puntaje}};
+    const l=loadV();l.unshift(rec);saveV(l);
+    serverSend("saveVisita",{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,marca:rec.marca,
+      porcentaje_llenado:ll,documento_firmado:doc,evidencia_completa:ev,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,
+      lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),fotoAntes:rec.fotoAntes||"",fotoDespues:rec.fotoDespues||"",contrato:rec.contrato||"",thumb:rec.thumb||"",device:"web"});
+    main("✔ Visita enviada. ¡Gracias! (puntaje "+puntaje+"/65)","ok");
+    resetVend();
+  }
+  function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;idxV=null;
+    ["boxAntes","boxDespues","boxContrato"].forEach(b=>{const el=$("#"+b);el.classList.remove("has");el.querySelector("img").src="";});
+    $("#fCliente").value="";$("#btnSave").disabled=true; }
+  $("#btnReset").onclick=()=>{resetVend();main("Listo para nueva visita.","info");};
+  $("#btnSave").onclick=enviarVisita;
+
+  // ===================== SUPERVISOR =====================
+  const capSup={foto:null}; let geoS=null,idxS=null,supIA=null;
+  $("#inSup").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;e.target.value="";
+    const img=await fileToImg(f); const raw=escala(img,1280).toDataURL("image/jpeg",0.82);
+    if(!idxS)idxS=nextIndex(); if(!geoS){supMsg('<span class="spin"></span>Ubicación GPS...',"info",true);geoS=await getGeo();}
+    const sellada=await sellar(raw,geoS,idxS); capSup.foto={img:sellada,raw:raw}; pintar("boxSup",sellada);
+    await analizarCenso();});
+  async function analizarCenso(){
+    supMsg('<span class="spin"></span>Analizando contaminación...',"info",true); supIA=null;
+    try{ supIA=demoOn()?await demoContam():await claudeCall(capSup.foto.raw.split(",")[1],promptContaminacion()); }
+    catch(e){ supMsg("No se pudo analizar: "+e.message,"err"); return; }
+    renderSupIA(supIA); $("#btnSupSave").disabled=false; supMsg("Revisa el resultado y guarda el censo.","ok");
+    evalSup();
+  }
+  function renderSupIA(r){ const box=$("#supIA");box.classList.remove("hidden");const inv=(r.invasiones||[]).filter(Boolean);const pts=r.contaminado?0:35;
+    box.innerHTML=`<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <div class="score">${pts}<span style="font-size:14px;color:var(--mut)">/35</span></div>
+      <span class="badge ${r.contaminado?"b-bad":"b-ok"}">${r.contaminado?"CONTAMINADO":"SIN CONTAMINACIÓN"}</span></div>
+      <div class="kv"><b>Invasiones:</b><div class="chips">${inv.length?inv.map(i=>`<span class="chip">⚠ ${esc(i)}</span>`).join(""):'<span class="chip g">✔ Ninguna</span>'}</div></div>
+      <div class="kv"><b>Observación IA:</b> ${esc(r.observaciones||"")}</div>`; }
+  function evalSup(){ const ok=$("#sCliente").value.trim()&&capSup.foto&&supIA; $("#btnSupSave").disabled=!ok; }
+  async function guardarCenso(){
+    const cliente=$("#sCliente").value.trim(); if(!cliente){supMsg("Falta el código de cliente.","err");return;}
+    if(!capSup.foto||!supIA){supMsg("Toma la foto primero.","err");return;}
+    const pts=supIA.contaminado?0:35; const thumb=await hacerThumb(capSup.foto.img);
+    const rec={id:Date.now(),index:idxS,fecha:(geoS&&geoS.fecha)||new Date().toISOString(),vendedor:$("#sVendedor").value,cliente:cliente,
+      lat:geoS&&geoS.lat,lng:geoS&&geoS.lng,lugar:(geoS&&geoS.lugar)||[],foto:capSup.foto.img,thumb:thumb,
+      contaminado:!!supIA.contaminado,invasiones:(supIA.invasiones||[]).filter(Boolean),observaciones:supIA.observaciones,puntaje:pts};
+    const l=loadC();l.unshift(rec);saveC(l);
+    serverSend("saveCenso",{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,
+      contaminado:rec.contaminado,invasiones:(rec.invasiones||[]).join(" / "),observaciones:rec.observaciones,
+      lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),foto:rec.foto||"",thumb:rec.thumb||"",device:"web"});
+    supMsg("✔ Censo guardado ("+(rec.contaminado?"contaminado, 0":"limpio, 35")+"/35)","ok");
+    resetSup();
+  }
+  function resetSup(){ capSup.foto=null;geoS=null;idxS=null;supIA=null;
+    const b=$("#boxSup");b.classList.remove("has");b.querySelector("img").src="";
+    $("#sCliente").value="";$("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; }
+  $("#btnSupReset").onclick=()=>{resetSup();supMsg("Listo para censar otro cliente.","info");};
+  $("#btnSupSave").onclick=guardarCenso;
+
+  // ===================== REPORTE =====================
+  function avg(a){ return a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):0; }
+  // Fuente de datos del reporte: servidor (si hay URL) o local.
+  function apiUrl(){ return localStorage.getItem(K_APIURL)||""; }
+  let srvV=null, srvC=null;
+  function dataV(){ return srvV!==null?srvV:loadV(); }
+  function dataC(){ return srvC!==null?srvC:loadC(); }
+  function vendoresUnicos(){ const s=new Set(VENDEDORES); dataV().forEach(r=>s.add(r.vendedor)); dataC().forEach(r=>s.add(r.vendedor)); return [...s].filter(Boolean); }
+  function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
+  function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
+  async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
+  // Envío opcional al servidor (solo si hay URL configurada).
+  function serverSend(action,payload){ const url=apiUrl(); if(!url) return; try{ fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,payload})}).catch(()=>{}); }catch(e){} }
+
+  async function refreshReporte(){
+    const url=apiUrl();
+    if(url){ try{
+      const [rv,rc]=await Promise.all([
+        fetch(url+"?action=getVisitas").then(r=>r.json()),
+        fetch(url+"?action=getCenso").then(r=>r.json())]);
+      srvV=(rv&&rv.success?rv.visitas:[]).map(mapVisita);
+      srvC=(rc&&rc.success?rc.censo:[]).map(mapCenso);
+    }catch(e){ srvV=null; srvC=null; } }
+    renderReporte();
+  }
+
+  function renderReporte(){ renderVendedores(); renderVisitas(); renderCenso(); $("#repCount").textContent=dataV().length+dataC().length; }
+
+  function renderVendedores(){
+    const V=dataV(), C=dataC();
+    const rows=vendoresUnicos().map(v=>{
+      const vis=V.filter(r=>r.vendedor===v), cen=C.filter(r=>r.vendedor===v);
+      const ejec=avg(vis.map(r=>r.ia?r.ia.puntaje:0));        // 0-65
+      const cont=avg(cen.map(r=>r.puntaje));                   // 0-35
+      const total=ejec+cont;                                   // 0-100
+      return {v,ejec,cont,total,nvis:vis.length,ncen:cen.length};
+    }).filter(x=>x.nvis||x.ncen).sort((a,b)=>b.total-a.total);
+    $("#rank").innerHTML=rows.map(x=>{const cls=x.total>=80?"b-ok":(x.total>=50?"b-warn":"b-bad");const pct=Math.min(100,Math.round(x.nvis/META_VISITAS*100));
+      return `<div class="rankcard"><div class="nom">${esc(x.v)}</div>
+        <div class="v" style="color:${x.total>=80?'#6ee7b7':(x.total>=50?'#fcd34d':'#fca5a5')}">${x.total}<span style="font-size:12px;color:var(--mut)">/100</span></div>
+        <div class="n">Ejecución <b style="color:var(--txt)">${x.ejec}</b>/65 · Contaminación <b style="color:var(--txt)">${x.cont}</b>/35</div>
+        <div class="prog"><i style="width:${pct}%"></i></div>
+        <div class="n">Visitas <b style="color:var(--txt)">${x.nvis}</b>/${META_VISITAS} · Censados <b style="color:var(--txt)">${x.ncen}</b>/${META_CENSO}</div></div>`;}).join("")||'<span class="note">Sin datos aún.</span>';
+  }
+
+  function renderVisitas(){
+    const filtro=$("#fFiltro").value; const list=filtro?dataV().filter(r=>r.vendedor===filtro):dataV();
+    $("#repEmpty").style.display=list.length?"none":"block";
+    $("#repBody").innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const cls=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
+      return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
+        <td>${esc(r.vendedor||"—")}</td><td>${esc(r.cliente||"—")}</td><td>${r.ia?r.ia.porcentaje_llenado:0}%</td>
+        <td>${r.ia&&r.ia.documento_firmado?"✔":"—"}</td><td>${r.ia&&r.ia.evidencia_completa?"✔":"—"}</td>
+        <td><span class="badge ${cls}">${p}</span></td></tr>`;}).join("");
+    $("#repBody").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>detalleVisita(tr.dataset.id)));
+    $("#gallery").innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const t=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
+      return `<div class="gitem" data-id="${r.id}"><span class="tag ${t}">${p}</span><img src="${r.thumb||r.fotoDespues}"></div>`;}).join("");
+    $("#gallery").querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>detalleVisita(el.dataset.id)));
+  }
+
+  function renderCenso(){
+    const C=dataC();
+    $("#censoEmpty").style.display=C.length?"none":"block";
+    const rows=vendoresUnicos().map(v=>{const cen=C.filter(r=>r.vendedor===v);if(!cen.length)return null;
+      const limpios=cen.filter(r=>!r.contaminado).length; const pct=Math.round(limpios/cen.length*100); const ptsProm=avg(cen.map(r=>r.puntaje));
+      return {v,ncen:cen.length,pct,ptsProm};}).filter(Boolean).sort((a,b)=>b.pct-a.pct);
+    $("#rankCenso").innerHTML=rows.map(x=>{const pctMeta=Math.min(100,Math.round(x.ncen/META_CENSO*100));
+      return `<div class="rankcard"><div class="nom">${esc(x.v)}</div>
+        <div class="v" style="color:${x.pct>=80?'#6ee7b7':(x.pct>=50?'#fcd34d':'#fca5a5')}">${x.pct}%<span style="font-size:12px;color:var(--mut)"> limpio</span></div>
+        <div class="n">Contaminación: <b style="color:var(--txt)">${x.ptsProm}</b>/35</div>
+        <div class="prog"><i style="width:${pctMeta}%"></i></div>
+        <div class="n">Censados <b style="color:var(--txt)">${x.ncen}</b>/${META_CENSO} esta semana</div></div>`;}).join("")||'<span class="note">Sin censo aún.</span>';
+    $("#censoBody").innerHTML=C.map(r=>{const inv=(r.invasiones||[]).filter(Boolean);
+      return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
+        <td>${esc(r.vendedor||"—")}</td><td>${esc(r.cliente||"—")}</td>
+        <td>${r.contaminado?'<span class="badge b-bad">Sí</span>':'<span class="badge b-ok">No</span>'}</td>
+        <td>${inv.length?esc(inv.join(", ")):"—"}</td><td><span class="badge ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span></td></tr>`;}).join("");
+    $("#censoBody").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>detalleCenso(tr.dataset.id)));
+    $("#galleryCenso").innerHTML=C.map(r=>`<div class="gitem" data-id="${r.id}"><span class="tag ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span><img src="${r.thumb||r.foto}"></div>`).join("");
+    $("#galleryCenso").querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>detalleCenso(el.dataset.id)));
+  }
+
+  function detalleVisita(id){ const r=dataV().find(x=>String(x.id)===String(id));if(!r)return;const ia=r.ia||{};
+    const t=(s,idA,c)=>(s||idA)?`<figure><img ${idA?`id="${idA}"`:""} src="${s||''}">${c}</figure>`:"";
+    $("#modalInner").innerHTML=`<img id="dvMain" src="${r.fotoDespues||r.thumb||''}">
+      <div class="thumbs">${t(r.fotoAntes,r.fotoAntesId?'dvAntes':'',"Antes")}${t(r.contrato,r.contratoId?'dvContrato':'',"Contrato")}</div>
+      <div class="kv"><b>Vendedor:</b> ${esc(r.vendedor)} · <b>Cliente:</b> ${esc(r.cliente)}</div>
+      <div class="kv"><b>Fecha:</b> ${new Date(r.fecha).toLocaleString("es")}</div>
+      <div class="kv"><b>Ubicación:</b> ${(r.lugar||[]).join(", ")||"-"}</div>
+      <div class="ia-box" style="margin-top:10px"><span class="badge ${ia.puntaje>=55?'b-ok':(ia.puntaje>=35?'b-warn':'b-bad')}">${ia.puntaje||0}/65</span>
+        <table style="margin-top:6px"><tr><td>% Llenado</td><td style="text-align:right">${Math.round(35*(ia.porcentaje_llenado||0)/100)}/35</td><td style="color:var(--mut)">${ia.porcentaje_llenado||0}%</td></tr>
+        <tr><td>Documento</td><td style="text-align:right">${ia.documento_firmado?20:0}/20</td><td style="color:var(--mut)">${ia.documento_firmado?"contrato subido":"sin contrato"}</td></tr>
+        <tr><td>Antes/Después</td><td style="text-align:right">${ia.evidencia_completa?10:0}/10</td><td style="color:var(--mut)">${ia.evidencia_completa?"completa":"falta una"}</td></tr></table>
+        <div class="kv" style="margin-top:6px"><b>Observación:</b> ${esc(ia.observaciones||"")}</div></div>
+      <div class="btnrow" style="margin-top:14px">${!r._server?'<button class="btn red" id="delV">🗑️ Eliminar</button>':''}<button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    const dv=$("#delV"); if(dv) dv.onclick=()=>{saveV(loadV().filter(x=>String(x.id)!==String(id)));$("#modal").classList.remove("open");refreshReporte();};
+    if(r._server){ if(r.fotoDespuesId)fetchFoto(r.fotoDespuesId).then(u=>{const e=$("#dvMain");if(u&&e)e.src=u;});
+      if(r.fotoAntesId)fetchFoto(r.fotoAntesId).then(u=>{const e=$("#dvAntes");if(u&&e)e.src=u;});
+      if(r.contratoId)fetchFoto(r.contratoId).then(u=>{const e=$("#dvContrato");if(u&&e)e.src=u;}); }
+  }
+  function detalleCenso(id){ const r=dataC().find(x=>String(x.id)===String(id));if(!r)return;const inv=(r.invasiones||[]).filter(Boolean);
+    $("#modalInner").innerHTML=`<img id="dcMain" src="${r.foto||r.thumb||''}">
+      <div class="kv"><b>Vendedor censado:</b> ${esc(r.vendedor)} · <b>Cliente:</b> ${esc(r.cliente)}</div>
+      <div class="kv"><b>Fecha:</b> ${new Date(r.fecha).toLocaleString("es")} · <b>Ubicación:</b> ${(r.lugar||[]).join(", ")||"-"}</div>
+      <div class="ia-box" style="margin-top:10px"><span class="badge ${r.contaminado?'b-bad':'b-ok'}">${r.contaminado?'CONTAMINADO — 0':'SIN CONTAMINACIÓN — 35'}/35</span>
+        <div class="kv" style="margin-top:6px"><b>Invasiones:</b> ${inv.length?esc(inv.join(", ")):"Ninguna"}</div>
+        <div class="kv"><b>Observación IA:</b> ${esc(r.observaciones||"")}</div></div>
+      <div class="btnrow" style="margin-top:14px">${!r._server?'<button class="btn red" id="delC">🗑️ Eliminar</button>':''}<button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    const dc=$("#delC"); if(dc) dc.onclick=()=>{saveC(loadC().filter(x=>String(x.id)!==String(id)));$("#modal").classList.remove("open");refreshReporte();};
+    if(r._server&&r.fotoId)fetchFoto(r.fotoId).then(u=>{const e=$("#dcMain");if(u&&e)e.src=u;});
+  }
+
+  // ===================== EXPORT XLSX =====================
+  function exportXLSX(head,rows,filename){
+    if(!rows.length){alert("No hay datos para exportar.");return;}
+    const enc=new TextEncoder(); const xe=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const colL=n=>{let s="";n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;};
+    let sd=""; [head].concat(rows).forEach((row,ri)=>{let cs="";row.forEach((v,ci)=>{const ref=colL(ci)+(ri+1);
+      if(typeof v==="number"&&isFinite(v))cs+=`<c r="${ref}"><v>${v}</v></c>`;else cs+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`;});sd+=`<row r="${ri+1}">${cs}</row>`;});
+    const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sd}</sheetData></worksheet>`;
+    const files=[
+      {name:"[Content_Types].xml",data:enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`)},
+      {name:"_rels/.rels",data:enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`)},
+      {name:"xl/workbook.xml",data:enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Reporte" sheetId="1" r:id="rId1"/></sheets></workbook>`)},
+      {name:"xl/_rels/workbook.xml.rels",data:enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`)},
+      {name:"xl/worksheets/sheet1.xml",data:enc.encode(sheet)}];
+    const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);
+  }
+  function zipStore(files){const chunks=[],central=[];let offset=0;const u16=n=>[n&255,(n>>>8)&255],u32=n=>[n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255];const enc=new TextEncoder();
+    const crc32=b=>{let c=~0;for(let i=0;i<b.length;i++){c^=b[i];for(let k=0;k<8;k++)c=(c>>>1)^(0xEDB88320&(-(c&1)));}return (~c)>>>0;};
+    files.forEach(f=>{const name=enc.encode(f.name),data=f.data,crc=crc32(data);
+      chunks.push(new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0)]));chunks.push(name);chunks.push(data);
+      central.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset)]));central.push(name);offset+=30+name.length+data.length;});
+    const cd=central.reduce((s,c)=>s+c.length,0);const end=new Uint8Array([0x50,0x4b,5,6,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cd),...u32(offset),...u16(0)]);
+    const all=chunks.concat(central,[end]);const total=all.reduce((s,c)=>s+c.length,0);const out=new Uint8Array(total);let p=0;all.forEach(c=>{out.set(c,p);p+=c.length;});return out;}
+
+  $("#btnExport").onclick=()=>{const l=loadV();exportXLSX(
+    ["Indice","Fecha","Vendedor","Cliente","Llenado_%","Doc_Firmado","Antes_Despues","Puntaje_65","Observacion"],
+    l.map(r=>[r.index,new Date(r.fecha).toLocaleString("es"),r.vendedor||"",String(r.cliente||""),Number(r.ia?r.ia.porcentaje_llenado:0),r.ia&&r.ia.documento_firmado?"Si":"No",r.ia&&r.ia.evidencia_completa?"Si":"No",Number(r.ia?r.ia.puntaje:0),r.ia&&r.ia.observaciones||""]),
+    "visitas_vendedores.xlsx");};
+  $("#btnExportCenso").onclick=()=>{const l=loadC();exportXLSX(
+    ["Indice","Fecha","Vendedor","Cliente","Contaminado","Invasiones","Puntaje_35","Observacion"],
+    l.map(r=>[r.index,new Date(r.fecha).toLocaleString("es"),r.vendedor||"",String(r.cliente||""),r.contaminado?"Si":"No",(r.invasiones||[]).join(" / "),Number(r.puntaje),r.observaciones||""]),
+    "censo_supervisor.xlsx");};
+  $("#btnClear").onclick=()=>{if(confirm("¿Vaciar las visitas de vendedores?")){localStorage.removeItem(K_STORE);renderReporte();}};
+  $("#btnClearCenso").onclick=()=>{if(confirm("¿Vaciar el censo del supervisor?")){localStorage.removeItem(K_CENSO);renderReporte();}};
+
+  // ===================== CONFIG =====================
+  function openCfg(){$("#cfgDemo").checked=demoOn();$("#cfgKey").value=localStorage.getItem(K_KEY)||"";$("#cfgModel").value=localStorage.getItem(K_MODEL)||"claude-sonnet-5";$("#cfgProd").value=productos().join("\n");$("#cfgApi").value=apiUrl();$("#cfgModal").classList.add("open");}
+  $("#btnCfg").onclick=openCfg; $("#cfgClose").onclick=()=>$("#cfgModal").classList.remove("open");
+  $("#cfgSave").onclick=()=>{const k=$("#cfgKey").value.trim();if(k)localStorage.setItem(K_KEY,k);else localStorage.removeItem(K_KEY);
+    localStorage.setItem(K_MODEL,$("#cfgModel").value);localStorage.setItem(K_DEMO,$("#cfgDemo").checked?"1":"0");
+    const prod=$("#cfgProd").value.split("\n").map(s=>s.trim()).filter(Boolean);localStorage.setItem(K_PROD,JSON.stringify(prod.length?prod:DEFAULT_PRODUCTS));
+    const api=$("#cfgApi").value.trim(); if(api) localStorage.setItem(K_APIURL,api); else localStorage.removeItem(K_APIURL);
+    $("#cfgModal").classList.remove("open");refreshPill(); if(VISTA==="reporte") refreshReporte();};
+  $("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("open");};
+  $("#cfgModal").onclick=e=>{if(e.target.id==="cfgModal")$("#cfgModal").classList.remove("open");};
+
+  // ===================== HELPERS / VISTA =====================
+  function main(t,c,html){const e=$("#mainStatus");e[html?"innerHTML":"textContent"]=t;e.className="status "+(c||"info");}
+  function supMsg(t,c,html){const e=$("#supStatus");e[html?"innerHTML":"textContent"]=t;e.className="status "+(c||"info");}
+
+  function applyVista(){
+    $("#cardCaptura").style.display="none";$("#cardSupervisor").style.display="none";$("#cardReporte").style.display="none";
+    if(VISTA==="supervisor"){ $("#cardSupervisor").style.display="";$("#tituloVista").textContent="Supervisor";$("#subVista").textContent="Censo de exhibidores · Mondelez"; }
+    else if(VISTA==="reporte"){ $("#cardReporte").style.display="";$("#tituloVista").textContent="Reportes";$("#subVista").textContent="Ejecución Mondelez"; }
+    else { $("#cardCaptura").style.display="";$("#btnCfg").style.display="none";$("#modePill").style.display="none";$("#subVista").textContent="Vendedor · Mondelez"; }
+  }
+  document.querySelectorAll(".rtab").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll(".rtab").forEach(x=>x.classList.toggle("active",x===b));
+    $("#tabVendedores").style.display=b.dataset.tab==="vendedores"?"":"none";
+    $("#tabVisitas").style.display=b.dataset.tab==="visitas"?"":"none";
+    $("#tabCenso").style.display=b.dataset.tab==="censo"?"":"none";
+  });
+
+  applyVista(); refreshPill(); if(VISTA==="reporte") refreshReporte();
+})();
+</script>
+<script src="../session-activity.js"></script>
+</body>
+</html>

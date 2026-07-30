@@ -2367,9 +2367,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
-    const APP_VERSION = '1.0.9';
-    const APP_RELEASE = 'OPAUSTRO v1.0.9';
-    const APP_RELEASE_KEY = '1.0.9';
+    const APP_VERSION = '1.0.10';
+    const APP_RELEASE = 'OPAUSTRO v1.0.10';
+    const APP_RELEASE_KEY = '1.0.10';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -2746,6 +2746,24 @@
         icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
         path: "../Gerencia/flujo-caja-opaustro.html?embed=1",
         embed: true
+      },
+      ExhibidoresVendedor: {
+        label: "Exhibidores Vendedor",
+        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
+        path: "../Exhibidores/vendedor.html?embed=1",
+        embed: true
+      },
+      ExhibidoresSupervisor: {
+        label: "Exhibidores Supervisor",
+        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
+        path: "../Exhibidores/supervisor.html?embed=1",
+        embed: true
+      },
+      ExhibidoresReporte: {
+        label: "Exhibidores Reporte",
+        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
+        path: "../Exhibidores/reporte.html?embed=1",
+        embed: true
       }
     };
 
@@ -2822,6 +2840,13 @@
         icon: "&#127848;",
         iconPath: "../Recuros_imagenes/pinguino.png?v=1.0.0",
         modules: ["IceResumen", "IceInventario", "IceReportes", "IceEscaneo", "IceMisVisitas"]
+      },
+      {
+        id: "Exhibidores",
+        label: "Exhibidores",
+        icon: "&#128247;",
+        iconPath: "../Recuros_imagenes/inventario.png?v=1.0.0",
+        modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte"]
       }
     ];
 

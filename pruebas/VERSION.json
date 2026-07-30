@@ -1,18 +1,16 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.9",
-    "label": "OPAUSTRO v1.0.9 - Control de modulos (roles y permisos)",
+    "version": "1.0.10",
+    "label": "OPAUSTRO v1.0.10 - Nuevo modulo Exhibidores",
     "channel": "oficial",
     "publishedAt": "2026-07-30",
     "notes": [
-        "Nuevo: modulo \"Control de modulos\" dentro de Control de accesos (solo admin y Gerencia). Permite ver y editar, rol por rol, que modulos y submodulos tiene activos, activarlos/desactivarlos, renombrar el rol o eliminarlo si ya no se usa.",
-        "Nuevo: boton \"Anadir rol\" junto a \"Anadir usuario\" en Control de usuarios, para crear un rol nuevo eligiendo directamente sus modulos y submodulos.",
-        "El campo Rol de \"Anadir usuario\" ahora solo permite elegir un rol ya existente (antes tambien dejaba escribir uno nuevo ahi mismo).",
-        "Corrige la version mostrada en el pie de la pantalla de inicio de sesion: antes quedaba fija en un numero de version anterior aunque se publicara una nueva; ahora se actualiza con la version realmente publicada.",
-        "Incluye tambien lo publicado en la version 1.0.8: Logistica (escaneo/generacion de QR, integracion con BD_Inventario_Cabinets, validacion de bodega en Planificar salida) e ICE_Pinguino (tarjetas de Resumen mas compactas con tarjeta de Total, columna Modelo real, total de cabinets en Inventario, y correccion del conteo de \"En bodega\"/\"En mantenimiento\").",
-        "Requiere republicar manualmente Login/Code.gs (oficial y pruebas) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+        "Nuevo: modulo \"Exhibidores\" (auditoria de ejecucion Mondelez). Tres submodulos: Vendedor (sube foto antes/despues/contrato de cada visita), Supervisor (censa contaminacion/invasiones con IA) y Reporte (avance por vendedor, visitas y censo, exportar a Excel).",
+        "El modulo se activa por rol desde Control de modulos (Admin > Control de accesos), igual que cualquier otro modulo: no requiere cambios de codigo para asignarlo a un rol nuevo o existente.",
+        "Solo disponible en el ambiente de pruebas por ahora; el Apps Script y el Sheet oficiales de Exhibidores aun no estan desplegados.",
+        "Incluye tambien lo publicado en la version 1.0.9: modulo \"Control de modulos\" (activar/desactivar modulos y submodulos por rol, renombrar/eliminar rol), boton \"Anadir rol\" en Control de usuarios, y correccion de la version mostrada en el pie de inicio de sesion."
     ],
-    "releaseKey": "1.0.9",
+    "releaseKey": "1.0.10",
     "forceUpdate": false,
     "rollback": false
 }
