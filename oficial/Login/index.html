@@ -2408,9 +2408,17 @@
     }
 
     function showUpdatePrompt(release, current, releaseKey, autoUpdate) {
-      const previous = escapeHtml(readStored(RELEASE_KEY) || "versión anterior");
-      const label = escapeHtml(release && release.label ? release.label : APP_RELEASE);
+      const previous = escapeHtml(readStored(RELEASE_KEY) || "");
+      const newVersion = escapeHtml(current || "");
       const publishedAt = escapeHtml(release && release.publishedAt ? release.publishedAt : "");
+      // Solo numero de version y fecha, nunca el detalle/label de que se hizo
+      // (eso queda para quien administre, no para esta pantalla).
+      const metaHtml = newVersion ? `
+          <div class="update-meta">
+            ${previous ? `<span>Actual: ${previous}</span>` : ""}
+            <strong>Nueva: ${newVersion}</strong>
+            ${publishedAt ? `<span>Publicada: ${publishedAt}</span>` : ""}
+          </div>` : "";
       const overlay = document.createElement("div");
       overlay.className = "update-overlay";
       overlay.setAttribute("role", "dialog");
@@ -2420,11 +2428,7 @@
           <div class="update-icon">↻</div>
           <h2>${autoUpdate ? "Actualizando OPAUSTRO" : "Actualización disponible"}</h2>
           <p>${autoUpdate ? "La web se está actualizando automáticamente. Espere un momento." : "Hay una nueva versión de OPAUSTRO lista para instalar antes de iniciar sesión."}</p>
-          <div class="update-meta">
-            <span>Actual: ${previous}</span>
-            <strong>Nueva: ${label}</strong>
-            ${publishedAt ? `<span>Publicada: ${publishedAt}</span>` : ""}
-          </div>
+          ${metaHtml}
           <div class="update-progress" ${autoUpdate ? "" : "hidden"}>
             <div class="update-progress-track" aria-hidden="true"><div class="update-progress-bar"></div></div>
             <div class="update-progress-label" role="status" aria-live="polite">Preparando actualización 0%</div>
