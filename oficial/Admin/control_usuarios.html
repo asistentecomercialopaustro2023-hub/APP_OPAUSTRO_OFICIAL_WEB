@@ -58,13 +58,6 @@
     .pill.bloqueado{background:#ffe4e4;color:#b42318}
     .pill.retirado{background:#fff0f0;color:var(--bad)}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .icon-btn{width:38px;height:38px;padding:0;display:inline-grid;place-items:center;background:#fff;color:var(--brand);border:1px solid var(--line)}
-    .icon-btn svg{width:18px;height:18px}
-    .icon-btn.is-active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent}
-    .modal-head-tools{display:flex;gap:8px;align-items:center;margin-left:auto;margin-right:10px}
-    .th-with-btn{display:inline-flex;align-items:center;gap:8px}
-    .th-with-btn .icon-btn{width:26px;height:26px;border-radius:8px}
-    .th-with-btn .icon-btn svg{width:14px;height:14px}
     .message{color:var(--muted);font-weight:800;font-size:13px}.clear-filter{width:44px;height:44px;padding:0;border-radius:13px;background:#fff1f1;color:#b42318;border:1px solid #ffc9c9;font-size:20px;line-height:1}.role-entry{display:grid;gap:8px}.role-new{display:none}.role-entry.is-new .role-new{display:block}.confirm-card{display:none;margin-top:14px;border:1px solid #b9def0;border-radius:14px;background:#f4fbff;padding:13px;color:var(--text)}.confirm-card.is-visible{display:block}.confirm-card strong{display:block;margin-bottom:8px}.confirm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:13px}.confirm-grid span{color:var(--muted);font-weight:800}.confirm-grid b{display:block;color:var(--text)}
     .field-hidden{display:none}
     .pwd-input-row{display:flex;gap:8px;align-items:center}
@@ -162,7 +155,6 @@
               <th>Usuario</th>
               <th>Nombre / Razón</th>
               <th>Estado</th>
-              <th><span class="th-with-btn">Módulos<button class="ghost icon-btn" type="button" id="syncUserModulesBtn" title="Sincronizar módulos de usuarios" aria-label="Sincronizar módulos de usuarios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.36L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.36L21 8"/><path d="M3 21v-5h5"/><path d="M21 3v5h-5"/></svg></button></span></th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -241,35 +233,6 @@
     </section>
   </div>
 
-  <div class="modal-backdrop" id="userModulesModal" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="userModulesTitle">
-      <div class="modal-head">
-        <div>
-          <span class="eyebrow" id="userModulesEyebrow">Módulos del usuario</span>
-          <h2 id="userModulesTitle">Módulos</h2>
-        </div>
-        <div class="modal-head-tools">
-          <button class="icon-btn" type="button" id="userModulesViewBtn" title="Ver módulos y submódulos activos" aria-label="Ver módulos y submódulos activos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-          <button class="icon-btn" type="button" id="userModulesEditBtn" title="Editar módulos y submódulos" aria-label="Editar módulos y submódulos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          </button>
-        </div>
-        <button class="close" id="closeUserModulesModal" type="button" aria-label="Cerrar">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="message" id="userModulesHint" style="margin:0 0 6px"></p>
-        <div id="userModulesTree"></div>
-        <div class="modal-actions" id="userModulesActions" hidden>
-          <button class="ghost" id="cancelUserModulesEdit" type="button">Cancelar</button>
-          <button class="primary" id="saveUserModulesBtn" type="button">Guardar cambios</button>
-        </div>
-        <div class="message" id="userModulesMsg" style="margin-top:10px"></div>
-      </div>
-    </section>
-  </div>
-
   <div class="modal-backdrop" id="resetPwdModal" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="resetPwdTitle">
       <div class="modal-head">
@@ -303,7 +266,7 @@
   </div>
 
   <script>
-    const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec";
+    const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec";
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
     const $ = id => document.getElementById(id);
     let users = [];
@@ -343,19 +306,8 @@
         { key: "IceReportes", label: "Reportes" },
         { key: "IceEscaneo", label: "Escaneo" },
         { key: "IceMisVisitas", label: "Mis visitas" }
-      ]},
-      { area: "Exhibidores", items: [
-        { key: "ExhibidoresVendedor", label: "Vendedor" },
-        { key: "ExhibidoresSupervisor", label: "Supervisor" },
-        { key: "ExhibidoresReporte", label: "Reporte" },
-        { key: "ExhibidoresReporteSupervisor", label: "Reporte (Supervisor)" }
       ]}
     ];
-
-    const ICON_EYE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
-    let currentModulesUser = null;
-    let currentModulesChecked = new Set();
-    let userModulesMode = "view";
 
     function norm(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim()}
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
@@ -454,14 +406,12 @@
         <td class="user">${escapeHtml(user.usuario)}</td>
         <td>${escapeHtml(user.razon)}</td>
         <td><span class="pill ${statusClass(user.estado)}">${escapeHtml(user.estado||"Activo")}</span></td>
-        <td><button class="ghost icon-btn" type="button" data-modules="${escapeHtml(user.row)}" title="Ver módulos" aria-label="Ver módulos">${ICON_EYE}</button></td>
         <td><div class="actions"><button class="ghost" type="button" data-edit="${escapeHtml(user.row)}">Editar</button><button class="ghost" type="button" data-reset="${escapeHtml(user.row)}">Resetear contraseña</button>${isAdminRole(user.rol)?"":`<button class="danger" type="button" data-delete="${escapeHtml(user.row)}">Eliminar usuario</button>`}</div></td>
-      </tr>`).join(""):`<tr><td colspan="6" style="padding:34px;text-align:center;color:#6d8497">No hay usuarios para los filtros seleccionados.</td></tr>`;
+      </tr>`).join(""):`<tr><td colspan="5" style="padding:34px;text-align:center;color:#6d8497">No hay usuarios para los filtros seleccionados.</td></tr>`;
       $("tableStatus").textContent=`${list.length} de ${users.length} usuario(s)`;
       document.querySelectorAll("[data-edit]").forEach(btn=>btn.addEventListener("click",()=>editUser(btn.dataset.edit)));
       document.querySelectorAll("[data-reset]").forEach(btn=>btn.addEventListener("click",()=>openResetPassword(btn.dataset.reset)));
       document.querySelectorAll("[data-delete]").forEach(btn=>btn.addEventListener("click",()=>deleteUserAction(btn.dataset.delete)));
-      document.querySelectorAll("[data-modules]").forEach(btn=>btn.addEventListener("click",()=>openUserModulesModal(btn.dataset.modules)));
     }
     function openModal(title){
       confirmReady=false;
@@ -490,71 +440,6 @@
         submodulos.push(input.dataset.modulo);
       });
       return {modulos:[...areas],submodulos};
-    }
-    function moduleTreeMarkupUser(checkedKeys, editable){
-      return MODULE_CATALOG.map(group=>`
-        <div class="module-area">
-          <h4>${escapeHtml(group.area)}</h4>
-          ${group.items.map(item=>`<label class="module-check"><input type="checkbox" data-area="${escapeHtml(group.area)}" data-modulo="${escapeHtml(item.key)}"${checkedKeys.has(item.key)?" checked":""}${editable?"":" disabled"}> ${escapeHtml(item.label)}</label>`).join("")}
-        </div>
-      `).join("");
-    }
-    function renderUserModulesBody(){
-      const editable = userModulesMode==="config";
-      $("userModulesTree").innerHTML = `<div class="module-tree">${moduleTreeMarkupUser(currentModulesChecked, editable)}</div>`;
-      $("userModulesActions").hidden = !editable;
-    }
-    function setUserModulesMode(mode){
-      userModulesMode = mode;
-      $("userModulesViewBtn").classList.toggle("is-active", mode==="view");
-      $("userModulesEditBtn").classList.toggle("is-active", mode==="config");
-      renderUserModulesBody();
-    }
-    function updateUserModulesHint(hasOverride){
-      $("userModulesHint").textContent = hasOverride
-        ? "Este usuario tiene módulos propios, independientes de su rol."
-        : "Este usuario usa los módulos de su rol (sin personalizar).";
-    }
-    async function openUserModulesModal(row){
-      const user=users.find(item=>String(item.row)===String(row));
-      if(!user)return;
-      currentModulesUser=user;
-      currentModulesChecked=new Set();
-      $("userModulesTitle").textContent=`Módulos de ${user.usuario}`;
-      $("userModulesEyebrow").textContent=`Rol: ${user.rol}`;
-      $("userModulesTree").innerHTML=`<p class="message">Cargando…</p>`;
-      $("userModulesHint").textContent="";
-      $("userModulesMsg").textContent="";
-      $("userModulesModal").hidden=false;
-      const data=await api("getEffectiveUserModules",{usuario:user.usuario,rol:user.rol});
-      currentModulesChecked=new Set(data.success?(data.submodulos||[]):[]);
-      if(!data.success) $("userModulesMsg").textContent=data.message||"No se pudo cargar la información.";
-      updateUserModulesHint(!!(data.success&&data.hasOverride));
-      setUserModulesMode("view");
-    }
-    function closeUserModulesModal(){
-      $("userModulesModal").hidden=true;
-      currentModulesUser=null;
-    }
-    async function saveUserModulesAction(){
-      if(!currentModulesUser)return;
-      const areas=new Set();
-      const submodulos=[];
-      document.querySelectorAll("#userModulesTree input[type=checkbox]:checked").forEach(input=>{
-        areas.add(input.dataset.area);
-        submodulos.push(input.dataset.modulo);
-      });
-      const btn=$("saveUserModulesBtn");
-      btn.disabled=true; btn.textContent="Guardando...";
-      const data=await api("saveUserModules",{usuario:currentModulesUser.usuario,modulos:[...areas],submodulos});
-      btn.disabled=false; btn.textContent="Guardar cambios";
-      $("userModulesMsg").textContent=data.message||"";
-      $("userModulesMsg").style.color=data.success?"#6d8497":"#b42318";
-      if(data.success){
-        currentModulesChecked=new Set(submodulos);
-        updateUserModulesHint(submodulos.length>0);
-        setUserModulesMode("view");
-      }
     }
     function openRoleModal(){
       $("newRoleName").value="";
@@ -667,20 +552,6 @@
       const data=await api("saveUser",payload);
       setMessage(data.message||"",data.success?"":"error");
       if(data.success){closeModal();$("userForm").reset();confirmReady=false;await loadUsers();}
-    });
-    $("closeUserModulesModal").addEventListener("click",closeUserModulesModal);
-    $("userModulesModal").addEventListener("click",event=>{if(event.target===$("userModulesModal")) closeUserModulesModal()});
-    document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!$("userModulesModal").hidden) closeUserModulesModal()});
-    $("userModulesViewBtn").addEventListener("click",()=>setUserModulesMode("view"));
-    $("userModulesEditBtn").addEventListener("click",()=>setUserModulesMode("config"));
-    $("cancelUserModulesEdit").addEventListener("click",()=>setUserModulesMode("view"));
-    $("saveUserModulesBtn").addEventListener("click",saveUserModulesAction);
-    $("syncUserModulesBtn").addEventListener("click",async()=>{
-      const btn=$("syncUserModulesBtn");
-      btn.disabled=true;
-      const data=await api("seedUserModules");
-      btn.disabled=false;
-      setMessage(data.message||"",data.success?"":"error");
     });
     $("closeResetPwd").addEventListener("click",closeResetPassword);
     $("cancelResetPwd").addEventListener("click",closeResetPassword);
