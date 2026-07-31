@@ -234,11 +234,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // muestra directamente solo la pestaña "Avance por vendedor" (sin selector).
   const SOLO_AVANCE=new URLSearchParams(location.search).get("solo")==="avance";
   let VENDEDORES=[];
-  // Deployment /exec del Apps Script OFICIAL de Exhibidores. PENDIENTE: pegar aqui la URL
-  // real una vez desplegado Exhibidores/Code.gs (Implementar > Nueva implementacion > Aplicacion
-  // web > Ejecutar como: Yo > Acceso: Cualquiera). Sin esto el envio al Sheet queda en silencio
-  // (o, peor, un valor de pruebas escribiria por error en el Sheet de pruebas).
-  const DEFAULT_API_URL="";
+  // Deployment /exec del Apps Script OFICIAL de Exhibidores.
+  const DEFAULT_API_URL="https://script.google.com/macros/s/AKfycbwB0jIJSWruBV7s9XyKdrTUaWt7gTzroHbu3QfAiOMgH4uftR6vHohxdpaJxaVrikhnWw/exec";
   const DEFAULT_PRODUCTS=["Oreo","Ritz","Club Social","Chips Ahoy","Belvita","Coronita","Galapaguitos","Trident","Chiclets","Halls","Bubbaloo","Clorets","Festival"];
   const META_VISITAS=15, META_CENSO=20;
   const VISTA=(new URLSearchParams(location.search).get("vista")||"vendedor").toLowerCase();
