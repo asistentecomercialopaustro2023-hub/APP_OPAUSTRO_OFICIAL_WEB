@@ -2367,9 +2367,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
-    const APP_VERSION = '1.0.9';
-    const APP_RELEASE = 'OPAUSTRO v1.0.9';
-    const APP_RELEASE_KEY = '1.0.9';
+    const APP_VERSION = '1.0.10';
+    const APP_RELEASE = 'OPAUSTRO v1.0.10';
+    const APP_RELEASE_KEY = '1.0.10';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -2749,20 +2749,26 @@
       },
       ExhibidoresVendedor: {
         label: "Exhibidores Vendedor",
-        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
+        symbol: "exhibidorPhoto",
         path: "../Exhibidores/vendedor.html?embed=1",
         embed: true
       },
       ExhibidoresSupervisor: {
         label: "Exhibidores Supervisor",
-        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
+        symbol: "exhibidorAudit",
         path: "../Exhibidores/supervisor.html?embed=1",
         embed: true
       },
       ExhibidoresReporte: {
         label: "Exhibidores Reporte",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
+        symbol: "exhibidorReport",
         path: "../Exhibidores/reporte.html?embed=1",
+        embed: true
+      },
+      ExhibidoresReporteSupervisor: {
+        label: "Reporte Exhibidores Supervisor",
+        symbol: "exhibidorReport",
+        path: "../Exhibidores/reporte.html?embed=1&solo=avance",
         embed: true
       }
     };
@@ -2802,7 +2808,10 @@
       report: "&#128202;",
       controls: "&#9881;&#65039;",
       users: "&#128101;",
-      seller: "&#128100;"
+      seller: "&#128100;",
+      exhibidorPhoto: "&#127980;",
+      exhibidorAudit: "&#128221;",
+      exhibidorReport: "&#128202;"
     };
 
     const AREA_GROUPS = [
@@ -2844,9 +2853,8 @@
       {
         id: "Exhibidores",
         label: "Exhibidores",
-        icon: "&#128247;",
-        iconPath: "../Recuros_imagenes/inventario.png?v=1.0.0",
-        modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte"]
+        icon: "&#127978;",
+        modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte", "ExhibidoresReporteSupervisor"]
       }
     ];
 
