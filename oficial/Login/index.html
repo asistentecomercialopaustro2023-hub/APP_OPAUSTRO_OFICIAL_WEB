@@ -2228,12 +2228,22 @@
        nivel de zoom de forma confiable). Si el contenido cabe sin ampliar, esto
        no genera scroll ni cambia nada visualmente; solo se activa cuando el
        contenido es mas grande que el espacio visible (por ejemplo, al hacer
-       zoom con el gesto tactil). */
+       zoom con el gesto tactil).
+       IMPORTANTE: no fijar aqui un touch-action personalizado (pan-x pan-y
+       pinch-zoom). Eso hace que este contenedor reclame el arrastre de un
+       solo dedo para su propio scroll interno, compitiendo con el gesto
+       nativo del navegador para desplazar la pagina ya ampliada por el
+       pellizco; el resultado es que, tras hacer zoom, mover con un solo dedo
+       deja de funcionar y hay que usar dos. Dejando touch-action en su valor
+       por defecto (auto) el navegador decide correctamente cuando el toque
+       es "hacer scroll de este contenedor" y cuando es "desplazar la vista
+       ya ampliada", que es el comportamiento nativo esperado en cualquier
+       pagina (incluido el interior de los iframes de Power BI en BI Ventas,
+       ya que este mismo contenedor es el que envuelve a todos los modulos). */
     .app-screen.is-mobile-layout .module-workspace,
     .app-screen.is-mobile-layout .blank-panel.module-host {
       overflow: auto !important;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-x pan-y pinch-zoom;
     }
 
   </style>
@@ -2345,8 +2355,8 @@
   </section>
 
   <script>
-    const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec';
-    const ICE_API_URL = 'https://script.google.com/macros/s/AKfycbylQXIRKDLW-1R9A8ek4uYK0Ci-E2QW-sgoaPaUJMNX9YCJIPe3LC4mgj1qGaEWdJP9vw/exec';
+    const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec';
+    const ICE_API_URL = 'https://script.google.com/macros/s/AKfycbxW_bcqSmzevC4SEgXOjX3JRUchBD7Bu3HHLSYamQ367Ie0W46ucQvHNrp7ad1ykk_B/exec';
     const INTERNAL_API_KEY = 'OPA-INTERNAL-2026';
     function isLocalEnv() {
       return /^(localhost|127\.)/i.test(location.hostname);
@@ -2357,9 +2367,9 @@
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
-    const APP_VERSION = '1.0.9';
-    const APP_RELEASE = 'OPAUSTRO v1.0.9';
-    const APP_RELEASE_KEY = '1.0.9';
+    const APP_VERSION = '1.0.10';
+    const APP_RELEASE = 'OPAUSTRO v1.0.10';
+    const APP_RELEASE_KEY = '1.0.10';
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
@@ -2736,6 +2746,30 @@
         icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
         path: "../Gerencia/flujo-caja-opaustro.html?embed=1",
         embed: true
+      },
+      ExhibidoresVendedor: {
+        label: "Exhibidores Vendedor",
+        symbol: "exhibidorPhoto",
+        path: "../Exhibidores/vendedor.html?embed=1",
+        embed: true
+      },
+      ExhibidoresSupervisor: {
+        label: "Exhibidores Supervisor",
+        symbol: "exhibidorAudit",
+        path: "../Exhibidores/supervisor.html?embed=1",
+        embed: true
+      },
+      ExhibidoresReporte: {
+        label: "Exhibidores Reporte",
+        symbol: "exhibidorReport",
+        path: "../Exhibidores/reporte.html?embed=1",
+        embed: true
+      },
+      ExhibidoresReporteSupervisor: {
+        label: "Reporte Exhibidores Supervisor",
+        symbol: "exhibidorReport",
+        path: "../Exhibidores/reporte.html?embed=1&solo=avance",
+        embed: true
       }
     };
 
@@ -2774,7 +2808,10 @@
       report: "&#128202;",
       controls: "&#9881;&#65039;",
       users: "&#128101;",
-      seller: "&#128100;"
+      seller: "&#128100;",
+      exhibidorPhoto: "&#127980;",
+      exhibidorAudit: "&#128221;",
+      exhibidorReport: "&#128202;"
     };
 
     const AREA_GROUPS = [
@@ -2812,6 +2849,12 @@
         icon: "&#127848;",
         iconPath: "../Recuros_imagenes/pinguino.png?v=1.0.0",
         modules: ["IceResumen", "IceInventario", "IceReportes", "IceEscaneo", "IceMisVisitas"]
+      },
+      {
+        id: "Exhibidores",
+        label: "Exhibidores",
+        icon: "&#127978;",
+        modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte", "ExhibidoresReporteSupervisor"]
       }
     ];
 
@@ -3139,11 +3182,27 @@
     function visibleModulesForSession(session) {
       const role = session && (session.role || session.rol);
       const user = session && (session.user || session.usuario || session.nombre);
-      const roleModules = modulesForRole(role);
-      if (normalizeRoleName(role) === "SUPERVISOR" && ["JHONNY CHAFLA", "JHONY CHAFLA"].includes(normalizePersonName(user))) {
-        return expandModules([...VENTAS_MODULES, ...ICE_ADMIN_MODULES]);
+      const sessionModules = (session && Array.isArray(session.modules)) ? session.modules : [];
+      const extraModules = sessionModules.filter((key) => Object.prototype.hasOwnProperty.call(MODULE_DEFINITIONS, key));
+      // Un usuario con modulos propios (Control de usuarios > Modulos) tiene
+      // prioridad total sobre el bundle clasico hardcodeado del rol: a
+      // diferencia de Control de modulos por ROL (que solo puede sumar sobre
+      // el bundle clasico), el override por USUARIO reemplaza por completo la
+      // lista, para poder tanto agregar como quitar un modulo puntual sin
+      // afectar a los demas usuarios del mismo rol.
+      if (session && session.hasUserModulesOverride) {
+        return expandModules(extraModules);
       }
-      return expandModules(roleModules || (session && session.modules) || []);
+      const roleModules = modulesForRole(role);
+      if (!roleModules) return expandModules(sessionModules);
+      // Rol reconocido aqui: se suman los submodulos activados en Admin > Control de
+      // modulos (sin esto, marcar un modulo nuevo para admin/Gerencia/Vendedor no
+      // surtia efecto). Solo se aceptan claves reales de MODULE_DEFINITIONS: los alias
+      // de area del config viejo ("Ventas", "Admin") ampliarian el acceso historico.
+      if (normalizeRoleName(role) === "SUPERVISOR" && ["JHONNY CHAFLA", "JHONY CHAFLA"].includes(normalizePersonName(user))) {
+        return expandModules([...VENTAS_MODULES, ...ICE_ADMIN_MODULES, ...extraModules]);
+      }
+      return expandModules([...roleModules, ...extraModules]);
     }
 
     function preferredInitialModule(session, visibleModules) {

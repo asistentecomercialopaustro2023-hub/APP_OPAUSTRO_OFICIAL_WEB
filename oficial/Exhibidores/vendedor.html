@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Exhibidores — Vendedor</title>
+  <script>
+    const params = new URLSearchParams(location.search);
+    params.set("embed", params.get("embed") || "1");
+    params.set("vista", "vendedor");
+    location.replace("./modulo_exhibidores.html?" + params.toString());
+  </script>
+</head>
+<body>
+  <a href="./modulo_exhibidores.html?embed=1&vista=vendedor">Abrir Exhibidores — Vendedor</a>
+</body>
+</html>
