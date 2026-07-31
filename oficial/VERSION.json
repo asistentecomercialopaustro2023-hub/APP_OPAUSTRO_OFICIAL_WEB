@@ -1,17 +1,25 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.9",
-    "label": "OPAUSTRO v1.0.9 - Control de modulos (roles y permisos)",
+    "version": "1.0.10",
+    "label": "OPAUSTRO v1.0.10 - Modulo Exhibidores Mondelez + Control de modulos por usuario",
     "channel": "oficial",
-    "publishedAt": "2026-07-30",
+    "publishedAt": "2026-07-31",
     "notes": [
-        "Nuevo: modulo \"Control de modulos\" dentro de Control de accesos (solo admin y Gerencia). Permite ver y editar, rol por rol, que modulos y submodulos tiene activos, activarlos/desactivarlos, renombrar el rol o eliminarlo si ya no se usa.",
-        "Nuevo: boton \"Anadir rol\" junto a \"Anadir usuario\" en Control de usuarios, para crear un rol nuevo eligiendo directamente sus modulos y submodulos.",
-        "El campo Rol de \"Anadir usuario\" ahora solo permite elegir un rol ya existente (antes tambien dejaba escribir uno nuevo ahi mismo).",
-        "Corrige la version mostrada en el pie de la pantalla de inicio de sesion: antes quedaba fija en un numero de version anterior aunque se publicara una nueva; ahora se actualiza con la version realmente publicada.",
-        "Requiere republicar manualmente Login/Code.gs (oficial y pruebas) en el editor de Apps Script — Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+        "Nuevo modulo \"Exhibidores\": auditoria de ejecucion Mondelez para vendedores (visitas) y supervisores (censo de contaminacion), con reporte de avance por vendedor.",
+        "Exhibidores: la lista de vendedores/supervisores en los selectores viene de Control de usuarios; el vendedor/supervisor no se elige, se toma solo del usuario que inicio sesion.",
+        "Exhibidores: las fotos (Antes, Despues, Contrato, censo del Supervisor) se toman en vivo con la camara (no se suben archivos), con sello de fecha/hora, coordenadas y codigo de cliente en la propia foto.",
+        "Exhibidores Vendedor: Antes y Despues son obligatorios para enviar la visita; Contrato es opcional pero, si se sube, se valida con IA que el codigo del contrato coincida con el codigo de cliente ingresado antes de guardar.",
+        "Exhibidores: el contrato es una sola foto por cliente para siempre -- si el cliente ya tiene una, se muestra y se bloquea el slot en vez de permitir subir otra. Fotos organizadas en Drive por Vendedores/Supervisores > persona > mes > semana > cliente.",
+        "Exhibidores: cada foto se guarda en Drive apenas se toma (no se espera a enviar la visita/censo). Si se cierra la sesion por inactividad antes de enviar, el codigo de cliente y las fotos ya tomadas se recuperan solos al volver a entrar.",
+        "Exhibidores: se puede ver en grande y volver a tomar (Editar) cualquier foto antes de enviar; antes de enviar la visita se muestra un resumen para revisar o corregir.",
+        "Exhibidores: la configuracion de IA (clave, modelo, URL del servidor) queda oculta para vendedor/supervisor/gerencia -- de uso interno exclusivo.",
+        "Exhibidores: los productos/marcas Mondelez permitidos para detectar invasiones se administran directamente en una hoja del Sheet, no desde el navegador.",
+        "Exhibidores Supervisor: no se muestra el detalle del analisis de contaminacion (queda solo para Reportes); el supervisor solo confirma que la foto quedo analizada y guarda.",
+        "Nuevo submodulo \"Reporte Exhibidores Supervisor\": el mismo Reporte de siempre pero mostrando directamente \"Avance por vendedor\" (con filtro por vendedor), asignable por separado desde Control de modulos sin dar acceso a Visitas ni Censo.",
+        "Nuevo: Control de modulos y submodulos tambien por usuario individual (ademas de por rol), desde Admin > Control de usuarios -- una asignacion por usuario reemplaza la del rol para ese usuario.",
+        "Requiere publicar el nuevo Apps Script oficial de Exhibidores/Code.gs (deployment nuevo, /exec propio) y republicar Login/Code.gs oficial (Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec de Login no cambia)."
     ],
-    "releaseKey": "1.0.9",
+    "releaseKey": "1.0.10",
     "forceUpdate": false,
     "rollback": false
 }
