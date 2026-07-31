@@ -3174,14 +3174,23 @@
     function visibleModulesForSession(session) {
       const role = session && (session.role || session.rol);
       const user = session && (session.user || session.usuario || session.nombre);
-      const roleModules = modulesForRole(role);
       const sessionModules = (session && Array.isArray(session.modules)) ? session.modules : [];
+      const extraModules = sessionModules.filter((key) => Object.prototype.hasOwnProperty.call(MODULE_DEFINITIONS, key));
+      // Un usuario con modulos propios (Control de usuarios > Modulos) tiene
+      // prioridad total sobre el bundle clasico hardcodeado del rol: a
+      // diferencia de Control de modulos por ROL (que solo puede sumar sobre
+      // el bundle clasico), el override por USUARIO reemplaza por completo la
+      // lista, para poder tanto agregar como quitar un modulo puntual sin
+      // afectar a los demas usuarios del mismo rol.
+      if (session && session.hasUserModulesOverride) {
+        return expandModules(extraModules);
+      }
+      const roleModules = modulesForRole(role);
       if (!roleModules) return expandModules(sessionModules);
       // Rol reconocido aqui: se suman los submodulos activados en Admin > Control de
       // modulos (sin esto, marcar un modulo nuevo para admin/Gerencia/Vendedor no
       // surtia efecto). Solo se aceptan claves reales de MODULE_DEFINITIONS: los alias
       // de area del config viejo ("Ventas", "Admin") ampliarian el acceso historico.
-      const extraModules = sessionModules.filter((key) => Object.prototype.hasOwnProperty.call(MODULE_DEFINITIONS, key));
       if (normalizeRoleName(role) === "SUPERVISOR" && ["JHONNY CHAFLA", "JHONY CHAFLA"].includes(normalizePersonName(user))) {
         return expandModules([...VENTAS_MODULES, ...ICE_ADMIN_MODULES, ...extraModules]);
       }
