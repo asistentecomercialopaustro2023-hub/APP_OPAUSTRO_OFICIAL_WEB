@@ -65,12 +65,32 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 .tbox{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
 .rank{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
 .rankcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:210px;flex:1}
+.rankcard.click{cursor:pointer}.rankcard.click:hover{border-color:var(--acc,#3b82f6)}
+.rankcard.is-active{border-color:var(--acc,#3b82f6);box-shadow:0 0 0 1px var(--acc,#3b82f6)}
+.fecha-filtro{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mut)}
+.fecha-filtro input{margin-top:2px}
+.avance-toolbar{justify-content:space-between}
+.avance-toolbar #rankSupervisores{margin-left:auto;max-width:260px}
+.icon-btn-sm{border:1px solid var(--border);background:transparent;color:var(--txt);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:13px}
+.icon-btn-sm:hover{border-color:var(--acc,#3b82f6)}
+@media(max-width:700px){
+  #rank.rank,#rankCenso.rank{display:grid;grid-template-columns:repeat(2,1fr)}
+  #rank.rank .rankcard,#rankCenso.rank .rankcard{min-width:0}
+  .avance-toolbar{flex-direction:column;align-items:stretch}
+  .avance-toolbar #rankSupervisores{margin-left:0;max-width:100%}
+}
 .rankcard .nom{font-size:14px;font-weight:700;margin-bottom:4px}.rankcard .v{font-size:26px;font-weight:800}.rankcard .n{font-size:11.5px;color:var(--mut);margin-top:5px}
 .prog{height:8px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin:8px 0 3px}.prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue))}
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .rtab{background:none;border:none;color:var(--mut);padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}.rtab.active{color:var(--txt);border-bottom-color:var(--blue)}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
 .gitem{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);cursor:pointer;position:relative}.gitem img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.fotos-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.fotobox{flex:1 1 0;min-width:90px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);cursor:pointer;display:flex;flex-direction:column}
+.fotobox span{font-size:11px;color:var(--mut);text-align:center;padding:4px 0;background:rgba(255,255,255,.04)}
+.fotobox img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.fotobox.empty{cursor:default;align-items:center}
+.fotobox.empty .fotobox-ph{aspect-ratio:1/1;width:100%;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px}
 .gitem .tag{position:absolute;top:5px;right:5px;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700}
 .empty{color:var(--mut);font-size:13px;text-align:center;padding:22px}
 .status{font-size:14px;margin-top:12px;min-height:18px}.status.err{color:#fca5a5}.status.ok{color:#6ee7b7}.status.info{color:var(--mut)}
@@ -145,8 +165,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
 
     <div id="tabVendedores" class="tabpane">
-      <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+      <div class="btnrow avance-toolbar" style="margin-top:0;margin-bottom:12px;align-items:flex-start">
         <select id="fFiltroAvance" style="max-width:220px"><option value="">Todos los vendedores</option></select>
+        <div class="rank" id="rankSupervisores"></div>
       </div>
       <div class="note" id="notaTotalAvance" style="margin:0 0 12px">Total /100 = ejecución del vendedor (/65) + censo del supervisor (/35).</div>
       <div class="rank" id="rank"></div>
@@ -155,27 +176,32 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     <div id="tabVisitas" class="tabpane" style="display:none">
       <div class="btnrow" style="margin-top:0;margin-bottom:12px">
         <select id="fFiltro" style="max-width:220px"><option value="">Todos los vendedores</option></select>
+        <input id="repFiltroCliente" placeholder="Cliente..." style="max-width:150px">
+        <label class="fecha-filtro">Desde<input type="date" id="repDesde"></label>
+        <label class="fecha-filtro">Hasta<input type="date" id="repHasta"></label>
         <button class="btn ghost" id="btnExport">⬇️ Exportar visitas (XLSX)</button>
-        <button class="btn red" id="btnClear">🗑️ Vaciar visitas</button>
       </div>
       <div class="tbox"><table>
-        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>% Llenado</th><th>Doc</th><th>Antes/Desp</th><th>Puntaje /65</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>% Llenado</th><th>Doc</th><th>Antes/Desp</th><th>Puntaje /65</th><th>Fotos</th></tr></thead>
         <tbody id="repBody"></tbody></table></div>
       <div class="empty" id="repEmpty">Aún no hay visitas registradas.</div>
-      <div class="gallery" id="gallery"></div>
+      <div class="gallery" id="gallery" style="display:none"></div>
     </div>
 
     <div id="tabCenso" class="tabpane" style="display:none">
       <div class="rank" id="rankCenso"></div>
       <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+        <select id="cFiltroVendedor" style="max-width:220px"><option value="">Todos los vendedores</option></select>
+        <input id="cFiltroCliente" placeholder="Cliente..." style="max-width:150px">
+        <label class="fecha-filtro">Desde<input type="date" id="cDesde"></label>
+        <label class="fecha-filtro">Hasta<input type="date" id="cHasta"></label>
         <button class="btn ghost" id="btnExportCenso">⬇️ Exportar censo (XLSX)</button>
-        <button class="btn red" id="btnClearCenso">🗑️ Vaciar censo</button>
       </div>
       <div class="tbox"><table>
-        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Contaminado</th><th>Invasiones</th><th>Pts /35</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Contaminado</th><th>Invasiones</th><th>Pts /35</th><th>Fotos</th></tr></thead>
         <tbody id="censoBody"></tbody></table></div>
       <div class="empty" id="censoEmpty">El supervisor aún no ha censado exhibidores.</div>
-      <div class="gallery" id="galleryCenso"></div>
+      <div class="gallery" id="galleryCenso" style="display:none"></div>
     </div>
   </div>
 
@@ -275,22 +301,43 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // consulta la resuelve el propio Apps Script de Exhibidores (getUsersWithSubmodule
   // en AppsScript_PRUEBAS/Exhibidores/Code.gs), que lee esa hoja del Sheet de
   // Login solo para consulta -- Exhibidores nunca escribe ahi.
-  async function usuariosConSubmodulo_(submodulo){
+  async function usuariosConSubmodulo_(submodulo,rol){
     const url=apiUrl(); if(!url) return [];
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"getUsersWithSubmodule",payload:{submodulo,apiKey:INTERNAL_API_KEY}})});
+        body:JSON.stringify({action:"getUsersWithSubmodule",payload:{submodulo,rol:rol||"",apiKey:INTERNAL_API_KEY}})});
       const data=await resp.json();
       return (data&&data.success)?(data.usuarios||[]):[];
     }catch(e){ return []; }
   }
+  // Un usuario solo cuenta como vendedor/supervisor real si cumple LAS DOS
+  // condiciones: tiene el submodulo asignado en Control_Modulos_Submodulos_
+  // Usuarios Y su Rol en BD_Login es literalmente Vendedor/Supervisor -- no
+  // basta con tener el submodulo si pertenece a otro rol (ej. un admin de
+  // prueba con el submodulo activado no debe aparecer como vendedor real).
   async function fetchVendedoresExhibidores(){
-    return (await usuariosConSubmodulo_("ExhibidoresVendedor")).map(u=>u.razon||u.usuario).filter(Boolean);
+    return (await usuariosConSubmodulo_("ExhibidoresVendedor","Vendedor")).map(u=>u.razon||u.usuario).filter(Boolean);
+  }
+  // Identidad del supervisor que inicio sesion (para la tarjeta UNICA del
+  // submodulo "Reporte Exhibidores Supervisor" -- avance) y lista completa de
+  // supervisores validados (para las tarjetas de "Censo supervisor" del
+  // informe general, donde puede haber varios). Una sola consulta sirve para
+  // ambas cosas.
+  let SUPERVISOR_SESION_REPORTE="";
+  let SUPERVISORES=[];
+  async function cargarSupervisores(){
+    let sessionName="";
+    try{const raw=localStorage.getItem("opaustro_session");if(raw){const s=JSON.parse(raw).session||{};sessionName=String(s.user||s.usuario||"").trim();}}catch(e){}
+    const norm=v=>String(v||"").trim().toLowerCase();
+    const lista=await usuariosConSubmodulo_("ExhibidoresSupervisor","Supervisor");
+    SUPERVISORES=lista.map(u=>u.razon||u.usuario).filter(Boolean);
+    const match=sessionName?lista.find(u=>norm(u.usuario)===norm(sessionName)||norm(u.razon)===norm(sessionName)):null;
+    if(match) SUPERVISOR_SESION_REPORTE=match.razon||match.usuario;
   }
   async function cargarVendedores(){
     VENDEDORES=await fetchVendedoresExhibidores();
-    ["#sVendedor","#fFiltro","#fFiltroAvance"].forEach(sel=>{const el=$(sel);if(!el)return;
-      el.innerHTML=(sel==="#fFiltro"||sel==="#fFiltroAvance")?'<option value="">Todos los vendedores</option>':"";
+    ["#sVendedor","#fFiltro","#fFiltroAvance","#cFiltroVendedor"].forEach(sel=>{const el=$(sel);if(!el)return;
+      el.innerHTML=(sel==="#sVendedor")?"":'<option value="">Todos los vendedores</option>';
       if(!VENDEDORES.length){const o=document.createElement("option");o.value="";o.textContent="Sin vendedores asignados";el.appendChild(o);return;}
       VENDEDORES.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.appendChild(o);});});
     const last=localStorage.getItem(K_VEND)||"";
@@ -300,11 +347,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // toma sola del usuario que inicio sesion, validada contra la lista de usuarios
   // con el submodulo correspondiente (asi, si hay varios, siempre queda el que
   // realmente inicio sesion, no uno cualquiera).
-  async function identidadActual(elId, submodulo, etiquetaVacia){
+  async function identidadActual(elId, submodulo, etiquetaVacia, rol){
     const el=$(elId); if(!el) return "";
     let sessionName="";
     try{const raw=localStorage.getItem("opaustro_session");if(raw){const s=JSON.parse(raw).session||{};sessionName=String(s.user||s.usuario||"").trim();}}catch(e){}
-    const lista=await usuariosConSubmodulo_(submodulo);
+    const lista=await usuariosConSubmodulo_(submodulo,rol);
     const norm=v=>String(v||"").trim().toLowerCase();
     const match=lista.find(u=>norm(u.usuario)===norm(sessionName)||norm(u.razon)===norm(sessionName));
     const resuelto=(match&&(match.razon||match.usuario))||sessionName;
@@ -312,11 +359,18 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     return resuelto;
   }
   let VENDEDOR_ACTUAL="";
-  async function cargarVendedorActual(){ VENDEDOR_ACTUAL=await identidadActual("#fVendedorNombre","ExhibidoresVendedor","No identificado — inicia sesión como vendedor"); }
+  async function cargarVendedorActual(){ VENDEDOR_ACTUAL=await identidadActual("#fVendedorNombre","ExhibidoresVendedor","No identificado — inicia sesión como vendedor","Vendedor"); }
   let SUPERVISOR_ACTUAL="";
-  async function cargarSupervisorActual(){ SUPERVISOR_ACTUAL=await identidadActual("#supNombre","ExhibidoresSupervisor","No identificado — inicia sesión como supervisor"); }
+  async function cargarSupervisorActual(){ SUPERVISOR_ACTUAL=await identidadActual("#supNombre","ExhibidoresSupervisor","No identificado — inicia sesión como supervisor","Supervisor"); }
   $("#sVendedor").addEventListener("change",()=>localStorage.setItem(K_VEND,$("#sVendedor").value));
   $("#fFiltro").addEventListener("change",renderVisitas);
+  $("#repFiltroCliente").addEventListener("input",renderVisitas);
+  $("#repDesde").addEventListener("change",renderVisitas);
+  $("#repHasta").addEventListener("change",renderVisitas);
+  $("#cFiltroVendedor").addEventListener("change",renderCenso);
+  $("#cFiltroCliente").addEventListener("input",renderCenso);
+  $("#cDesde").addEventListener("change",renderCenso);
+  $("#cHasta").addEventListener("change",renderCenso);
   $("#fFiltroAvance").addEventListener("change",renderVendedores);
   $("#fCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalVend();});
   $("#sCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalSup();});
@@ -725,26 +779,93 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   let srvV=null, srvC=null;
   function dataV(){ return srvV!==null?srvV:loadV(); }
   function dataC(){ return srvC!==null?srvC:loadC(); }
-  function vendoresUnicos(){ const s=new Set(VENDEDORES); dataV().forEach(r=>s.add(r.vendedor)); dataC().forEach(r=>s.add(r.vendedor)); return [...s].filter(Boolean); }
+  // Solo vendedores validados (submodulo ExhibidoresVendedor + Rol=Vendedor en
+  // BD_Login): antes se mezclaban ademas todos los nombres sueltos que
+  // aparecieran en las visitas/censo, aunque ya no tuvieran el submodulo o
+  // pertenecieran a otro rol -- eso mostraba tarjetas que no correspondian.
+  function vendoresUnicos(){ return VENDEDORES.slice(); }
   function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
-  function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
+  function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,supervisor:c.supervisor||"",cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
+  // Semana Lun-Sab (igual que nombreSemana_ en el backend): el Domingo cuenta
+  // como parte de la semana SIGUIENTE, no de la que termina.
+  function weekRangeFor(date){
+    const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    let isoDay=d.getDay()===0?7:d.getDay();
+    const bucket=new Date(d);
+    if(isoDay===7){ bucket.setDate(bucket.getDate()+1); isoDay=1; }
+    const start=new Date(bucket); start.setDate(bucket.getDate()-(isoDay-1)); start.setHours(0,0,0,0);
+    const end=new Date(start); end.setDate(start.getDate()+5); end.setHours(23,59,59,999);
+    return {start,end};
+  }
+  function enRango(fechaISO,start,end){ const t=new Date(fechaISO).getTime(); return t>=start.getTime()&&t<=end.getTime(); }
+  function diaLocal(fechaISO){ const d=new Date(fechaISO); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function fmtFechaInput(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id)+"&apiKey="+encodeURIComponent(INTERNAL_API_KEY));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
   // Envío opcional al servidor (solo si hay URL configurada).
   function serverSend(action,payload){ const url=apiUrl(); if(!url) return; try{ fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,payload:{...payload,apiKey:INTERNAL_API_KEY}})}).catch(()=>{}); }catch(e){} }
 
-  async function refreshReporte(){
+  // Trae visitas/censo del servidor. Separado de refreshReporte() para poder
+  // pedirlo EN PARALELO con vendedores/supervisores al cargar la pantalla
+  // (antes se esperaba primero a vendedores/supervisores y recien despues se
+  // pedian visitas/censo -- dos vueltas de red en serie, mas lento de lo
+  // necesario).
+  async function fetchReporteData(){
     const url=apiUrl();
-    if(url){ try{
+    if(!url) return;
+    try{
       const [rv,rc]=await Promise.all([
         fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
         fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
       srvV=(rv&&rv.success?rv.visitas:[]).map(mapVisita);
       srvC=(rc&&rc.success?rc.censo:[]).map(mapCenso);
-    }catch(e){ srvV=null; srvC=null; } }
-    renderReporte();
+    }catch(e){ srvV=null; srvC=null; }
   }
+  async function refreshReporte(){ await fetchReporteData(); renderReporte(); }
 
-  function renderReporte(){ renderVendedores(); renderVisitas(); renderCenso(); $("#repCount").textContent=dataV().length+dataC().length; }
+  function renderReporte(){ renderSupervisores(); renderVendedores(); renderVisitas(); renderCenso(); $("#repCount").textContent=dataV().length+dataC().length; }
+
+  // Tarjeta de supervisor: solo en el submodulo "Reporte Exhibidores
+  // Supervisor" (SOLO_AVANCE), y UNICA -- solo la de quien inicio sesion como
+  // supervisor validado (submodulo ExhibidoresSupervisor + Rol=Supervisor).
+  // Si quien ve el reporte es admin/Gerencia (no resuelve a un supervisor),
+  // no se muestra ninguna tarjeta de supervisor, solo las de vendedor.
+  // Semana Lun-Sab actual: Visitas = censos hechos / (vendedores * META_CENSO);
+  // Censados = cuantos vendedores ya completo (20/20) esta semana.
+  let ultimasFilasSup=[];
+  function renderSupervisores(){
+    const box=$("#rankSupervisores"); if(!box) return;
+    if(!SOLO_AVANCE || !SUPERVISOR_SESION_REPORTE){ box.innerHTML=""; box.style.display="none"; return; }
+    box.style.display="";
+    const {start,end}=weekRangeFor(new Date());
+    const C=dataC().filter(r=>enRango(r.fecha,start,end));
+    const totalVend=VENDEDORES.length;
+    const metaSemana=totalVend*META_CENSO;
+    ultimasFilasSup=[SUPERVISOR_SESION_REPORTE].map(sup=>{
+      const porVendedor={}; VENDEDORES.forEach(v=>porVendedor[v]=0);
+      C.filter(r=>r.supervisor===sup).forEach(r=>{ porVendedor[r.vendedor]=(porVendedor[r.vendedor]||0)+1; });
+      const total=Object.values(porVendedor).reduce((a,b)=>a+b,0);
+      const completados=VENDEDORES.filter(v=>(porVendedor[v]||0)>=META_CENSO).length;
+      return {sup,total,completados,porVendedor};
+    });
+    box.innerHTML=ultimasFilasSup.map(x=>{
+      const pct=metaSemana?Math.min(100,Math.round(x.total/metaSemana*100)):0;
+      return `<div class="rankcard click" data-sup="${esc(x.sup)}"><div class="nom">${esc(x.sup)}</div>
+        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaSemana}</span></div>
+        <div class="n">Visitas de censo esta semana</div>
+        <div class="prog"><i style="width:${pct}%"></i></div>
+        <div class="n">Censados <b style="color:var(--txt)">${x.completados}</b>/${totalVend||0} vendedores</div></div>`;
+    }).join("")||'<span class="note">Sin datos aún.</span>';
+    box.querySelectorAll("[data-sup]").forEach(el=>el.addEventListener("click",()=>detalleSupervisor(el.dataset.sup)));
+  }
+  function detalleSupervisor(sup){
+    const row=ultimasFilasSup.find(x=>x.sup===sup); if(!row) return;
+    const filas=VENDEDORES.map(v=>`<tr><td>${esc(v)}</td><td>${row.porVendedor[v]||0}/${META_CENSO}</td></tr>`).join("");
+    $("#modalInner").innerHTML=`<div class="kv"><b>Supervisor:</b> ${esc(sup)}</div>
+      <div class="kv" style="color:var(--mut)">Censos por vendedor esta semana</div>
+      <table style="margin-top:10px"><thead><tr><th>Vendedor</th><th>Censados</th></tr></thead><tbody>${filas||'<tr><td colspan="2" style="text-align:center;color:var(--mut)">Sin vendedores asignados.</td></tr>'}</tbody></table>
+      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+  }
 
   function renderVendedores(){
     const filtro=$("#fFiltroAvance")?$("#fFiltroAvance").value:"";
@@ -758,48 +879,173 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       return {v,ejec,cont,total,nvis:vis.length,ncen:cen.length};
     }).filter(x=>x.nvis||x.ncen).sort((a,b)=>b.total-a.total);
     $("#rank").innerHTML=rows.map(x=>{const cls=x.total>=80?"b-ok":(x.total>=50?"b-warn":"b-bad");const pct=Math.min(100,Math.round(x.nvis/META_VISITAS*100));
-      return `<div class="rankcard"><div class="nom">${esc(x.v)}</div>
+      return `<div class="rankcard${SOLO_AVANCE?' click':''}" data-v="${esc(x.v)}"><div class="nom">${esc(x.v)}</div>
         <div class="v" style="color:${x.total>=80?'#6ee7b7':(x.total>=50?'#fcd34d':'#fca5a5')}">${x.total}<span style="font-size:12px;color:var(--mut)">/100</span></div>
         <div class="n">Ejecución <b style="color:var(--txt)">${x.ejec}</b>/65 · Contaminación <b style="color:var(--txt)">${x.cont}</b>/35</div>
         <div class="prog"><i style="width:${pct}%"></i></div>
         <div class="n">Visitas <b style="color:var(--txt)">${x.nvis}</b>/${META_VISITAS} · Censados <b style="color:var(--txt)">${x.ncen}</b>/${META_CENSO}</div></div>`;}).join("")||'<span class="note">Sin datos aún.</span>';
+    // El detalle diario por vendedor solo aplica al submodulo Reporte
+    // Supervisor (avance); en Exhibidores Reporte (informe general) la
+    // tarjeta es solo informativa y no abre nada al presionarla.
+    if(SOLO_AVANCE) $("#rank").querySelectorAll("[data-v]").forEach(el=>el.addEventListener("click",()=>detalleVendedorDia(el.dataset.v)));
   }
 
+  function detalleVendedorDia(v){
+    const {start,end}=weekRangeFor(new Date());
+    const render=()=>{
+      const desde=$("#ddDesde").value, hasta=$("#ddHasta").value;
+      const dStart=desde?new Date(desde+"T00:00:00"):start, dEnd=hasta?new Date(hasta+"T23:59:59"):end;
+      const vis=dataV().filter(r=>r.vendedor===v && new Date(r.fecha).getTime()>=dStart.getTime() && new Date(r.fecha).getTime()<=dEnd.getTime());
+      const porDia={};
+      vis.forEach(r=>{ (porDia[diaLocal(r.fecha)]=porDia[diaLocal(r.fecha)]||[]).push(r); });
+      const dias=Object.keys(porDia).sort().reverse();
+      $("#ddBody").innerHTML=dias.map(k=>{const arr=porDia[k];const prom=avg(arr.map(r=>r.ia?r.ia.puntaje:0));
+        return `<tr><td>${k}</td><td>${arr.length}</td><td>${prom}/65</td></tr>`;}).join("")
+        ||'<tr><td colspan="3" style="text-align:center;color:var(--mut)">Sin visitas en el rango seleccionado.</td></tr>';
+    };
+    $("#modalInner").innerHTML=`<div class="kv"><b>Vendedor:</b> ${esc(v)}</div>
+      <div class="btnrow" style="margin:10px 0;gap:12px">
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)">Desde<input type="date" id="ddDesde" value="${fmtFechaInput(start)}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)">Hasta<input type="date" id="ddHasta" value="${fmtFechaInput(end)}"></label>
+      </div>
+      <table><thead><tr><th>Día</th><th>Visitas</th><th>Puntaje prom.</th></tr></thead><tbody id="ddBody"></tbody></table>
+      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#modal").classList.add("open");
+    $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    $("#ddDesde").addEventListener("change",render);
+    $("#ddHasta").addEventListener("change",render);
+    render();
+  }
+
+  function enRangoInputs(fechaISO,desde,hasta){
+    const t=new Date(fechaISO).getTime();
+    if(desde && t<new Date(desde+"T00:00:00").getTime()) return false;
+    if(hasta && t>new Date(hasta+"T23:59:59").getTime()) return false;
+    return true;
+  }
   function renderVisitas(){
-    const filtro=$("#fFiltro").value; const list=filtro?dataV().filter(r=>r.vendedor===filtro):dataV();
+    const filtro=$("#fFiltro").value;
+    const cliente=($("#repFiltroCliente").value||"").trim().toLowerCase();
+    const desde=$("#repDesde").value, hasta=$("#repHasta").value;
+    let list=dataV();
+    if(filtro) list=list.filter(r=>r.vendedor===filtro);
+    if(cliente) list=list.filter(r=>String(r.cliente||"").toLowerCase().includes(cliente));
+    if(desde||hasta) list=list.filter(r=>enRangoInputs(r.fecha,desde,hasta));
     $("#repEmpty").style.display=list.length?"none":"block";
     $("#repBody").innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const cls=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
       return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
         <td>${esc(r.vendedor||"—")}</td><td>${esc(r.cliente||"—")}</td><td>${r.ia?r.ia.porcentaje_llenado:0}%</td>
         <td>${r.ia&&r.ia.documento_firmado?"✔":"—"}</td><td>${r.ia&&r.ia.evidencia_completa?"✔":"—"}</td>
-        <td><span class="badge ${cls}">${p}</span></td></tr>`;}).join("");
+        <td><span class="badge ${cls}">${p}</span></td>
+        <td><button class="icon-btn-sm" type="button" data-ver="${r.id}" title="Ver fotos">👁️ Ver</button></td></tr>`;}).join("");
     $("#repBody").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>detalleVisita(tr.dataset.id)));
-    $("#gallery").innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const t=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
-      return `<div class="gitem" data-id="${r.id}"><span class="tag ${t}">${p}</span><img src="${r.thumb||r.fotoDespues}"></div>`;}).join("");
-    $("#gallery").querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>detalleVisita(el.dataset.id)));
+    $("#repBody").querySelectorAll("[data-ver]").forEach(btn=>btn.addEventListener("click",(e)=>{e.stopPropagation();verFotosVisita(btn.dataset.ver);}));
+    // La galeria de fotos abajo de la tabla solo aparece cuando hay un filtro
+    // de fecha activo (si no, solo se ve la tabla -- el boton "Ver" de cada
+    // fila ya abre las fotos de esa visita puntual).
+    const galeria=$("#gallery");
+    if(desde||hasta){
+      galeria.style.display="";
+      galeria.innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const t=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
+        return `<div class="gitem" data-id="${r.id}"><span class="tag ${t}">${p}</span><img src="${r.thumb||r.fotoDespues||''}"></div>`;}).join("");
+      galeria.querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>verFotosVisita(el.dataset.id)));
+    } else {
+      galeria.style.display="none"; galeria.innerHTML="";
+    }
   }
 
+  let censoSupSeleccionado="";
   function renderCenso(){
-    const C=dataC();
-    $("#censoEmpty").style.display=C.length?"none":"block";
-    const rows=vendoresUnicos().map(v=>{const cen=C.filter(r=>r.vendedor===v);if(!cen.length)return null;
-      const limpios=cen.filter(r=>!r.contaminado).length; const pct=Math.round(limpios/cen.length*100); const ptsProm=avg(cen.map(r=>r.puntaje));
-      return {v,ncen:cen.length,pct,ptsProm};}).filter(Boolean).sort((a,b)=>b.pct-a.pct);
-    $("#rankCenso").innerHTML=rows.map(x=>{const pctMeta=Math.min(100,Math.round(x.ncen/META_CENSO*100));
-      return `<div class="rankcard"><div class="nom">${esc(x.v)}</div>
-        <div class="v" style="color:${x.pct>=80?'#6ee7b7':(x.pct>=50?'#fcd34d':'#fca5a5')}">${x.pct}%<span style="font-size:12px;color:var(--mut)"> limpio</span></div>
-        <div class="n">Contaminación: <b style="color:var(--txt)">${x.ptsProm}</b>/35</div>
-        <div class="prog"><i style="width:${pctMeta}%"></i></div>
-        <div class="n">Censados <b style="color:var(--txt)">${x.ncen}</b>/${META_CENSO} esta semana</div></div>`;}).join("")||'<span class="note">Sin censo aún.</span>';
-    $("#censoBody").innerHTML=C.map(r=>{const inv=(r.invasiones||[]).filter(Boolean);
+    const Call=dataC();
+    const {start,end}=weekRangeFor(new Date());
+    const Csemana=Call.filter(r=>enRango(r.fecha,start,end));
+    const totalVend=VENDEDORES.length;
+    const metaSemana=totalVend*META_CENSO;
+    ultimasFilasSup=SUPERVISORES.map(sup=>{
+      const porVendedor={}; VENDEDORES.forEach(v=>porVendedor[v]=0);
+      Csemana.filter(r=>r.supervisor===sup).forEach(r=>{ porVendedor[r.vendedor]=(porVendedor[r.vendedor]||0)+1; });
+      const total=Object.values(porVendedor).reduce((a,b)=>a+b,0);
+      const completados=VENDEDORES.filter(v=>(porVendedor[v]||0)>=META_CENSO).length;
+      return {sup,total,completados,porVendedor};
+    });
+    $("#rankCenso").innerHTML=ultimasFilasSup.length?ultimasFilasSup.map(x=>{
+      const pct=metaSemana?Math.min(100,Math.round(x.total/metaSemana*100)):0;
+      const activo=censoSupSeleccionado===x.sup;
+      return `<div class="rankcard click${activo?' is-active':''}" data-sup="${esc(x.sup)}"><div class="nom">${esc(x.sup)}</div>
+        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaSemana}</span></div>
+        <div class="n">Visitas de censo esta semana</div>
+        <div class="prog"><i style="width:${pct}%"></i></div>
+        <div class="n">Censados <b style="color:var(--txt)">${x.completados}</b>/${totalVend||0} vendedores</div></div>`;
+    }).join("") : '<span class="note">Sin supervisores validados aún.</span>';
+    $("#rankCenso").querySelectorAll("[data-sup]").forEach(el=>el.addEventListener("click",()=>{
+      censoSupSeleccionado=censoSupSeleccionado===el.dataset.sup?"":el.dataset.sup;
+      renderCenso();
+    }));
+
+    const filtroVend=$("#cFiltroVendedor").value;
+    const filtroCliente=($("#cFiltroCliente").value||"").trim().toLowerCase();
+    const desde=$("#cDesde").value, hasta=$("#cHasta").value;
+    let list=Call;
+    if(censoSupSeleccionado) list=list.filter(r=>r.supervisor===censoSupSeleccionado);
+    if(filtroVend) list=list.filter(r=>r.vendedor===filtroVend);
+    if(filtroCliente) list=list.filter(r=>String(r.cliente||"").toLowerCase().includes(filtroCliente));
+    if(desde||hasta) list=list.filter(r=>enRangoInputs(r.fecha,desde,hasta));
+    $("#censoEmpty").style.display=list.length?"none":"block";
+    $("#censoBody").innerHTML=list.map(r=>{const inv=(r.invasiones||[]).filter(Boolean);
       return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
         <td>${esc(r.vendedor||"—")}</td><td>${esc(r.cliente||"—")}</td>
         <td>${r.contaminado?'<span class="badge b-bad">Sí</span>':'<span class="badge b-ok">No</span>'}</td>
-        <td>${inv.length?esc(inv.join(", ")):"—"}</td><td><span class="badge ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span></td></tr>`;}).join("");
+        <td>${inv.length?esc(inv.join(", ")):"—"}</td><td><span class="badge ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span></td>
+        <td><button class="icon-btn-sm" type="button" data-ver="${r.id}" title="Ver fotos">👁️ Ver</button></td></tr>`;}).join("");
     $("#censoBody").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>detalleCenso(tr.dataset.id)));
-    $("#galleryCenso").innerHTML=C.map(r=>`<div class="gitem" data-id="${r.id}"><span class="tag ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span><img src="${r.thumb||r.foto}"></div>`).join("");
-    $("#galleryCenso").querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>detalleCenso(el.dataset.id)));
+    $("#censoBody").querySelectorAll("[data-ver]").forEach(btn=>btn.addEventListener("click",(e)=>{e.stopPropagation();verFotosCenso(btn.dataset.ver);}));
+    const galeriaCenso=$("#galleryCenso");
+    if(desde||hasta){
+      galeriaCenso.style.display="";
+      galeriaCenso.innerHTML=list.map(r=>`<div class="gitem" data-id="${r.id}"><span class="tag ${r.contaminado?'b-bad':'b-ok'}">${r.puntaje}</span><img src="${r.thumb||r.foto||''}"></div>`).join("");
+      galeriaCenso.querySelectorAll(".gitem").forEach(el=>el.addEventListener("click",()=>verFotosCenso(el.dataset.id)));
+    } else {
+      galeriaCenso.style.display="none"; galeriaCenso.innerHTML="";
+    }
   }
+
+  // Visor rapido de fotos (boton "Ver" de cada fila): muestra las fotos en
+  // una sola fila que se ajusta al ancho de pantalla; si falta alguna (ej.
+  // sin contrato) esa casilla queda en blanco. Click en cualquiera la abre
+  // en grande. Reutiliza el mismo #modal -- Esc/click afuera/Cerrar ya
+  // cierran sin hacer ningun cambio (comportamiento existente del modal).
+  function fotoBoxHtml(item,i){
+    if(!item.src && !item.id) return `<div class="fotobox empty"><span>${esc(item.label)}</span><div class="fotobox-ph">Sin foto</div></div>`;
+    return `<div class="fotobox" data-idx="${i}"><span>${esc(item.label)}</span><img data-foto-id="${item.id||''}" src="${item.src||''}" loading="lazy"></div>`;
+  }
+  function abrirFotos(titulo,items){
+    $("#modalInner").innerHTML=`<div class="kv"><b>${esc(titulo)}</b></div>
+      <div class="fotos-row">${items.map(fotoBoxHtml).join("")}</div>
+      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#modal").classList.add("open");
+    $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    $("#modalInner").querySelectorAll(".fotobox:not(.empty)").forEach(box=>{
+      const img=box.querySelector("img");
+      const id=img.dataset.fotoId;
+      if(id) fetchFoto(id).then(u=>{ if(u) img.src=u; });
+      box.addEventListener("click",()=>mostrarFotoGrande(img.src||img.getAttribute("src"),()=>abrirFotos(titulo,items)));
+    });
+  }
+  function mostrarFotoGrande(src,onVolver){
+    $("#modalInner").innerHTML=`<img src="${src||''}" style="width:100%;max-height:78vh;object-fit:contain;border-radius:10px;background:#000">
+      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="btnVolverFotos">← Volver</button><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#btnVolverFotos").onclick=onVolver;
+    $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+  }
+  function fotosDeVisita(r){
+    return [
+      {label:"Antes",src:r.fotoAntes||"",id:r.fotoAntesId||""},
+      {label:"Después",src:r.fotoDespues||r.thumb||"",id:r.fotoDespuesId||""},
+      {label:"Contrato",src:r.contrato||"",id:r.contratoId||""}
+    ];
+  }
+  function verFotosVisita(id){ const r=dataV().find(x=>String(x.id)===String(id)); if(!r) return; abrirFotos(`${r.vendedor||"—"} · Cliente ${r.cliente||"—"}`,fotosDeVisita(r)); }
+  function verFotosCenso(id){ const r=dataC().find(x=>String(x.id)===String(id)); if(!r) return; abrirFotos(`${r.vendedor||"—"} · Cliente ${r.cliente||"—"}`,[{label:"Censo",src:r.foto||r.thumb||"",id:r.fotoId||""}]); }
 
   function detalleVisita(id){ const r=dataV().find(x=>String(x.id)===String(id));if(!r)return;const ia=r.ia||{};
     const t=(s,idA,c)=>(s||idA)?`<figure><img ${idA?`id="${idA}"`:""} src="${s||''}">${c}</figure>`:"";
@@ -866,8 +1112,6 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     ["Indice","Fecha","Vendedor","Cliente","Contaminado","Invasiones","Puntaje_35","Observacion"],
     l.map(r=>[r.index,new Date(r.fecha).toLocaleString("es"),r.vendedor||"",String(r.cliente||""),r.contaminado?"Si":"No",(r.invasiones||[]).join(" / "),Number(r.puntaje),r.observaciones||""]),
     "censo_supervisor.xlsx");};
-  $("#btnClear").onclick=()=>{if(confirm("¿Vaciar las visitas de vendedores?")){localStorage.removeItem(K_STORE);renderReporte();}};
-  $("#btnClearCenso").onclick=()=>{if(confirm("¿Vaciar el censo del supervisor?")){localStorage.removeItem(K_CENSO);renderReporte();}};
 
   // ===================== CONFIG =====================
   function openCfg(){$("#cfgDemo").checked=demoOn();$("#cfgKey").value=localStorage.getItem(K_KEY)||"";$("#cfgModel").value=localStorage.getItem(K_MODEL)||"claude-sonnet-5";$("#cfgApi").value=apiUrl();$("#cfgModal").classList.add("open");}
@@ -930,7 +1174,13 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   });
 
   applyVista(); refreshPill();
-  cargarVendedores().then(()=>{ if(VISTA==="reporte") refreshReporte(); });
+  if(VISTA==="reporte"){
+    // Las 3 llamadas salen a la vez (antes se esperaba vendedores/supervisores
+    // antes de recien pedir visitas/censo -- dos vueltas de red en serie).
+    Promise.all([cargarVendedores(),cargarSupervisores(),fetchReporteData()]).then(renderReporte);
+  } else {
+    cargarVendedores();
+  }
   if(VISTA==="vendedor") cargarVendedorActual().then(restaurarDraftVend);
   if(VISTA==="supervisor") cargarSupervisorActual().then(restaurarDraftCenso);
 })();
