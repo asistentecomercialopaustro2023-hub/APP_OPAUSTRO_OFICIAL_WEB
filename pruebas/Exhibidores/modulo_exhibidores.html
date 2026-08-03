@@ -237,6 +237,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // Deployment /exec del Apps Script de Exhibidores de ESTE ambiente (pruebas). Asi el
   // vendedor no tiene que configurar nada: sin esto el envio al Sheet quedaba en silencio.
   const DEFAULT_API_URL="https://script.google.com/macros/s/AKfycbwBelw1YZiTJjScx2uSqB1nQfkruNVcppqo5zrMXCRSZfgkmr3g5OTLPzy3qttvfsec/exec";
+  // Misma clave interna compartida por Login/Logistica/ICE_Pinguino (no es un secreto
+  // fuerte, viaja tambien en el HTML publico) -- evita que el /exec responda a un
+  // fetch() arbitrario hecho desde fuera de la app.
+  const INTERNAL_API_KEY="OPA-INTERNAL-2026";
   const DEFAULT_PRODUCTS=["Oreo","Ritz","Club Social","Chips Ahoy","Belvita","Coronita","Galapaguitos","Trident","Chiclets","Halls","Bubbaloo","Clorets","Festival"];
   const META_VISITAS=15, META_CENSO=20;
   const VISTA=(new URLSearchParams(location.search).get("vista")||"vendedor").toLowerCase();
@@ -264,7 +268,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const url=apiUrl(); if(!url) return [];
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"getUsersWithSubmodule",payload:{submodulo}})});
+        body:JSON.stringify({action:"getUsersWithSubmodule",payload:{submodulo,apiKey:INTERNAL_API_KEY}})});
       const data=await resp.json();
       return (data&&data.success)?(data.usuarios||[]):[];
     }catch(e){ return []; }
@@ -386,7 +390,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function serverAnalizar(rawB64,tipo){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
     const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"analizarFoto",payload:{imagen:rawB64,tipo:tipo}})});
+      body:JSON.stringify({action:"analizarFoto",payload:{imagen:rawB64,tipo:tipo,apiKey:INTERNAL_API_KEY}})});
     const data=await resp.json();
     if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
     return data.resultado;
@@ -428,7 +432,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function serverAnalizarContrato(b64){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
     const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"analizarFoto",payload:{imagen:b64,tipo:"contrato"}})});
+      body:JSON.stringify({action:"analizarFoto",payload:{imagen:b64,tipo:"contrato",apiKey:INTERNAL_API_KEY}})});
     const data=await resp.json();
     if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
     return data.resultado;
@@ -495,7 +499,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function subirFotoVendedor(tipo,cliente,imagen){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
     const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen}})});
+      body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
     const data=await resp.json();
     if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
     return data;
@@ -538,7 +542,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const url=apiUrl(); if(!url) return;
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"getContratoCliente",payload:{cliente}})});
+        body:JSON.stringify({action:"getContratoCliente",payload:{cliente,apiKey:INTERNAL_API_KEY}})});
       const data=await resp.json();
       if(data&&data.success&&data.contratoId){
         main('<span class="spin"></span>Cargando contrato existente del cliente...',"info",true);
@@ -639,7 +643,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function subirFotoCenso(cliente,imagen){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
     const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"guardarFotoCenso",payload:{cliente,vendedor:$("#sVendedor").value,supervisor:SUPERVISOR_ACTUAL,fecha:(geoS&&geoS.fecha)||new Date().toISOString(),imagen}})});
+      body:JSON.stringify({action:"guardarFotoCenso",payload:{cliente,vendedor:$("#sVendedor").value,supervisor:SUPERVISOR_ACTUAL,fecha:(geoS&&geoS.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
     const data=await resp.json();
     if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
     return data;
@@ -713,16 +717,16 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function vendoresUnicos(){ const s=new Set(VENDEDORES); dataV().forEach(r=>s.add(r.vendedor)); dataC().forEach(r=>s.add(r.vendedor)); return [...s].filter(Boolean); }
   function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
   function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
-  async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
+  async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id)+"&apiKey="+encodeURIComponent(INTERNAL_API_KEY));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
   // Envío opcional al servidor (solo si hay URL configurada).
-  function serverSend(action,payload){ const url=apiUrl(); if(!url) return; try{ fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,payload})}).catch(()=>{}); }catch(e){} }
+  function serverSend(action,payload){ const url=apiUrl(); if(!url) return; try{ fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,payload:{...payload,apiKey:INTERNAL_API_KEY}})}).catch(()=>{}); }catch(e){} }
 
   async function refreshReporte(){
     const url=apiUrl();
     if(url){ try{
       const [rv,rc]=await Promise.all([
-        fetch(url+"?action=getVisitas").then(r=>r.json()),
-        fetch(url+"?action=getCenso").then(r=>r.json())]);
+        fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
+        fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
       srvV=(rv&&rv.success?rv.visitas:[]).map(mapVisita);
       srvC=(rc&&rc.success?rc.censo:[]).map(mapCenso);
     }catch(e){ srvV=null; srvC=null; } }
