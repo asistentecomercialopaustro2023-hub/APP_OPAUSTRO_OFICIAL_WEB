@@ -3,8 +3,9 @@
     "version": "1.0.11",
     "label": "OPAUSTRO v1.0.11 - Actualizacion de la v1.0.10",
     "channel": "oficial",
-    "publishedAt": "2026-07-31",
+    "publishedAt": "2026-08-03",
     "notes": [
+        "Actualizacion: verificacion y correccion del enlace (LOGIN_API_URL) de la pantalla de inicio de sesion oficial, que aun apuntaba al script de pruebas -- ahora apunta al script/implementacion oficial y al sheet oficial correcto.",
         "IMPORTANTE: la version 1.0.10 quedo invalida (tenia errores) y no debe usarse; si se necesita restablecer una version anterior, el punto seguro es la 1.0.9.",
         "Nuevo: modulo Exhibidores (auditoria de ejecucion Mondelez) -- visitas de vendedor y censo de supervisor con fotos tomadas en vivo (sello de fecha/hora, coordenadas y codigo de cliente), validacion de contrato por IA, y Reporte con avance por vendedor.",
         "Nuevo: submodulo \"Control de modulos\" dentro de Control de accesos (solo admin y Gerencia): activa/desactiva modulos y submodulos por ROL, y tambien por USUARIO puntual (sin afectar a los demas usuarios del mismo rol).",
