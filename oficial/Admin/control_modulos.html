@@ -56,6 +56,17 @@
     .empty-hint{color:var(--muted);font-size:14px;padding:34px;text-align:center}
     html.embed-mode body{padding:22px}
     @media(max-width:720px){.module-tree,.view-tree{grid-template-columns:1fr}.hero-count{margin-left:0}}
+    .modal-backdrop{position:fixed;inset:0;z-index:50;background:rgba(2,23,39,.48);display:grid;place-items:center;padding:18px}
+    .modal-backdrop[hidden]{display:none}
+    .modal{width:min(560px,100%);background:#fff;border:1px solid #cfe0eb;border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.24);overflow:hidden}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfdff,#f4f9fc)}
+    .modal-head h2{margin:0;font-size:19px}
+    .close{width:38px;height:38px;border-radius:12px;padding:0;background:#fff;border:1px solid var(--line);font-size:20px;color:var(--muted)}
+    .modal-body{padding:18px 20px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+    .scope-users-list{display:grid;gap:2px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-top:8px}
+    .scope-user-check{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;font-weight:600;color:var(--text)}
+    .scope-user-check input{width:auto}
   </style>
   <script>
     if(new URLSearchParams(location.search).get("embed")==="1") document.documentElement.classList.add("embed-mode");
@@ -76,6 +87,33 @@
 
     <div class="roles-list" id="rolesList"></div>
   </main>
+
+  <div class="modal-backdrop" id="scopeModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="scopeTitle">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">Alcance del cambio</span>
+          <h2 id="scopeTitle">Aplicar cambio</h2>
+        </div>
+        <button class="close" id="closeScopeModal" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="message" id="scopeHint" style="margin:0 0 14px"></p>
+        <button class="primary" id="scopeAllBtn" type="button" style="width:100%;margin-bottom:16px">Aplicar a todos los usuarios del rol</button>
+        <div style="border-top:1px solid var(--line);padding-top:14px">
+          <label style="display:block;margin-bottom:8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:850">Aplicar solo a usuarios específicos
+            <input id="scopeUserFilter" placeholder="Buscar usuario o nombre..." style="width:100%;margin-top:6px;border:1px solid #c7d8e4;border-radius:11px;padding:10px 12px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:normal;color:var(--text)">
+          </label>
+          <div class="scope-users-list" id="scopeUsersList"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost" id="scopeCancelBtn" type="button">Cancelar</button>
+          <button class="primary" id="scopeConfirmUsersBtn" type="button">Aplicar a seleccionados</button>
+        </div>
+        <div class="message" id="scopeMsg" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </div>
 
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec";
@@ -115,6 +153,12 @@
         { key: "IceReportes", label: "Reportes" },
         { key: "IceEscaneo", label: "Escaneo" },
         { key: "IceMisVisitas", label: "Mis visitas" }
+      ]},
+      { area: "Exhibidores", items: [
+        { key: "ExhibidoresVendedor", label: "Vendedor" },
+        { key: "ExhibidoresSupervisor", label: "Supervisor" },
+        { key: "ExhibidoresReporte", label: "Reporte" },
+        { key: "ExhibidoresReporteSupervisor", label: "Reporte (Supervisor)" }
       ]}
     ];
 
@@ -220,6 +264,12 @@
         <div class="message" data-msg></div>
       `;
       body.querySelector("[data-save]").addEventListener("click",()=>saveRoleAction(rol));
+      body.querySelectorAll('.module-tree input[type=checkbox]').forEach(input=>{
+        input.addEventListener("change",()=>{
+          const label=input.closest(".module-check").textContent.trim();
+          openScopeModal(input, rol, input.dataset.modulo, label);
+        });
+      });
     }
 
     function setMode(card, mode, checkedKeys){
@@ -249,6 +299,92 @@
       document.querySelectorAll("[data-rename]").forEach(btn=>btn.addEventListener("click",()=>renameRolePrompt(btn.dataset.rename)));
       document.querySelectorAll("[data-delete]").forEach(btn=>btn.addEventListener("click",()=>deleteRoleAction(btn.dataset.delete)));
     }
+
+    let pendingScope = null;
+    let roleUsersCache = null;
+
+    async function ensureUsersLoaded(){
+      if(roleUsersCache) return roleUsersCache;
+      const data = await api("getUsers");
+      roleUsersCache = data.success ? (data.users||[]) : [];
+      return roleUsersCache;
+    }
+
+    function areaForModuleKey(key){
+      const group = MODULE_CATALOG.find(g=>g.items.some(item=>item.key===key));
+      return group ? group.area : "";
+    }
+
+    function renderScopeUsersList(users, filterText){
+      const q = String(filterText||"").trim().toLowerCase();
+      const filtered = q ? users.filter(u=>`${u.usuario} ${u.razon||""}`.toLowerCase().includes(q)) : users;
+      if(!filtered.length){ $("scopeUsersList").innerHTML = `<p class="message">No hay usuarios con este rol.</p>`; return; }
+      $("scopeUsersList").innerHTML = filtered.map(u=>`<label class="scope-user-check"><input type="checkbox" data-scope-user="${escapeHtml(u.usuario)}"> ${escapeHtml(u.usuario)}${u.razon?" — "+escapeHtml(u.razon):""}</label>`).join("");
+    }
+
+    async function openScopeModal(checkbox, rol, moduloKey, moduloLabel){
+      const checked = checkbox.checked;
+      // El checkbox del rol queda revertido hasta que se confirme el alcance:
+      // "Todos" lo vuelve a marcar/desmarcar (cambio de rol de siempre);
+      // usuarios especificos NO tocan el rol, solo sus filas individuales.
+      checkbox.checked = !checked;
+      pendingScope = { checkbox, rol, moduloKey, moduloLabel, checked, users: [] };
+      $("scopeTitle").textContent = `${checked?"Agregar":"Quitar"} "${moduloLabel}"`;
+      $("scopeHint").textContent = `¿${checked?"Agregar":"Quitar"} "${moduloLabel}" a todos los usuarios con rol "${rol}", o solo a algunos?`;
+      $("scopeMsg").textContent = "";
+      $("scopeUserFilter").value = "";
+      $("scopeUsersList").innerHTML = `<p class="message">Cargando usuarios...</p>`;
+      $("scopeModal").hidden = false;
+      const users = (await ensureUsersLoaded()).filter(u=>String(u.rol||"").trim().toLowerCase()===String(rol||"").trim().toLowerCase());
+      if(!pendingScope || pendingScope.checkbox!==checkbox) return;
+      pendingScope.users = users;
+      renderScopeUsersList(users, "");
+    }
+
+    function closeScopeModal(){
+      $("scopeModal").hidden = true;
+      pendingScope = null;
+    }
+
+    $("scopeUserFilter").addEventListener("input", ()=>{
+      if(pendingScope) renderScopeUsersList(pendingScope.users, $("scopeUserFilter").value);
+    });
+    $("scopeAllBtn").addEventListener("click", ()=>{
+      if(!pendingScope) return;
+      pendingScope.checkbox.checked = pendingScope.checked;
+      closeScopeModal();
+    });
+    $("scopeCancelBtn").addEventListener("click", closeScopeModal);
+    $("closeScopeModal").addEventListener("click", closeScopeModal);
+    $("scopeModal").addEventListener("click", event=>{ if(event.target===$("scopeModal")) closeScopeModal(); });
+    document.addEventListener("keydown", event=>{ if(event.key==="Escape" && !$("scopeModal").hidden) closeScopeModal(); });
+
+    $("scopeConfirmUsersBtn").addEventListener("click", async()=>{
+      if(!pendingScope) return;
+      const selected = [...document.querySelectorAll("#scopeUsersList input[type=checkbox]:checked")].map(i=>i.dataset.scopeUser);
+      const msg=$("scopeMsg");
+      if(!selected.length){ msg.textContent="Selecciona al menos un usuario."; msg.style.color="var(--bad)"; return; }
+      const { moduloKey, checked, rol } = pendingScope;
+      const btn=$("scopeConfirmUsersBtn");
+      btn.disabled=true; btn.textContent="Aplicando...";
+      let ok=0, fail=0;
+      for(const usuario of selected){
+        try{
+          const current = await api("getEffectiveUserModules",{usuario,rol});
+          const set = new Set(current.success ? (current.submodulos||[]) : []);
+          if(checked) set.add(moduloKey); else set.delete(moduloKey);
+          const submodulos=[...set];
+          const areas=new Set();
+          submodulos.forEach(key=>{ const area=areaForModuleKey(key); if(area) areas.add(area); });
+          const saved = await api("saveUserModules",{usuario,modulos:[...areas],submodulos});
+          if(saved.success) ok++; else fail++;
+        }catch(error){ fail++; }
+      }
+      btn.disabled=false; btn.textContent="Aplicar a seleccionados";
+      msg.textContent = `Aplicado a ${ok} usuario(s).` + (fail?` ${fail} fallaron.`:"");
+      msg.style.color = fail? "var(--bad)":"var(--ok)";
+      if(ok && !fail) setTimeout(closeScopeModal, 1200);
+    });
 
     async function loadAll(){
       const [rolesData, modulesData] = await Promise.all([api("getRoles"), api("getRoleModules")]);
