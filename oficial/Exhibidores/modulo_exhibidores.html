@@ -148,7 +148,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       <div class="btnrow" style="margin-top:0;margin-bottom:12px">
         <select id="fFiltroAvance" style="max-width:220px"><option value="">Todos los vendedores</option></select>
       </div>
-      <div class="note" style="margin:0 0 12px">Total /100 = ejecución del vendedor (/65) + censo del supervisor (/35).</div>
+      <div class="note" id="notaTotalAvance" style="margin:0 0 12px">Total /100 = ejecución del vendedor (/65) + censo del supervisor (/35).</div>
       <div class="rank" id="rank"></div>
     </div>
 
@@ -244,6 +244,17 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   const DEFAULT_PRODUCTS=["Oreo","Ritz","Club Social","Chips Ahoy","Belvita","Coronita","Galapaguitos","Trident","Chiclets","Halls","Bubbaloo","Clorets","Festival"];
   const META_VISITAS=15, META_CENSO=20;
   const VISTA=(new URLSearchParams(location.search).get("vista")||"vendedor").toLowerCase();
+  // Rol de quien inicio sesion: el detalle de como se calcula el puntaje
+  // (formulas, ponderaciones) solo debe verlo admin/Gerencia -- el resto solo
+  // debe ver que tiene que hacer y sus reportes, no los calculos internos.
+  const SESSION_ROLE=(function(){
+    try{const raw=localStorage.getItem("opaustro_session");if(raw){const s=JSON.parse(raw).session||{};return String(s.role||s.rol||"").trim();}}catch(e){}
+    return "";
+  })();
+  function puedeVerCalculoPuntaje(){
+    const n=SESSION_ROLE.normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+    return n==="ADMIN"||n==="ADMINISTRADOR"||n==="GERENCIA"||n==="GERENTE";
+  }
 
   // Solo la usa el prompt armado en el navegador (ruta rara: clave propia en modo
   // dev). La lista real que usa el servidor vive en la hoja "Productos" del Sheet.
@@ -907,7 +918,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     $("#modePill").style.display=DEV_MODE?"":"none";
     // El detalle de como se calcula el puntaje solo es util en Reportes (gerencia/supervision de avance);
     // en las pantallas de captura (vendedor/supervisor) no debe mostrarse.
-    $("#notaPuntaje").style.display=VISTA==="reporte"?"":"none";
+    const mostrarCalculo=VISTA==="reporte"&&puedeVerCalculoPuntaje();
+    $("#notaPuntaje").style.display=mostrarCalculo?"":"none";
+    const notaTotal=$("#notaTotalAvance"); if(notaTotal) notaTotal.style.display=mostrarCalculo?"":"none";
   }
   document.querySelectorAll(".rtab").forEach(b=>b.onclick=()=>{
     document.querySelectorAll(".rtab").forEach(x=>x.classList.toggle("active",x===b));

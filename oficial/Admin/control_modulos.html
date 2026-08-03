@@ -115,88 +115,17 @@
     </section>
   </div>
 
+  <script src="../module-catalog.js"></script>
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec";
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
     const $ = id => document.getElementById(id);
 
-    // Catálogo de módulos/submódulos disponibles. Debe reflejar
-    // MODULE_DEFINITIONS/AREA_GROUPS de Login/index.html — si se agrega un
-    // módulo ahí, agrégalo también aquí (y en Admin/control_usuarios.html).
-    const MODULE_CATALOG = [
-      { area: "Control de accesos", items: [
-        { key: "ControlAccesoInforme", label: "Informe de accesos" },
-        { key: "ControlAccesoAdmin", label: "Administrar accesos" },
-        { key: "ControlUsuarios", label: "Control de usuarios" },
-        { key: "ControlModulos", label: "Control de módulos" }
-      ]},
-      { area: "Ventas", items: [
-        { key: "MapaVentas", label: "Mapa" },
-        { key: "VentasOperativo", label: "BI Ventas" },
-        { key: "BiVendedor", label: "BI Vendedor" },
-        { key: "Cartera", label: "BI Cartera" },
-        { key: "VentasGerencial", label: "BI Gerencial" },
-        { key: "Retorno", label: "BI Devoluciones" },
-        { key: "NuevoDia", label: "BI Nuevo Dia" }
-      ]},
-      { area: "Logística", items: [
-        { key: "Logistica", label: "Logística" }
-      ]},
-      { area: "Gerencia", items: [
-        { key: "GerenciaTablero", label: "Tablero Control" },
-        { key: "GerenciaRevision", label: "Revisión Costo" },
-        { key: "GerenciaFlujo", label: "Flujo Caja" }
-      ]},
-      { area: "ICE", items: [
-        { key: "IceResumen", label: "Resumen" },
-        { key: "IceInventario", label: "Inventario" },
-        { key: "IceReportes", label: "Reportes" },
-        { key: "IceEscaneo", label: "Escaneo" },
-        { key: "IceMisVisitas", label: "Mis visitas" }
-      ]},
-      { area: "Exhibidores", items: [
-        { key: "ExhibidoresVendedor", label: "Vendedor" },
-        { key: "ExhibidoresSupervisor", label: "Supervisor" },
-        { key: "ExhibidoresReporte", label: "Reporte" },
-        { key: "ExhibidoresReporteSupervisor", label: "Reporte (Supervisor)" }
-      ]}
-    ];
-
-    // Acceso "clásico" (hardcodeado en Login/index.html) para los roles que
-    // todavía no tienen fila propia en CONTROL_MODULOS_Y_SUBMODULOS_pruebas.
-    // Se usa SOLO para precargar los checkboxes con lo que ese rol realmente
-    // ve hoy al iniciar sesión — si se agrega/cambia un bundle en
-    // Login/index.html, refleja el cambio aquí también.
-    const VENTAS_ADMIN_BUNDLE = ["VentasOperativo","BiVendedor","MapaVentas","Cartera","VentasGerencial","Retorno","NuevoDia"];
-    const VENDEDOR_BUNDLE = ["NuevoDia","BiVendedor","Cartera","Retorno","MapaVentas"];
-    const LOGISTICA_BUNDLE = ["Logistica","Retorno"];
-    const GERENCIA_BUNDLE = ["GerenciaTablero","GerenciaRevision","GerenciaFlujo"];
-    const ICE_ADMIN_BUNDLE = ["IceResumen","IceInventario","IceReportes"];
-    const ICE_OPERATIVO_BUNDLE = ["IceEscaneo","IceMisVisitas"];
-    const ACCESS_CONTROL_BUNDLE = ["ControlAccesoInforme","ControlAccesoAdmin","ControlUsuarios","ControlModulos"];
-    const GERENCIA_CONTROL_BUNDLE = ["ControlAccesoInforme","ControlModulos"];
-    const CLASSIC_ROLE_MODULES = {
-      "ADMIN": [...VENTAS_ADMIN_BUNDLE, ...LOGISTICA_BUNDLE, ...GERENCIA_BUNDLE, ...ICE_ADMIN_BUNDLE, ...ACCESS_CONTROL_BUNDLE],
-      "ADMINISTRADOR": [...VENTAS_ADMIN_BUNDLE, ...LOGISTICA_BUNDLE, ...GERENCIA_BUNDLE, ...ICE_ADMIN_BUNDLE, ...ACCESS_CONTROL_BUNDLE],
-      "GERENCIA": [...VENTAS_ADMIN_BUNDLE, ...LOGISTICA_BUNDLE, ...GERENCIA_BUNDLE, ...ICE_ADMIN_BUNDLE, ...GERENCIA_CONTROL_BUNDLE],
-      "GERENTE": [...VENTAS_ADMIN_BUNDLE, ...LOGISTICA_BUNDLE, ...GERENCIA_BUNDLE, ...ICE_ADMIN_BUNDLE, ...GERENCIA_CONTROL_BUNDLE],
-      "LOGISTICA": LOGISTICA_BUNDLE,
-      "TECNICO": ["Logistica"],
-      "TECNICO_LOGISTICA": ["Logistica"],
-      "SUPERVISOR": VENTAS_ADMIN_BUNDLE,
-      "CARTERA": ["Cartera"],
-      "VENDEDOR": VENDEDOR_BUNDLE,
-      "VENTAS": VENDEDOR_BUNDLE,
-      "VENDEDORES_ICE": [...ICE_OPERATIVO_BUNDLE, ...VENDEDOR_BUNDLE],
-      "VENDEDOR_ICE": [...ICE_OPERATIVO_BUNDLE, ...VENDEDOR_BUNDLE],
-      "ICE": [...ICE_OPERATIVO_BUNDLE, ...VENDEDOR_BUNDLE]
-    };
-    function normalizeRoleClassic(role){
-      return String(role||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[\s-]+/g,"_").trim().toUpperCase();
-    }
-    function classicModulesForRole(role){
-      return CLASSIC_ROLE_MODULES[normalizeRoleClassic(role)] || [];
-    }
+    // Catálogo de módulos/submódulos, bundle "clásico" por rol y helpers
+    // (normalizeRoleClassic/classicModulesForRole) vienen de
+    // ../module-catalog.js (fuente única compartida con Login/index.html
+    // y Admin/control_usuarios.html).
+    const MODULE_CATALOG = buildModuleCatalog();
 
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
     async function api(action,payload={}){

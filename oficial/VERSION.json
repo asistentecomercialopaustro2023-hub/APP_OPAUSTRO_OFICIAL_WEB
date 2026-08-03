@@ -5,6 +5,7 @@
     "channel": "oficial",
     "publishedAt": "2026-08-03",
     "notes": [
+        "Actualizacion: nuevo modulo/submodulo agregado en un solo archivo (module-catalog.js) aparece automaticamente en el menu del login y en Control de usuarios/Control de modulos, sin editar 3 archivos por separado; el menu de un usuario con sesion abierta ahora se actualiza solo (cada 15s o al volver a la pestana) cuando se le cambia su acceso, sin tener que cerrar sesion; en Exhibidores > Reporte, el detalle de como se calcula el puntaje (formulas y ponderaciones) ahora solo lo ve admin/Gerencia -- el resto de roles ya no lo ve.",
         "Actualizacion: verificacion y correccion del enlace (LOGIN_API_URL) de la pantalla de inicio de sesion oficial, que aun apuntaba al script de pruebas -- ahora apunta al script/implementacion oficial y al sheet oficial correcto.",
         "IMPORTANTE: la version 1.0.10 quedo invalida (tenia errores) y no debe usarse; si se necesita restablecer una version anterior, el punto seguro es la 1.0.9.",
         "Nuevo: modulo Exhibidores (auditoria de ejecucion Mondelez) -- visitas de vendedor y censo de supervisor con fotos tomadas en vivo (sello de fecha/hora, coordenadas y codigo de cliente), validacion de contrato por IA, y Reporte con avance por vendedor.",

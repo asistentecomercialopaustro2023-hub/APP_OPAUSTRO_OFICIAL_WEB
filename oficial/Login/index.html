@@ -2354,6 +2354,7 @@
     <nav class="bottom-nav" id="bottomModules" aria-label="M&oacute;dulos"></nav>
   </section>
 
+  <script src="../module-catalog.js"></script>
   <script>
     const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec';
     const ICE_API_URL = 'https://script.google.com/macros/s/AKfycbxW_bcqSmzevC4SEgXOjX3JRUchBD7Bu3HHLSYamQ367Ie0W46ucQvHNrp7ad1ykk_B/exec';
@@ -2373,6 +2374,7 @@
     const RELEASE_KEY = 'opaustro_release_version';
     let inactivityTimer = null;
     let heartbeatTimer = null;
+    let moduleRefreshTimer = null;
     let icePreparationPromise = null;
 
     function readStored(key) {
@@ -2586,192 +2588,9 @@
       }
     }
 
-    const MODULE_DEFINITIONS = {
-      Admin: {
-        label: "Control de accesos",
-        icon: "../Recuros_imagenes/usuario.png?v=1.0.0",
-        path: "../Admin/informe_accesos.html?embed=1",
-        embed: true
-      },
-      ControlAccesoApp: {
-        label: "Informe de accesos",
-        symbol: "report",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Admin/informe_accesos.html?embed=1",
-        embed: true
-      },
-      ControlAccesoInforme: {
-        label: "Informe de accesos",
-        symbol: "report",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Admin/informe_accesos.html?embed=1",
-        embed: true
-      },
-      ControlAccesoAdmin: {
-        label: "Administrar accesos",
-        symbol: "controls",
-        icon: "../Recuros_imagenes/rol.png?v=1.0.0",
-        path: "../Admin/administrar_accesos.html?embed=1",
-        embed: true
-      },
-      ControlUsuarios: {
-        label: "Control de usuarios",
-        symbol: "users",
-        icon: "../Recuros_imagenes/usuario.png?v=1.0.0",
-        path: "../Admin/control_usuarios.html?embed=1",
-        embed: true
-      },
-      ControlModulos: {
-        label: "Control de módulos",
-        symbol: "controls",
-        icon: "../Recuros_imagenes/rol.png?v=1.0.0",
-        path: "../Admin/control_modulos.html?embed=1",
-        embed: true
-      },
-      Ventas: {
-        label: "Ventas",
-        icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        path: "../Ventas/modulo_ventas.html?embed=1",
-        embed: true
-      },
-      MapaVentas: {
-        label: "Mapa",
-        symbol: "map",
-        icon: "../Recuros_imagenes/ubicacion.png?v=1.0.0",
-        path: "../Ventas/ventas.html?embed=1",
-        embed: true
-      },
-      VentasOperativo: {
-        label: "BI Ventas",
-        symbol: "chart",
-        icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        path: "../Ventas/bi_ventas.html?embed=1",
-        embed: true
-      },
-      BiVendedor: {
-        label: "BI Vendedor",
-        symbol: "seller",
-        icon: "../Recuros_imagenes/usuario.png?v=1.0.0",
-        path: "../Ventas/bi_vendedor.html?embed=1",
-        embed: true
-      },
-      Cartera: {
-        label: "BI Cartera",
-        symbol: "wallet",
-        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
-        path: "../Ventas/bi_cartera.html?embed=1",
-        embed: true
-      },
-      VentasGerencial: {
-        label: "BI Gerencial",
-        symbol: "board",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Ventas/bi_gerencial.html?embed=1",
-        embed: true
-      },
-      Retorno: {
-        label: "BI Devoluciones",
-        symbol: "return",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Ventas/bi_retornos.html?embed=1",
-        embed: true
-      },
-      NuevoDia: {
-        label: "BI Nuevo Dia",
-        symbol: "day",
-        icon: "../Recuros_imagenes/calendario.png?v=1.0.0",
-        path: "../Ventas/bi_nuevo_dia.html?embed=1",
-        embed: true
-      },
-      Logistica: {
-        label: "Logística",
-        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
-        description: "Cabinets · Taller · Movimientos",
-        path: "../Logistica/cabinets.html?embed=1&v=1.0.0",
-        embed: true
-      },
-      Gerencia: {
-        label: "Gerencia",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Gerencia/tablero.html?embed=1",
-        embed: true
-      },
-      GerenciaTablero: {
-        label: "Tablero Control",
-        symbol: "dashboard",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../Gerencia/tablero.html?embed=1",
-        embed: true
-      },
-      GerenciaRevision: {
-        label: "Revisión Costo",
-        symbol: "cost",
-        icon: "../Recuros_imagenes/calendario.png?v=1.0.0",
-        path: "../Gerencia/revision.html?embed=1",
-        embed: true
-      },
-      IceResumen: {
-        label: "Resumen",
-        icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        path: "../ICE_Pinguino/resumen.html?embed=1",
-        embed: true
-      },
-      IceInventario: {
-        label: "Inventario",
-        icon: "../Recuros_imagenes/inventario.png?v=1.0.0",
-        path: "../ICE_Pinguino/inventario.html?embed=1",
-        embed: true
-      },
-      IceReportes: {
-        label: "Reportes",
-        icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        path: "../ICE_Pinguino/reportes.html?embed=1",
-        embed: true
-      },
-      IceEscaneo: {
-        label: "Escaneo",
-        icon: "../Recuros_imagenes/escanear.png?v=1.0.0",
-        path: "../ICE_Pinguino/escaneo.html?embed=1",
-        embed: true
-      },
-      IceMisVisitas: {
-        label: "Mis visitas",
-        icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        path: "../ICE_Pinguino/mis_visitas.html?embed=1",
-        embed: true
-      },
-      GerenciaFlujo: {
-        label: "Flujo Caja",
-        symbol: "cash",
-        icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        path: "../Gerencia/flujo-caja-opaustro.html?embed=1",
-        embed: true
-      },
-      ExhibidoresVendedor: {
-        label: "Exhibidores Vendedor",
-        symbol: "exhibidorPhoto",
-        path: "../Exhibidores/vendedor.html?embed=1",
-        embed: true
-      },
-      ExhibidoresSupervisor: {
-        label: "Exhibidores Supervisor",
-        symbol: "exhibidorAudit",
-        path: "../Exhibidores/supervisor.html?embed=1",
-        embed: true
-      },
-      ExhibidoresReporte: {
-        label: "Exhibidores Reporte",
-        symbol: "exhibidorReport",
-        path: "../Exhibidores/reporte.html?embed=1",
-        embed: true
-      },
-      ExhibidoresReporteSupervisor: {
-        label: "Reporte Exhibidores Supervisor",
-        symbol: "exhibidorReport",
-        path: "../Exhibidores/reporte.html?embed=1&solo=avance",
-        embed: true
-      }
-    };
+    // MODULE_DEFINITIONS, SYMBOLS, AREA_GROUPS y los bundles por rol viven
+    // ahora en ../module-catalog.js (fuente unica compartida con Admin/
+    // control_usuarios.html y Admin/control_modulos.html).
 
     const PREVIEW_USERS = {
       admin: ["Benjamin Picon"],
@@ -2779,84 +2598,6 @@
       Logistica: ["Bryan Sanabria", "Manuel Guaman"],
       Ventas: ["Bryan Nunez", "Milton Quezada", "Supervisor", "vendedores"]
     };
-
-    const VENTAS_MODULES = ["MapaVentas", "VentasOperativo", "BiVendedor", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"];
-    const ADMIN_VENTAS_MODULES = ["VentasOperativo", "BiVendedor", "MapaVentas", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"];
-    const VENDEDOR_MODULES = ["NuevoDia", "BiVendedor", "Cartera", "Retorno", "MapaVentas"];
-    const CARTERA_MODULES = ["Cartera"];
-    const LOGISTICA_MODULES = ["Logistica", "Retorno"];
-    const ICE_ADMIN_MODULES = ["IceResumen", "IceInventario", "IceReportes"];
-    const ICE_OPERATIVO_MODULES = ["IceEscaneo", "IceMisVisitas"];
-    const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"];
-    const ACCESS_CONTROL_MODULES = ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"];
-    const GERENCIA_CONTROL_MODULES = ["ControlAccesoInforme", "ControlModulos"];
-    const ADMIN_APP_MODULES = [...ACCESS_CONTROL_MODULES];
-    const GERENCIA_ACCESS_MODULES = [...ADMIN_VENTAS_MODULES, ...LOGISTICA_MODULES, ...GERENCIA_MODULES, ...ICE_ADMIN_MODULES, ...GERENCIA_CONTROL_MODULES];
-    const ADMIN_GERENCIA_MODULES = [...ADMIN_VENTAS_MODULES, ...LOGISTICA_MODULES, ...GERENCIA_MODULES, ...ICE_ADMIN_MODULES, ...ACCESS_CONTROL_MODULES];
-
-    const SYMBOLS = {
-      map: "&#128506;&#65039;",
-      chart: "&#128202;",
-      wallet: "&#128188;",
-      board: "&#128200;",
-      return: "&#8617;",
-      day: "&#9728;&#65039;",
-      dashboard: "&#128200;",
-      cost: "&#128176;",
-      cash: "&#128181;",
-      access: "&#128272;",
-      report: "&#128202;",
-      controls: "&#9881;&#65039;",
-      users: "&#128101;",
-      seller: "&#128100;",
-      exhibidorPhoto: "&#127980;",
-      exhibidorAudit: "&#128221;",
-      exhibidorReport: "&#128202;"
-    };
-
-    const AREA_GROUPS = [
-      {
-        id: "ControlAccesos",
-        label: "Control de accesos",
-        icon: "&#128101;",
-        iconPath: "../Recuros_imagenes/usuario.png?v=1.0.0",
-        modules: ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"]
-      },
-      {
-        id: "Ventas",
-        label: "Ventas",
-        icon: "&#128200;",
-        iconPath: "../Recuros_imagenes/resumen.png?v=1.0.0",
-        modules: ["MapaVentas", "VentasOperativo", "BiVendedor", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"]
-      },
-      {
-        id: "Logistica",
-        label: "Logística",
-        icon: "&#128666;",
-        iconPath: "../Recuros_imagenes/inventario.png?v=1.0.0",
-        modules: ["Logistica"]
-      },
-      {
-        id: "Gerencia",
-        label: "Gerencia",
-        icon: "&#128188;",
-        iconPath: "../Recuros_imagenes/reporte.png?v=1.0.0",
-        modules: ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"]
-      },
-      {
-        id: "ICE",
-        label: "ICE",
-        icon: "&#127848;",
-        iconPath: "../Recuros_imagenes/pinguino.png?v=1.0.0",
-        modules: ["IceResumen", "IceInventario", "IceReportes", "IceEscaneo", "IceMisVisitas"]
-      },
-      {
-        id: "Exhibidores",
-        label: "Exhibidores",
-        icon: "&#127978;",
-        modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte", "ExhibidoresReporteSupervisor"]
-      }
-    ];
 
     const state = {
       usersByRole: {},
@@ -3058,6 +2799,45 @@
       if (notifyEnd && state.currentSession && state.currentSession.sessionId) {
         postSessionAction("endSession", { sessionId: state.currentSession.sessionId });
       }
+    }
+
+    // Vuelve a consultar los modulos/submodulos vigentes del usuario (por rol
+    // o por asignacion puntual) mientras la sesion sigue abierta, para que un
+    // cambio hecho en Control de usuarios/Control de modulos aparezca sin
+    // tener que cerrar sesion e iniciar de nuevo.
+    async function refreshSessionModules() {
+      const session = state.currentSession;
+      if (!session) return;
+      const usuario = session.user || session.usuario || "";
+      const rol = session.role || session.rol || "";
+      if (!usuario || !rol) return;
+      try {
+        const data = await callLoginApi("getEffectiveUserModules", { usuario, rol, apiKey: INTERNAL_API_KEY });
+        if (!data || !data.success) return;
+        const newModules = Array.isArray(data.submodulos) ? data.submodulos : [];
+        const newOverride = Boolean(data.hasOverride);
+        const sameOverride = Boolean(session.hasUserModulesOverride) === newOverride;
+        const sameModules = JSON.stringify([...(session.modules || [])].sort()) === JSON.stringify([...newModules].sort());
+        if (sameOverride && sameModules) return;
+        session.modules = newModules;
+        session.hasUserModulesOverride = newOverride;
+        persistSession(session);
+        const visibleModules = visibleModulesForSession(session);
+        state.visibleModules = visibleModules;
+        renderModuleGroups(session, visibleModules);
+      } catch (error) {}
+    }
+
+    function startModuleRefreshPolling() {
+      stopModuleRefreshPolling();
+      moduleRefreshTimer = setInterval(() => {
+        if (document.visibilityState === "visible") refreshSessionModules();
+      }, 15000);
+    }
+
+    function stopModuleRefreshPolling() {
+      if (moduleRefreshTimer) clearInterval(moduleRefreshTimer);
+      moduleRefreshTimer = null;
     }
 
     function queueAccessLog(entry) {
@@ -3547,6 +3327,7 @@
       if (!state.currentSession.startedAt) state.currentSession.startedAt = new Date().toISOString();
       persistSession(session);
       startSessionHeartbeat(state.currentSession);
+      startModuleRefreshPolling();
       $("#loginScreen").classList.add("is-hidden");
       $("#appScreen").classList.remove("is-hidden");
       applyResponsiveMode();
@@ -4107,6 +3888,7 @@
 
     function logout(expired) {
       stopSessionHeartbeat(true);
+      stopModuleRefreshPolling();
       state.currentSession = null;
       clearTimeout(inactivityTimer);
       removeStored(SESSION_KEY);
@@ -4171,6 +3953,7 @@
     window.addEventListener("online", flushAccessLogQueue);
     window.addEventListener("focus", flushAccessLogQueue);
     window.addEventListener("focus", checkReleaseVersion);
+    window.addEventListener("focus", refreshSessionModules);
     $("#zoomOutBtn").addEventListener("click", () => setContentZoom(contentZoom - CONTENT_ZOOM_STEP));
     $("#zoomInBtn").addEventListener("click", () => setContentZoom(contentZoom + CONTENT_ZOOM_STEP));
     $("#zoomResetBtn").addEventListener("click", () => setContentZoom(1));
