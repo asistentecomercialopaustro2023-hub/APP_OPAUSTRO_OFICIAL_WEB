@@ -302,6 +302,7 @@
     </section>
   </div>
 
+  <script src="../module-catalog.js"></script>
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec";
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
@@ -311,46 +312,9 @@
     let confirmReady = false;
 
     // Catálogo de módulos/submódulos disponibles para asignar a un rol nuevo.
-    // Debe reflejar MODULE_DEFINITIONS/AREA_GROUPS de Login/index.html — si se
-    // agrega un módulo ahí, agrégalo también aquí (y en control_modulos.html).
-    const MODULE_CATALOG = [
-      { area: "Control de accesos", items: [
-        { key: "ControlAccesoInforme", label: "Informe de accesos" },
-        { key: "ControlAccesoAdmin", label: "Administrar accesos" },
-        { key: "ControlUsuarios", label: "Control de usuarios" },
-        { key: "ControlModulos", label: "Control de módulos" }
-      ]},
-      { area: "Ventas", items: [
-        { key: "MapaVentas", label: "Mapa" },
-        { key: "VentasOperativo", label: "BI Ventas" },
-        { key: "BiVendedor", label: "BI Vendedor" },
-        { key: "Cartera", label: "BI Cartera" },
-        { key: "VentasGerencial", label: "BI Gerencial" },
-        { key: "Retorno", label: "BI Devoluciones" },
-        { key: "NuevoDia", label: "BI Nuevo Dia" }
-      ]},
-      { area: "Logística", items: [
-        { key: "Logistica", label: "Logística" }
-      ]},
-      { area: "Gerencia", items: [
-        { key: "GerenciaTablero", label: "Tablero Control" },
-        { key: "GerenciaRevision", label: "Revisión Costo" },
-        { key: "GerenciaFlujo", label: "Flujo Caja" }
-      ]},
-      { area: "ICE", items: [
-        { key: "IceResumen", label: "Resumen" },
-        { key: "IceInventario", label: "Inventario" },
-        { key: "IceReportes", label: "Reportes" },
-        { key: "IceEscaneo", label: "Escaneo" },
-        { key: "IceMisVisitas", label: "Mis visitas" }
-      ]},
-      { area: "Exhibidores", items: [
-        { key: "ExhibidoresVendedor", label: "Vendedor" },
-        { key: "ExhibidoresSupervisor", label: "Supervisor" },
-        { key: "ExhibidoresReporte", label: "Reporte" },
-        { key: "ExhibidoresReporteSupervisor", label: "Reporte (Supervisor)" }
-      ]}
-    ];
+    // Se deriva de ../module-catalog.js (fuente unica): si se agrega un
+    // módulo ahí, aparece aquí automáticamente, sin tocar este archivo.
+    const MODULE_CATALOG = buildModuleCatalog();
 
     const ICON_EYE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
     let currentModulesUser = null;
