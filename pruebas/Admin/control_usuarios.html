@@ -551,8 +551,12 @@
       $("userModulesMsg").textContent=data.message||"";
       $("userModulesMsg").style.color=data.success?"#6d8497":"#b42318";
       if(data.success){
-        currentModulesChecked=new Set(submodulos);
-        updateUserModulesHint(submodulos.length>0);
+        // Vuelve a consultar en vez de confiar en el array recien enviado: si se
+        // desmarco todo, el backend borra el override y el usuario pasa a heredar
+        // los modulos de su rol -- eso hay que reflejarlo, no mostrar "nada".
+        const refreshed=await api("getEffectiveUserModules",{usuario:currentModulesUser.usuario,rol:currentModulesUser.rol});
+        currentModulesChecked=new Set(refreshed.success?(refreshed.submodulos||[]):submodulos);
+        updateUserModulesHint(!!(refreshed.success&&refreshed.hasOverride));
         setUserModulesMode("view");
       }
     }
