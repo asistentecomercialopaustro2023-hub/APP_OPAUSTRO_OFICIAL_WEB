@@ -2548,6 +2548,13 @@
             2500
           );
         }
+        // URL "personalizada" que Exhibidores guarda en localStorage (config
+        // interna, no de sesion): si alguien la dejo apuntando a pruebas en
+        // este dispositivo, debe resetear al valor de fabrica (DEFAULT_API_URL
+        // del propio modulo) en cada actualizacion real, para que dos
+        // dispositivos con el mismo release nunca queden mostrando datos de
+        // ambientes distintos.
+        removeStored("opaustro_exhibidores_api");
         if (!keepSession) {
           removeStored(SESSION_KEY);
           removeStored(ACTIVE_MODULE_KEY);

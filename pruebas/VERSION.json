@@ -1,17 +1,21 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.11",
-    "label": "OPAUSTRO v1.0.11 - Actualizacion de la v1.0.10",
-    "channel": "oficial",
-    "publishedAt": "2026-07-31",
+    "version": "1.0.12",
+    "label": "OPAUSTRO v1.0.12 - Exhibidores: validacion por rol, reporte de supervisor, OCR y correccion de cache",
+    "channel": "pruebas",
+    "publishedAt": "2026-08-03",
     "notes": [
-        "Gerencia: trae al ambiente privado el panel de Utilidades Acumuladas y el desglose \"A quien le debes?\" de pasivos en Flujo de Caja (ya estaba en pruebas, faltaba sincronizar); agrega tambien el script que evita el cierre de sesion por inactividad falsa en el Tablero Gerencial.",
-        "Seguridad: el backend de Exhibidores no exigia ninguna clave para responder -- cualquiera que encontrara la URL /exec podia leer visitas, censos y fotos de clientes por ID, listar usuarios, o llamar al analisis de IA sin pasar por la app. Ahora exige la misma clave interna compartida que ya usan Login/Logistica/ICE_Pinguino.",
-        "Seguridad: las acciones de Control de modulos (por rol y por usuario) tambien quedaron protegidas con esa misma clave -- se habian quedado sin exigirla.",
-        "Corrige el panel \"Modulos de <usuario>\" en Control de usuarios: al desmarcar todos los submodulos personalizados de un usuario (para que vuelva a depender de su rol), el panel se quedaba mostrando \"nada seleccionado\" en vez de los modulos reales que le tocan por su rol; ahora vuelve a consultar el estado real despues de guardar.",
-        "Requiere republicar manualmente AppsScript_PRUEBAS/Exhibidores/Code.gs y AppsScript_PRUEBAS/Login/Code.gs en el editor de Apps Script de pruebas -- Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
+        "Exhibidores: las tarjetas de vendedor y el filtro de censo ahora solo muestran usuarios validados por submodulo ExhibidoresVendedor + Rol=Vendedor exacto en BD_Login (antes bastaba con el submodulo, sin importar el rol real).",
+        "Exhibidores: nueva tarjeta unica de supervisor en \"Reporte Exhibidores Supervisor\" (solo la de quien inicio sesion como supervisor validado; nada para admin/Gerencia), con avance semanal Lun-Sab (visitas de censo / vendedores x 20, y cuantos vendedores ya completo), reubicada arriba a la derecha; grid de 2 columnas en pantallas chicas.",
+        "Exhibidores: en el informe general, la pestana \"Censo supervisor\" ahora muestra tarjetas por supervisor (puede haber varios) -- click filtra la tabla de abajo a lo que censo ese supervisor.",
+        "Exhibidores: se quitaron los botones \"Vaciar visitas\"/\"Vaciar censo\"; se agregaron filtros de fecha desde/hasta, cliente y vendedor en ambas tablas.",
+        "Exhibidores: nueva columna \"Fotos\" con boton Ver -- visor en una sola fila ajustada al ancho de pantalla (casilla en blanco si falta una foto, ej. sin contrato), click amplia la foto con boton Volver; cierra con Esc/click afuera/Cerrar sin ningun cambio. La galeria debajo de la tabla solo aparece con un filtro de fecha activo.",
+        "Exhibidores: carga inicial mas rapida (vendedores/supervisores y visitas/censo se piden todos en paralelo).",
+        "Exhibidores: el OCR del contrato (Acta de Entrega y Comodato de Exhibidor) ahora esta afinado a la casilla \"Codigo de cliente en la empresa\" de ese formato especifico, y sabe que ese campo es siempre unicamente numerico -- ignora letras/espacios sueltos y limpia el resultado antes de comparar contra el codigo ingresado.",
+        "Correccion: la URL personalizada que Exhibidores guarda en el dispositivo (localStorage) ahora se resetea sola en cada actualizacion real de la app, para que dos dispositivos con la misma version nunca queden mostrando datos de ambientes distintos.",
+        "Requiere republicar manualmente AppsScript_PRUEBAS/Exhibidores/Code.gs en el editor de Apps Script de pruebas -- Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
     ],
-    "releaseKey": "1.0.11",
+    "releaseKey": "1.0.12",
     "forceUpdate": false,
     "rollback": false
 }
