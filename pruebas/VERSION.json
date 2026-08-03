@@ -1,24 +1,17 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.10",
-    "label": "OPAUSTRO v1.0.10 - Exhibidores: captura en vivo, seguridad y reporte por rol",
+    "version": "1.0.11",
+    "label": "OPAUSTRO v1.0.11 - Actualizacion de la v1.0.10",
     "channel": "oficial",
     "publishedAt": "2026-07-31",
     "notes": [
-        "Exhibidores: la lista de vendedores/supervisores en los selectores ahora es real (viene de Control de usuarios), en vez de una lista inventada.",
-        "Exhibidores Vendedor: ya no se elige el vendedor de una lista, se toma solo del usuario que inicio sesion. Lo mismo para el nombre del Supervisor en Exhibidores Supervisor.",
-        "Exhibidores: las fotos (Antes, Despues, Contrato, censo del Supervisor) ya no se suben con un input de archivos -- se toman en vivo con la camara, con sello de fecha/hora, coordenadas y codigo de cliente en la propia foto.",
-        "Exhibidores Vendedor: Antes y Despues son obligatorios para enviar la visita; Contrato es opcional pero, si se sube, se valida con IA que el codigo del contrato coincida con el codigo de cliente ingresado antes de guardar.",
-        "Exhibidores: el contrato es una sola foto por cliente para siempre -- si el cliente ya tiene una, se muestra y se bloquea el slot en vez de permitir subir otra. Fotos organizadas en Drive por Vendedores/Supervisores > persona > mes > semana > cliente.",
-        "Exhibidores: cada foto se guarda en Drive apenas se toma (no se espera a enviar la visita/censo). Si se cierra la sesion por inactividad antes de enviar, el codigo de cliente y las fotos ya tomadas se recuperan solos al volver a entrar.",
-        "Exhibidores: se puede ver en grande y volver a tomar (Editar) cualquier foto antes de enviar; antes de enviar la visita se muestra un resumen para revisar o corregir.",
-        "Exhibidores: la configuracion de IA (clave, modelo, URL del servidor) queda oculta para vendedor/supervisor/gerencia -- de uso interno exclusivo.",
-        "Exhibidores: los productos/marcas Mondelez permitidos para detectar invasiones ahora se administran directamente en una hoja del Sheet, no desde el navegador.",
-        "Exhibidores Supervisor: ya no se muestra el detalle del analisis de contaminacion (queda solo para Reportes); el supervisor solo confirma que la foto quedo analizada y guarda.",
-        "Nuevo submodulo \"Reporte Exhibidores Supervisor\": el mismo Reporte de siempre pero mostrando directamente \"Avance por vendedor\" (con filtro por vendedor), asignable por separado desde Control de modulos sin dar acceso a Visitas ni Censo.",
-        "Exhibidores sigue disponible solo en el ambiente de pruebas; requiere copiar y republicar AppsScript_PRUEBAS/Exhibidores/Code.gs (y AppsScript_PRUEBAS/Login/Code.gs) en el editor de Apps Script."
+        "Gerencia: trae al ambiente privado el panel de Utilidades Acumuladas y el desglose \"A quien le debes?\" de pasivos en Flujo de Caja (ya estaba en pruebas, faltaba sincronizar); agrega tambien el script que evita el cierre de sesion por inactividad falsa en el Tablero Gerencial.",
+        "Seguridad: el backend de Exhibidores no exigia ninguna clave para responder -- cualquiera que encontrara la URL /exec podia leer visitas, censos y fotos de clientes por ID, listar usuarios, o llamar al analisis de IA sin pasar por la app. Ahora exige la misma clave interna compartida que ya usan Login/Logistica/ICE_Pinguino.",
+        "Seguridad: las acciones de Control de modulos (por rol y por usuario) tambien quedaron protegidas con esa misma clave -- se habian quedado sin exigirla.",
+        "Corrige el panel \"Modulos de <usuario>\" en Control de usuarios: al desmarcar todos los submodulos personalizados de un usuario (para que vuelva a depender de su rol), el panel se quedaba mostrando \"nada seleccionado\" en vez de los modulos reales que le tocan por su rol; ahora vuelve a consultar el estado real despues de guardar.",
+        "Requiere republicar manualmente AppsScript_PRUEBAS/Exhibidores/Code.gs y AppsScript_PRUEBAS/Login/Code.gs en el editor de Apps Script de pruebas -- Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
     ],
-    "releaseKey": "1.0.10",
+    "releaseKey": "1.0.11",
     "forceUpdate": false,
     "rollback": false
 }
