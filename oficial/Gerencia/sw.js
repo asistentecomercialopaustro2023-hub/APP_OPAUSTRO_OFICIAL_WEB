@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'opaustro-gerencia-v1.0.3';
+﻿const CACHE_NAME = 'opaustro-gerencia-v1.0.11';
 const APP_SHELL = [
   './',
   './index.html',
