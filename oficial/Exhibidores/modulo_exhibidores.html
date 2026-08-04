@@ -511,13 +511,20 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     return browserCall(rawB64,tipo==="contaminacion"?promptContaminacion():promptLlenado());
   }
 
-  async function serverAnalizar(rawB64,tipo){
+  // Mismo motivo del reintento que serverAnalizarContrato: la respuesta de
+  // Apps Script a veces llega como pagina de error de Google en vez de JSON.
+  async function serverAnalizar(rawB64,tipo,intento){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
-    const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"analizarFoto",payload:{imagen:rawB64,tipo:tipo,apiKey:INTERNAL_API_KEY}})});
-    const data=await resp.json();
-    if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
-    return data.resultado;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"analizarFoto",payload:{imagen:rawB64,tipo:tipo,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
+      return data.resultado;
+    }catch(e){
+      if(!intento) return serverAnalizar(rawB64,tipo,1);
+      throw e;
+    }
   }
 
   async function browserCall(rawB64,prompt){
@@ -553,13 +560,23 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       return {ok:true};
     }catch(e){ return {ok:false,mensaje:"No se pudo verificar el contrato: "+e.message}; }
   }
-  async function serverAnalizarContrato(b64){
+  // El analisis de imagen (vision de IA) tarda unos segundos -- de vez en
+  // cuando Apps Script devuelve una pagina de error de Google en vez del JSON
+  // (timing propio de como Apps Script sirve las respuestas de un Web App),
+  // lo cual se ve como "Unexpected token '<'". Es transitorio: un reintento
+  // casi siempre funciona, asi que se reintenta una vez antes de fallar.
+  async function serverAnalizarContrato(b64,intento){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
-    const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"analizarFoto",payload:{imagen:b64,tipo:"contrato",apiKey:INTERNAL_API_KEY}})});
-    const data=await resp.json();
-    if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
-    return data.resultado;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"analizarFoto",payload:{imagen:b64,tipo:"contrato",apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success) throw new Error((data&&data.message)||("HTTP "+resp.status));
+      return data.resultado;
+    }catch(e){
+      if(!intento) return serverAnalizarContrato(b64,1);
+      throw e;
+    }
   }
   function demoLlenado(){ return new Promise(r=>setTimeout(()=>{const ll=[40,55,70,85,95][Math.floor(Math.random()*5)];r({porcentaje_llenado:ll,orden_limpieza:ll>70?"bien":"regular",material_pop:Math.random()<0.7,observaciones:"(DEMO) simulado.",recomendaciones:["Reponer para llegar al 100%"]});},800)); }
   function demoContam(){ return new Promise(r=>setTimeout(()=>{const c=Math.random()<0.4;r({contaminado:c,invasiones:c?["Producto de otra marca"]:[],mondelez_presente:true,observaciones:"(DEMO) simulado.",recomendaciones:c?["Retirar productos ajenos"]:["Exhibidor exclusivo, OK"]});},800)); }
@@ -574,17 +591,21 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     else if(cap.despues&&!cap.antes)main("Falta la foto ANTES.","info");
     else if(cap.antes&&cap.despues&&!$("#fCliente").value.trim())main("Falta el código de cliente.","info"); }
 
-  // La foto se sube a Drive apenas se toma (no se espera a "Enviar visita"), y el
-  // avance (cliente + fotos ya subidas) se guarda en localStorage: si se cierra la
-  // sesion por inactividad antes de enviar, nada de eso se pierde -- al volver a
-  // entrar se recupera tal como quedo y se sigue solo con lo que falte.
+  // Las fotos NO se suben a Drive apenas se toman -- se guardan solo en el
+  // navegador (localStorage, base64 completo) hasta presionar "Enviar visita".
+  // Si se cierra la sesion antes de enviar, esto es lo que permite retomar
+  // exactamente donde quedo (con las fotos ya tomadas, sin perderlas), sin que
+  // ninguna quede huerfana en Drive de una visita que nunca se termino de
+  // enviar. Riesgo aceptado: si el navegador se queda sin espacio de
+  // almacenamiento (varias fotos de buena calidad), esto puede fallar --
+  // saveV/saveC ya avisan "Memoria llena. Exporta y vacía." para ese caso.
   function guardarDraftVend(){
     try{ localStorage.setItem(K_DRAFT_V, JSON.stringify({
       vendedor:VENDEDOR_ACTUAL, cliente:clienteVendedor(), marca:$("#fMarca").value.trim(), idxV, geoV,
-      antes:cap.antes?{id:cap.antes.id,thumb:cap.antes.img}:null,
-      despues:cap.despues?{id:cap.despues.id,thumb:cap.despues.img}:null,
-      contrato:cap.contrato?{id:cap.contrato.id,thumb:cap.contrato.img,existente:!!cap.contrato.existente}:null
-    })); }catch(e){}
+      antes:cap.antes?{img:cap.antes.img,raw:cap.antes.raw}:null,
+      despues:cap.despues?{img:cap.despues.img,raw:cap.despues.raw}:null,
+      contrato:cap.contrato?{img:cap.contrato.img,raw:cap.contrato.raw,id:cap.contrato.id||null,existente:!!cap.contrato.existente}:null
+    })); }catch(e){ main("Memoria llena. Exporta y vacía.","err"); }
   }
   function borrarDraftVend(){ try{ localStorage.removeItem(K_DRAFT_V); }catch(e){} }
   function restaurarDraftVend(){
@@ -595,9 +616,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       $("#fCliente").value=d.cliente||""; if(d.marca)$("#fMarca").value=d.marca;
       idxV=d.idxV||null; geoV=d.geoV||null;
       ["antes","despues","contrato"].forEach(key=>{
-        if(d[key]&&d[key].id){
-          cap[key]={img:d[key].thumb,id:d[key].id,existente:!!d[key].existente};
-          pintar("box"+key.charAt(0).toUpperCase()+key.slice(1),d[key].thumb);
+        if(d[key]&&d[key].img){
+          cap[key]={img:d[key].img,raw:d[key].raw,id:d[key].id||undefined,existente:!!d[key].existente};
+          pintar("box"+key.charAt(0).toUpperCase()+key.slice(1),d[key].img);
           if(key==="contrato"&&d[key].existente){ contratoBloqueado=true; $("#boxContrato").classList.add("locked"); }
         }
       });
@@ -653,16 +674,27 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         if(!check.ok){ main(check.mensaje,"err"); return; }
       }
       const sellada=await sellar(escalada,geoV,idxV,cliente);
-      main('<span class="spin"></span>Cargando foto...',"info",true);
-      let subida;
-      try{ subida=await subirFotoVendedor(key,cliente,sellada); }
-      catch(e){ main("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
-      cap[key]={img:sellada,raw:escalada,id:subida.fotoId,existente:!!subida.yaExistia};
-      if(key==="contrato"&&subida.yaExistia) contratoBloqueado=true;
+      if(key==="contrato"&&modoSoloContrato){
+        // "Subir contrato" es una accion independiente (no hay un "Enviar
+        // visita" acompañandola en este caso) -- esta si se sube a Drive de
+        // inmediato, apenas se toma.
+        main('<span class="spin"></span>Cargando foto...',"info",true);
+        let subida;
+        try{ subida=await subirFotoVendedor(key,cliente,sellada); }
+        catch(e){ main("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
+        cap[key]={img:sellada,raw:escalada,id:subida.fotoId,existente:!!subida.yaExistia};
+        if(subida.yaExistia) contratoBloqueado=true;
+        pintar("boxContrato",sellada);
+        main("✔ Contrato guardado.","ok");
+        return;
+      }
+      // Flujo normal (parte de una visita en progreso): NO se sube a Drive
+      // todavia -- se sube junto con el resto al presionar "Enviar visita".
+      cap[key]={img:sellada,raw:escalada};
       pintar("box"+key.charAt(0).toUpperCase()+key.slice(1),sellada);
       evalVend();
       guardarDraftVend();
-      main("✔ Foto cargada.","ok");
+      main("Foto lista.","ok");
     },key==="contrato");
   }
 
@@ -697,7 +729,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   $("#btnSoloContrato").onclick=()=>{
     modoSoloContrato=true;
     $("#bloqueoClienteBtns").style.display="none";
-    main("Puedes tomar la foto del contrato de este cliente.","info");
+    if(contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
+    capturarFotoVendedor("contrato");
   };
   // "Visitar otro cliente": si ya se alcanzo a subir una foto Antes/Despues a
   // Drive antes de que se detectara el bloqueo (puede pasar si se toca la
@@ -745,11 +778,21 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const cliente=clienteVendedor(); if(!cliente){main("Falta el código de cliente.","err");return;}
     if(!cap.antes){main("Falta la foto ANTES.","err");return;}
     if(!cap.despues){main("Falta la foto DESPUÉS.","err");return;}
-    $("#btnSave").disabled=true; main('<span class="spin"></span>Enviando...',"info",true);
-    // Si la foto de despues viene de un borrador recuperado (sin el "raw" original
-    // en memoria), se recupera desde Drive para poder analizarla.
-    let rawDespues=cap.despues.raw?cap.despues.raw.split(",")[1]:null;
-    if(!rawDespues&&cap.despues.id){ const fetched=await fetchFoto(cap.despues.id); rawDespues=fetched?fetched.split(",")[1]:null; }
+    $("#btnSave").disabled=true;
+    // Las fotos NO se suben a Drive apenas se toman -- se suben recien aqui,
+    // todas juntas, al presionar Enviar (asi no quedan fotos huerfanas en
+    // Drive de visitas que nunca llegan a enviarse). Si el navegador se cierra
+    // antes de este punto, el borrador local (con las fotos en base64) permite
+    // retomar donde quedo -- ver guardarDraftVend/restaurarDraftVend.
+    main('<span class="spin"></span>Cargando fotos...',"info",true);
+    try{
+      if(!cap.antes.id){ const s=await subirFotoVendedor("antes",cliente,cap.antes.img); cap.antes.id=s.fotoId; }
+      if(!cap.despues.id){ const s=await subirFotoVendedor("despues",cliente,cap.despues.img); cap.despues.id=s.fotoId; }
+      if(cap.contrato&&!cap.contrato.id){ const s=await subirFotoVendedor("contrato",cliente,cap.contrato.img); cap.contrato.id=s.fotoId; if(s.yaExistia) cap.contrato.existente=true; }
+    }catch(e){ main("❌ No se pudo guardar las fotos en Drive: "+e.message+". Vuelve a intentar.","err"); $("#btnSave").disabled=false; return; }
+    guardarDraftVend();
+    main('<span class="spin"></span>Enviando...',"info",true);
+    const rawDespues=cap.despues.raw?cap.despues.raw.split(",")[1]:null;
     let r;
     try{ r=rawDespues?(demoOn()?await demoLlenado():await claudeCall(rawDespues,"llenado")):{porcentaje_llenado:0,orden_limpieza:"",observaciones:"No se pudo recuperar la foto para el analisis."}; }
     catch(e){ r={porcentaje_llenado:0,orden_limpieza:"",observaciones:"Sin análisis: "+e.message}; }
@@ -855,11 +898,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     resetSup(); borrarDraftCenso();
     supMsg("Listo, ingresa el nuevo cliente.","ok");
   };
+  // Igual que en vendedor: la foto NO se sube a Drive apenas se toma, se
+  // guarda completa (base64) en localStorage y recien se sube al presionar
+  // "Guardar censo" -- asi no queda huerfana en Drive si nunca se guarda.
   function guardarDraftCenso(){
     try{ localStorage.setItem(K_DRAFT_C, JSON.stringify({
       supervisor:SUPERVISOR_ACTUAL, vendedor:$("#sVendedor").value, cliente:$("#sCliente").value.trim(), idxS, geoS,
-      foto:capSup.foto?{id:capSup.foto.id,thumb:capSup.foto.img}:null
-    })); }catch(e){}
+      foto:capSup.foto?{img:capSup.foto.img,raw:capSup.foto.raw}:null
+    })); }catch(e){ supMsg("Memoria llena. Exporta y vacía.","err"); }
   }
   function borrarDraftCenso(){ try{ localStorage.removeItem(K_DRAFT_C); }catch(e){} }
   function restaurarDraftCenso(){
@@ -869,10 +915,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(!d||!SUPERVISOR_ACTUAL||d.supervisor!==SUPERVISOR_ACTUAL) return;
       $("#sCliente").value=d.cliente||""; if(d.vendedor)$("#sVendedor").value=d.vendedor;
       idxS=d.idxS||null; geoS=d.geoS||null;
-      if(d.foto&&d.foto.id){
-        capSup.foto={img:d.foto.thumb,id:d.foto.id}; pintar("boxSup",d.foto.thumb);
+      if(d.foto&&d.foto.img){
+        capSup.foto={img:d.foto.img,raw:d.foto.raw}; pintar("boxSup",d.foto.img);
         supMsg('<span class="spin"></span>Se recuperó el censo pendiente, volviendo a analizar...',"info",true);
-        fetchFoto(d.foto.id).then(full=>{ if(full) capSup.foto.raw=full; analizarCenso(); });
+        analizarCenso();
       }
     }catch(e){}
   }
@@ -894,12 +940,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(!geoS){ supMsg('<span class="spin"></span>Confirmando ubicación...',"info",true); geoS=await geoSPromise; }
       const img=await dataUrlToImg(raw); const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
       const sellada=await sellar(escalada,geoS,idxS,cliente);
-      supMsg('<span class="spin"></span>Cargando foto...',"info",true);
-      let subida;
-      try{ subida=await subirFotoCenso(cliente,sellada); }
-      catch(e){ supMsg("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
-      capSup.foto={img:sellada,raw:escalada,id:subida.fotoId}; pintar("boxSup",sellada);
-      supMsg("✔ Foto cargada.","ok");
+      // No se sube a Drive todavia -- se sube al presionar "Guardar censo".
+      capSup.foto={img:sellada,raw:escalada}; pintar("boxSup",sellada);
+      supMsg("Foto lista.","ok");
       guardarDraftCenso();
       await analizarCenso();
     });
@@ -927,7 +970,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function guardarCenso(){
     const cliente=$("#sCliente").value.trim(); if(!cliente){supMsg("Falta el código de cliente.","err");return;}
     if(!capSup.foto||!supIA){supMsg("Toma la foto primero.","err");return;}
-    $("#btnSupSave").disabled=true; supMsg('<span class="spin"></span>Guardando censo...',"info",true);
+    $("#btnSupSave").disabled=true;
+    if(!capSup.foto.id){
+      supMsg('<span class="spin"></span>Cargando foto...',"info",true);
+      try{ const s=await subirFotoCenso(cliente,capSup.foto.img); capSup.foto.id=s.fotoId; }
+      catch(e){ supMsg("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); $("#btnSupSave").disabled=false; return; }
+      guardarDraftCenso();
+    }
+    supMsg('<span class="spin"></span>Guardando censo...',"info",true);
     const pts=supIA.contaminado?0:35; const thumb=await hacerThumb(capSup.foto.img);
     const rec={id:Date.now(),index:idxS,fecha:(geoS&&geoS.fecha)||new Date().toISOString(),vendedor:$("#sVendedor").value,cliente:cliente,
       lat:geoS&&geoS.lat,lng:geoS&&geoS.lng,lugar:(geoS&&geoS.lugar)||[],foto:capSup.foto.img,thumb:thumb,
