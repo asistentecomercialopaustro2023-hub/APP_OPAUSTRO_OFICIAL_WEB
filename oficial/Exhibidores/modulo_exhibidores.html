@@ -760,12 +760,33 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       lat:geoV&&geoV.lat,lng:geoV&&geoV.lng,lugar:(geoV&&geoV.lugar)||[],
       fotoAntes:cap.antes&&cap.antes.img,fotoDespues:cap.despues.img,contrato:cap.contrato&&cap.contrato.img,thumb:thumb,
       ia:{porcentaje_llenado:ll,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,documento_firmado:doc,evidencia_completa:ev,puntaje:puntaje}};
+    // Antes esto se mandaba con serverSend() (fire-and-forget: no esperaba la
+    // respuesta ni revisaba si el servidor de verdad guardo la fila) -- por
+    // eso, si el servidor rechazaba la visita (ej. cliente ya visitado este
+    // mes), la app igual mostraba "Visita enviada" con exito, aunque en el
+    // Sheet nunca aparecia la fila. Ahora se espera la respuesta real.
+    const url=apiUrl();
+    if(!url){ main("❌ Falta configurar la URL del servidor.","err"); $("#btnSave").disabled=false; return; }
+    let resultado;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"saveVisita",payload:{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,marca:rec.marca,
+          porcentaje_llenado:ll,documento_firmado:doc,evidencia_completa:ev,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,
+          lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),
+          fotoAntesId:cap.antes.id||"",fotoDespuesId:cap.despues.id||"",contratoId:cap.contrato?(cap.contrato.id||""):"",
+          thumb:rec.thumb||"",device:"web",apiKey:INTERNAL_API_KEY}})});
+      resultado=await resp.json();
+    }catch(e){ resultado={success:false,message:"Sin conexión: "+e.message}; }
+    if(!resultado||!resultado.success){
+      const msg=(resultado&&resultado.message)||"No se pudo guardar la visita.";
+      main("❌ "+msg,"err");
+      $("#btnSave").disabled=false;
+      // Si el rechazo es porque el cliente ya fue visitado este mes, mostrar
+      // las mismas opciones de "Subir contrato"/"Visitar otro cliente".
+      if(/ya fue visitado este mes/i.test(msg)){ clienteYaVisitadoMes=true; $("#bloqueoClienteBtns").style.display=""; }
+      return;
+    }
     const l=loadV();l.unshift(rec);saveV(l);
-    serverSend("saveVisita",{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,marca:rec.marca,
-      porcentaje_llenado:ll,documento_firmado:doc,evidencia_completa:ev,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,
-      lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),
-      fotoAntesId:cap.antes.id||"",fotoDespuesId:cap.despues.id||"",contratoId:cap.contrato?(cap.contrato.id||""):"",
-      thumb:rec.thumb||"",device:"web"});
     main("✔ Visita enviada. ¡Gracias!","ok");
     borrarDraftVend();
     resetVend();
@@ -906,14 +927,32 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function guardarCenso(){
     const cliente=$("#sCliente").value.trim(); if(!cliente){supMsg("Falta el código de cliente.","err");return;}
     if(!capSup.foto||!supIA){supMsg("Toma la foto primero.","err");return;}
+    $("#btnSupSave").disabled=true; supMsg('<span class="spin"></span>Guardando censo...',"info",true);
     const pts=supIA.contaminado?0:35; const thumb=await hacerThumb(capSup.foto.img);
     const rec={id:Date.now(),index:idxS,fecha:(geoS&&geoS.fecha)||new Date().toISOString(),vendedor:$("#sVendedor").value,cliente:cliente,
       lat:geoS&&geoS.lat,lng:geoS&&geoS.lng,lugar:(geoS&&geoS.lugar)||[],foto:capSup.foto.img,thumb:thumb,
       contaminado:!!supIA.contaminado,invasiones:(supIA.invasiones||[]).filter(Boolean),observaciones:supIA.observaciones,puntaje:pts};
+    // Antes con serverSend() (fire-and-forget) no se sabia si el servidor
+    // realmente lo rechazaba (ej. cliente ya censado este mes) -- ahora se
+    // espera la respuesta real antes de decir que se guardo.
+    const url=apiUrl();
+    if(!url){ supMsg("❌ Falta configurar la URL del servidor.","err"); $("#btnSupSave").disabled=false; return; }
+    let resultado;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"saveCenso",payload:{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,supervisor:SUPERVISOR_ACTUAL,
+          contaminado:rec.contaminado,invasiones:(rec.invasiones||[]).join(" / "),observaciones:rec.observaciones,
+          lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),fotoId:capSup.foto.id||"",thumb:rec.thumb||"",device:"web",apiKey:INTERNAL_API_KEY}})});
+      resultado=await resp.json();
+    }catch(e){ resultado={success:false,message:"Sin conexión: "+e.message}; }
+    if(!resultado||!resultado.success){
+      const msg=(resultado&&resultado.message)||"No se pudo guardar el censo.";
+      supMsg("❌ "+msg,"err");
+      $("#btnSupSave").disabled=false;
+      if(/ya fue censado este mes/i.test(msg)){ clienteYaCensadoMes=true; $("#bloqueoClienteSupBtns").style.display=""; }
+      return;
+    }
     const l=loadC();l.unshift(rec);saveC(l);
-    serverSend("saveCenso",{index:rec.index,fecha:rec.fecha,vendedor:rec.vendedor,cliente:rec.cliente,supervisor:SUPERVISOR_ACTUAL,
-      contaminado:rec.contaminado,invasiones:(rec.invasiones||[]).join(" / "),observaciones:rec.observaciones,
-      lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),fotoId:capSup.foto.id||"",thumb:rec.thumb||"",device:"web"});
     supMsg("✔ Censo guardado.","ok");
     borrarDraftCenso();
     resetSup();
@@ -950,8 +989,6 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function diaLocal(fechaISO){ const d=new Date(fechaISO); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function fmtFechaInput(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id)+"&apiKey="+encodeURIComponent(INTERNAL_API_KEY));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
-  // Envío opcional al servidor (solo si hay URL configurada).
-  function serverSend(action,payload){ const url=apiUrl(); if(!url) return; try{ fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,payload:{...payload,apiKey:INTERNAL_API_KEY}})}).catch(()=>{}); }catch(e){} }
 
   // Trae visitas/censo del servidor. Separado de refreshReporte() para poder
   // pedirlo EN PARALELO con vendedores/supervisores al cargar la pantalla
