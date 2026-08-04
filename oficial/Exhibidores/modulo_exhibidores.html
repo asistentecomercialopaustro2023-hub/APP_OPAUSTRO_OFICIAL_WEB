@@ -139,7 +139,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       <button class="btn ghost" id="btnSoloContrato">📄 Subir contrato</button>
       <button class="btn ghost" id="btnOtroClienteVend">🧑 Visitar otro cliente</button>
     </div>
-    <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button></div>
+    <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button><button class="btn ghost" id="btnLimpiarVend">↺ Limpiar</button></div>
   </div>
 
   <!-- ===== VISTA SUPERVISOR ===== -->
@@ -714,7 +714,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // dejarlo tomar cualquier foto (no recien al enviar la visita).
   async function verificarClienteMes(){
     const cliente=clienteVendedor(); clienteYaVisitadoMes=false; modoSoloContrato=false;
-    $("#bloqueoClienteBtns").style.display="none";
+    $("#bloqueoClienteBtns").style.display="none"; $("#btnSoloContrato").style.display="";
     if(!cliente||!VENDEDOR_ACTUAL) return;
     const url=apiUrl(); if(!url) return;
     try{
@@ -724,9 +724,17 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(data&&data.success&&data.visitado){
         clienteYaVisitadoMes=true;
         main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err");
-        // Puede ser que la visita del mes ya se haya hecho pero todavia falte
-        // subir el contrato (se puede subir en cualquier momento, no tiene
-        // limite mensual) -- se ofrecen las dos salidas en vez de solo bloquear.
+        // Si el cliente ya tiene contrato registrado (en cualquier mes), no
+        // hace falta ofrecer "Subir contrato" -- solo queda "Visitar otro
+        // cliente". Si todavia no tiene, se ofrecen las dos salidas.
+        let tieneContrato=false;
+        try{
+          const r2=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+            body:JSON.stringify({action:"getContratoCliente",payload:{cliente,apiKey:INTERNAL_API_KEY}})});
+          const d2=await r2.json();
+          tieneContrato=!!(d2&&d2.success&&d2.contratoId);
+        }catch(e){}
+        $("#btnSoloContrato").style.display=tieneContrato?"none":"";
         $("#bloqueoClienteBtns").style.display="";
       }
     }catch(e){}
@@ -740,19 +748,22 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     if(contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
     capturarFotoVendedor("contrato");
   };
-  // "Visitar otro cliente": si ya se alcanzo a subir una foto Antes/Despues a
-  // Drive antes de que se detectara el bloqueo (puede pasar si se toca la
-  // camara justo antes de que termine de responder la verificacion), esa foto
-  // suelta no quedaria referenciada por ninguna visita guardada -- se borra de
-  // Drive para no dejar basura, y se limpia todo el formulario.
-  $("#btnOtroClienteVend").onclick=async()=>{
+  // Limpieza compartida por "Visitar otro cliente" y el boton general
+  // "Limpiar": si ya se alcanzo a subir una foto Antes/Despues a Drive antes
+  // de que se detectara el bloqueo (puede pasar si se toca la camara justo
+  // antes de que termine de responder la verificacion), esa foto suelta no
+  // quedaria referenciada por ninguna visita guardada -- se borra de Drive
+  // para no dejar basura, y se limpia todo el formulario + la cache local.
+  async function limpiarTodoVend(){
     $("#bloqueoClienteBtns").style.display="none";
     main('<span class="spin"></span>Limpiando...',"info",true);
     await borrarFotoSueltaSiExiste(cap.antes&&cap.antes.id);
     await borrarFotoSueltaSiExiste(cap.despues&&cap.despues.id);
     resetVend(); borrarDraftVend();
     main("Listo, ingresa el nuevo cliente.","ok");
-  };
+  }
+  $("#btnOtroClienteVend").onclick=limpiarTodoVend;
+  $("#btnLimpiarVend").onclick=limpiarTodoVend;
   async function borrarFotoSueltaSiExiste(id){
     if(!id) return;
     const url=apiUrl(); if(!url) return;
