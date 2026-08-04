@@ -109,6 +109,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     <div><h1 id="tituloVista">Exhibidores</h1><div class="sub" id="subVista">Auditoría de ejecución · Mondelez</div></div>
     <div class="spacer"></div>
     <span class="pill" id="modePill">demo</span>
+    <button class="iconbtn" id="btnDelTool" style="display:none">🗑️ Depurar</button>
     <button class="iconbtn" id="btnCfg">⚙️ IA</button>
   </div>
 
@@ -134,7 +135,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
     <div class="note" style="margin-top:8px">📸 Encuadra <b>solo el exhibidor</b>, de frente y completo.</div>
     <div class="status" id="mainStatus"></div>
-    <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button><button class="btn ghost" id="btnReset">↺ Limpiar</button></div>
+    <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button></div>
   </div>
 
   <!-- ===== VISTA SUPERVISOR ===== -->
@@ -151,8 +152,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
     <div class="status" id="supStatus"></div>
     <div class="ia-box hidden" id="supIA"></div>
-    <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button><button class="btn ghost" id="btnSupReset">↺ Limpiar</button></div>
-    <div class="note">Meta: <b>20 visitas por vendedor a la semana</b>.</div>
+    <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button></div>
+    <div class="note">Meta: <b>20 visitas por vendedor al mes</b>.</div>
   </div>
 
   <!-- ===== VISTA REPORTE ===== -->
@@ -244,6 +245,22 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   <div class="field"><label>URL del servidor (Apps Script /exec) — vacío = usa la del módulo</label><input id="cfgApi" placeholder="https://script.google.com/macros/s/.../exec"></div>
   <div class="btnrow"><button class="btn green" id="cfgSave">Guardar</button><button class="btn ghost" id="cfgClose">Cerrar</button></div>
   <div class="note">Panel de uso interno (visible solo con ?dev=1 en la URL). Normalmente <b>no hay que configurar nada</b>: el servidor del módulo ya trae la URL, la clave de IA y el modelo. La lista de productos/marcas Mondelez permitidos ya no se edita aquí: se administra directamente en la hoja "Productos" del Sheet de Exhibidores.</div>
+</div></div>
+
+<div class="modal" id="delModal"><div class="inner">
+  <h2 style="font-size:16px;margin-bottom:14px">🗑️ Depurar datos (Drive + Sheet)</h2>
+  <div class="note">Borra visitas o censos del Sheet <b>y</b> sus fotos de Drive (Antes/Después o la del censo) al mismo tiempo — nunca solo uno de los dos. El contrato del cliente no se borra aquí (es un activo aparte, compartido entre visitas).</div>
+  <div class="field"><label>Tipo</label><select id="delTipo"><option value="visita">Visitas (vendedor)</option><option value="censo">Censo (supervisor)</option></select></div>
+  <div class="field"><label>Vendedor</label><select id="delVendedor"><option value="">Selecciona un vendedor…</option></select></div>
+  <div class="field"><label>Código de cliente (opcional — vacío = todos los de ese vendedor)</label><input id="delCliente" inputmode="numeric"></div>
+  <div class="grid2">
+    <div class="field"><label>Desde (opcional)</label><input type="date" id="delDesde"></div>
+    <div class="field"><label>Hasta (opcional)</label><input type="date" id="delHasta"></div>
+  </div>
+  <div class="btnrow"><button class="btn red" id="delEjecutar">🗑️ Eliminar lo filtrado</button><button class="btn ghost" id="delClose">Cerrar</button></div>
+  <div class="note" style="margin-top:14px">🧹 Filas cuyas fotos ya se borraron directamente en Drive (fuera de la app): esto las quita también del Sheet, no hace falta indicar vendedor.</div>
+  <div class="btnrow"><button class="btn ghost" id="delHuerfanosVisita">🧹 Limpiar huérfanos (Visitas)</button><button class="btn ghost" id="delHuerfanosCenso">🧹 Limpiar huérfanos (Censo)</button></div>
+  <div class="status" id="delStatus"></div>
 </div></div>
 
 <script>
@@ -507,10 +524,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
   // ===================== VENDEDOR =====================
   const K_DRAFT_V="opaustro_visita_draft";
-  const cap={antes:null,despues:null,contrato:null}; let geoV=null,idxV=null,contratoBloqueado=false;
+  const cap={antes:null,despues:null,contrato:null}; let geoV=null,geoVPromise=null,idxV=null,contratoBloqueado=false,clienteYaVisitadoMes=false;
   function clienteVendedor(){ return $("#fCliente").value.trim(); }
   function pintar(box,url){const b=$("#"+box);b.querySelector("img").src=url;b.classList.add("has");}
-  function evalVend(){ const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues; $("#btnSave").disabled=!ok;
+  function evalVend(){ const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
     if(ok)main("Listo para enviar.","ok");
     else if(cap.despues&&!cap.antes)main("Falta la foto ANTES.","info");
     else if(cap.antes&&cap.despues&&!$("#fCliente").value.trim())main("Falta el código de cliente.","info"); }
@@ -572,11 +589,17 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function capturarFotoVendedor(key){
     const cliente=clienteVendedor();
     if(!cliente){ main("Ingresa el código de cliente antes de tomar la foto.","err"); return; }
+    if(clienteYaVisitadoMes){ main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err"); return; }
     if(key==="despues"&&!cap.antes){ main("Primero toma la foto ANTES.","err"); return; }
     if(key==="contrato"&&contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
+    if(!idxV) idxV=nextIndex();
+    // El GPS se pide EN PARALELO con que se abre la camara y el vendedor encuadra
+    // la foto (en vez de recien despues de tomarla) -- antes, la espera del GPS
+    // (hasta 8s) se sentia como demora al guardar; asi, cuando acepta la foto el
+    // GPS normalmente ya esta listo.
+    if(!geoV&&!geoVPromise) geoVPromise=getGeo();
     abrirCamara(TITULOS_SLOT[key],async(raw)=>{
-      if(!idxV) idxV=nextIndex();
-      if(!geoV){ main('<span class="spin"></span>Ubicación GPS...',"info",true); geoV=await getGeo(); }
+      if(!geoV){ main('<span class="spin"></span>Confirmando ubicación...',"info",true); geoV=await geoVPromise; }
       const img=await dataUrlToImg(raw);
       const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
       if(key==="contrato"){
@@ -600,7 +623,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
   // Si el cliente ya tiene un contrato guardado de una visita anterior, se muestra
   // y se bloquea el slot -- una sola foto de contrato por cliente, para siempre.
-  $("#fCliente").addEventListener("change",()=>{ cargarContratoExistente(); guardarDraftVend(); });
+  $("#fCliente").addEventListener("change",()=>{ verificarClienteMes(); cargarContratoExistente(); guardarDraftVend(); });
+  // Un mismo vendedor no puede volver a visitar/fotografiar al mismo cliente en
+  // el mismo mes calendario -- se avisa apenas escribe el codigo, ANTES de
+  // dejarlo tomar cualquier foto (no recien al enviar la visita).
+  async function verificarClienteMes(){
+    const cliente=clienteVendedor(); clienteYaVisitadoMes=false;
+    if(!cliente||!VENDEDOR_ACTUAL) return;
+    const url=apiUrl(); if(!url) return;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"clienteVisitadoMes",payload:{vendedor:VENDEDOR_ACTUAL,cliente,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(data&&data.success&&data.visitado){
+        clienteYaVisitadoMes=true;
+        main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err");
+      }
+    }catch(e){}
+  }
   async function cargarContratoExistente(){
     const cliente=clienteVendedor();
     if(contratoBloqueado||!cliente) return;
@@ -651,10 +691,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     borrarDraftVend();
     resetVend();
   }
-  function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;idxV=null;contratoBloqueado=false;
+  function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;geoVPromise=null;idxV=null;contratoBloqueado=false;clienteYaVisitadoMes=false;
     ["boxAntes","boxDespues","boxContrato"].forEach(b=>{const el=$("#"+b);el.classList.remove("has","locked");el.querySelector("img").src="";});
     $("#fCliente").value="";$("#btnSave").disabled=true; }
-  $("#btnReset").onclick=()=>{resetVend();borrarDraftVend();main("Listo para nueva visita.","info");};
 
   // Antes de enviar de verdad, se muestra un resumen para revisar/editar.
   $("#btnSave").onclick=()=>{
@@ -683,7 +722,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
   // ===================== SUPERVISOR =====================
   const K_DRAFT_C="opaustro_censo_draft";
-  const capSup={foto:null}; let geoS=null,idxS=null,supIA=null;
+  const capSup={foto:null}; let geoS=null,geoSPromise=null,idxS=null,supIA=null,clienteYaCensadoMes=false;
+  // Mismo criterio que el vendedor: un vendedor censado no puede volver a
+  // censarse con el mismo cliente en el mismo mes (sin importar el supervisor).
+  async function verificarClienteCensadoMes(){
+    const cliente=$("#sCliente").value.trim(), vendedor=$("#sVendedor").value;
+    clienteYaCensadoMes=false;
+    if(!cliente||!vendedor) return;
+    const url=apiUrl(); if(!url) return;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"clienteCensadoMes",payload:{vendedor,cliente,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(data&&data.success&&data.visitado){
+        clienteYaCensadoMes=true;
+        supMsg("Este cliente ya fue censado este mes para este vendedor. Podrás volver a censarlo el próximo mes.","err");
+      }
+    }catch(e){}
+  }
   function guardarDraftCenso(){
     try{ localStorage.setItem(K_DRAFT_C, JSON.stringify({
       supervisor:SUPERVISOR_ACTUAL, vendedor:$("#sVendedor").value, cliente:$("#sCliente").value.trim(), idxS, geoS,
@@ -716,8 +772,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function capturarFotoSupervisor(){
     const cliente=$("#sCliente").value.trim();
     if(!cliente){ supMsg("Ingresa el código de cliente antes de tomar la foto.","err"); return; }
+    if(clienteYaCensadoMes){ supMsg("Este cliente ya fue censado este mes para este vendedor. Podrás volver a censarlo el próximo mes.","err"); return; }
+    if(!idxS)idxS=nextIndex();
+    if(!geoS&&!geoSPromise) geoSPromise=getGeo();
     abrirCamara("Foto del exhibidor (censo)",async raw=>{
-      if(!idxS)idxS=nextIndex(); if(!geoS){supMsg('<span class="spin"></span>Ubicación GPS...',"info",true);geoS=await getGeo();}
+      if(!geoS){ supMsg('<span class="spin"></span>Confirmando ubicación...',"info",true); geoS=await geoSPromise; }
       const img=await dataUrlToImg(raw); const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
       const sellada=await sellar(escalada,geoS,idxS,cliente);
       supMsg('<span class="spin"></span>Guardando foto en Drive...',"info",true);
@@ -748,7 +807,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // sin mostrarle el resultado.
   function renderSupIA(r){ const box=$("#supIA");box.classList.remove("hidden");
     box.innerHTML=`<div class="kv">✔ Foto analizada. Revisa y guarda el censo.</div>`; }
-  function evalSup(){ const ok=$("#sCliente").value.trim()&&capSup.foto&&supIA; $("#btnSupSave").disabled=!ok; }
+  function evalSup(){ const ok=$("#sCliente").value.trim()&&capSup.foto&&supIA&&!clienteYaCensadoMes; $("#btnSupSave").disabled=!ok; }
   async function guardarCenso(){
     const cliente=$("#sCliente").value.trim(); if(!cliente){supMsg("Falta el código de cliente.","err");return;}
     if(!capSup.foto||!supIA){supMsg("Toma la foto primero.","err");return;}
@@ -764,12 +823,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     borrarDraftCenso();
     resetSup();
   }
-  function resetSup(){ capSup.foto=null;geoS=null;idxS=null;supIA=null;
+  function resetSup(){ capSup.foto=null;geoS=null;geoSPromise=null;idxS=null;supIA=null;clienteYaCensadoMes=false;
     const b=$("#boxSup");b.classList.remove("has");b.querySelector("img").src="";
     $("#sCliente").value="";$("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; }
-  $("#btnSupReset").onclick=()=>{resetSup();borrarDraftCenso();supMsg("Listo para censar otro cliente.","info");};
-  $("#sCliente").addEventListener("change",guardarDraftCenso);
-  $("#sVendedor").addEventListener("change",guardarDraftCenso);
+  $("#sCliente").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
+  $("#sVendedor").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
   $("#btnSupSave").onclick=guardarCenso;
 
   // ===================== REPORTE =====================
@@ -786,15 +844,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function vendoresUnicos(){ return VENDEDORES.slice(); }
   function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
   function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,supervisor:c.supervisor||"",cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
-  // Semana Lun-Sab (igual que nombreSemana_ en el backend): el Domingo cuenta
-  // como parte de la semana SIGUIENTE, no de la que termina.
-  function weekRangeFor(date){
-    const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
-    let isoDay=d.getDay()===0?7:d.getDay();
-    const bucket=new Date(d);
-    if(isoDay===7){ bucket.setDate(bucket.getDate()+1); isoDay=1; }
-    const start=new Date(bucket); start.setDate(bucket.getDate()-(isoDay-1)); start.setHours(0,0,0,0);
-    const end=new Date(start); end.setDate(start.getDate()+5); end.setHours(23,59,59,999);
+  // Mes calendario completo (dia 1 00:00 al ultimo dia 23:59:59). Antes era
+  // semana Lun-Sab, pero la meta de censo/visitas es MENSUAL, no semanal.
+  function monthRangeFor(date){
+    const start=new Date(date.getFullYear(),date.getMonth(),1,0,0,0,0);
+    const end=new Date(date.getFullYear(),date.getMonth()+1,0,23,59,59,999);
     return {start,end};
   }
   function enRango(fechaISO,start,end){ const t=new Date(fechaISO).getTime(); return t>=start.getTime()&&t<=end.getTime(); }
@@ -829,17 +883,17 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // supervisor validado (submodulo ExhibidoresSupervisor + Rol=Supervisor).
   // Si quien ve el reporte es admin/Gerencia (no resuelve a un supervisor),
   // no se muestra ninguna tarjeta de supervisor, solo las de vendedor.
-  // Semana Lun-Sab actual: Visitas = censos hechos / (vendedores * META_CENSO);
-  // Censados = cuantos vendedores ya completo (20/20) esta semana.
+  // Mes calendario actual: Visitas = censos hechos / (vendedores * META_CENSO);
+  // Censados = cuantos vendedores ya completo (20/20) este mes.
   let ultimasFilasSup=[];
   function renderSupervisores(){
     const box=$("#rankSupervisores"); if(!box) return;
     if(!SOLO_AVANCE || !SUPERVISOR_SESION_REPORTE){ box.innerHTML=""; box.style.display="none"; return; }
     box.style.display="";
-    const {start,end}=weekRangeFor(new Date());
+    const {start,end}=monthRangeFor(new Date());
     const C=dataC().filter(r=>enRango(r.fecha,start,end));
     const totalVend=VENDEDORES.length;
-    const metaSemana=totalVend*META_CENSO;
+    const metaMes=totalVend*META_CENSO;
     ultimasFilasSup=[SUPERVISOR_SESION_REPORTE].map(sup=>{
       const porVendedor={}; VENDEDORES.forEach(v=>porVendedor[v]=0);
       C.filter(r=>r.supervisor===sup).forEach(r=>{ porVendedor[r.vendedor]=(porVendedor[r.vendedor]||0)+1; });
@@ -848,10 +902,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       return {sup,total,completados,porVendedor};
     });
     box.innerHTML=ultimasFilasSup.map(x=>{
-      const pct=metaSemana?Math.min(100,Math.round(x.total/metaSemana*100)):0;
+      const pct=metaMes?Math.min(100,Math.round(x.total/metaMes*100)):0;
       return `<div class="rankcard click" data-sup="${esc(x.sup)}"><div class="nom">${esc(x.sup)}</div>
-        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaSemana}</span></div>
-        <div class="n">Visitas de censo esta semana</div>
+        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaMes}</span></div>
+        <div class="n">Visitas de censo este mes</div>
         <div class="prog"><i style="width:${pct}%"></i></div>
         <div class="n">Censados <b style="color:var(--txt)">${x.completados}</b>/${totalVend||0} vendedores</div></div>`;
     }).join("")||'<span class="note">Sin datos aún.</span>';
@@ -861,7 +915,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const row=ultimasFilasSup.find(x=>x.sup===sup); if(!row) return;
     const filas=VENDEDORES.map(v=>`<tr><td>${esc(v)}</td><td>${row.porVendedor[v]||0}/${META_CENSO}</td></tr>`).join("");
     $("#modalInner").innerHTML=`<div class="kv"><b>Supervisor:</b> ${esc(sup)}</div>
-      <div class="kv" style="color:var(--mut)">Censos por vendedor esta semana</div>
+      <div class="kv" style="color:var(--mut)">Censos por vendedor este mes</div>
       <table style="margin-top:10px"><thead><tr><th>Vendedor</th><th>Censados</th></tr></thead><tbody>${filas||'<tr><td colspan="2" style="text-align:center;color:var(--mut)">Sin vendedores asignados.</td></tr>'}</tbody></table>
       <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
     $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
@@ -871,13 +925,20 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const filtro=$("#fFiltroAvance")?$("#fFiltroAvance").value:"";
     const V=dataV(), C=dataC();
     const base=filtro?[filtro]:vendoresUnicos();
+    const hoy=diaLocal(new Date());
+    const {start:mesIni,end:mesFin}=monthRangeFor(new Date());
     const rows=base.map(v=>{
       const vis=V.filter(r=>r.vendedor===v), cen=C.filter(r=>r.vendedor===v);
       const ejec=avg(vis.map(r=>r.ia?r.ia.puntaje:0));        // 0-65
       const cont=avg(cen.map(r=>r.puntaje));                   // 0-35
       const total=ejec+cont;                                   // 0-100
-      return {v,ejec,cont,total,nvis:vis.length,ncen:cen.length};
-    }).filter(x=>x.nvis||x.ncen).sort((a,b)=>b.total-a.total);
+      // Meta: 15 visitas por DIA; 20 censos por MES -- no acumulado historico.
+      // El total/Ejecucion/Contaminacion siguen siendo el promedio historico
+      // (rendimiento general); nvis/ncen son solo el avance del periodo vigente.
+      const nvis=vis.filter(r=>diaLocal(r.fecha)===hoy).length;
+      const ncen=cen.filter(r=>enRango(r.fecha,mesIni,mesFin)).length;
+      return {v,ejec,cont,total,nvis,ncen,tieneDatos:vis.length||cen.length};
+    }).filter(x=>x.tieneDatos).sort((a,b)=>b.total-a.total);
     $("#rank").innerHTML=rows.map(x=>{const cls=x.total>=80?"b-ok":(x.total>=50?"b-warn":"b-bad");const pct=Math.min(100,Math.round(x.nvis/META_VISITAS*100));
       return `<div class="rankcard${SOLO_AVANCE?' click':''}" data-v="${esc(x.v)}"><div class="nom">${esc(x.v)}</div>
         <div class="v" style="color:${x.total>=80?'#6ee7b7':(x.total>=50?'#fcd34d':'#fca5a5')}">${x.total}<span style="font-size:12px;color:var(--mut)">/100</span></div>
@@ -891,7 +952,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   }
 
   function detalleVendedorDia(v){
-    const {start,end}=weekRangeFor(new Date());
+    const {start,end}=monthRangeFor(new Date());
     const render=()=>{
       const desde=$("#ddDesde").value, hasta=$("#ddHasta").value;
       const dStart=desde?new Date(desde+"T00:00:00"):start, dEnd=hasta?new Date(hasta+"T23:59:59"):end;
@@ -957,23 +1018,23 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   let censoSupSeleccionado="";
   function renderCenso(){
     const Call=dataC();
-    const {start,end}=weekRangeFor(new Date());
-    const Csemana=Call.filter(r=>enRango(r.fecha,start,end));
+    const {start,end}=monthRangeFor(new Date());
+    const Cmes=Call.filter(r=>enRango(r.fecha,start,end));
     const totalVend=VENDEDORES.length;
-    const metaSemana=totalVend*META_CENSO;
+    const metaMes=totalVend*META_CENSO;
     ultimasFilasSup=SUPERVISORES.map(sup=>{
       const porVendedor={}; VENDEDORES.forEach(v=>porVendedor[v]=0);
-      Csemana.filter(r=>r.supervisor===sup).forEach(r=>{ porVendedor[r.vendedor]=(porVendedor[r.vendedor]||0)+1; });
+      Cmes.filter(r=>r.supervisor===sup).forEach(r=>{ porVendedor[r.vendedor]=(porVendedor[r.vendedor]||0)+1; });
       const total=Object.values(porVendedor).reduce((a,b)=>a+b,0);
       const completados=VENDEDORES.filter(v=>(porVendedor[v]||0)>=META_CENSO).length;
       return {sup,total,completados,porVendedor};
     });
     $("#rankCenso").innerHTML=ultimasFilasSup.length?ultimasFilasSup.map(x=>{
-      const pct=metaSemana?Math.min(100,Math.round(x.total/metaSemana*100)):0;
+      const pct=metaMes?Math.min(100,Math.round(x.total/metaMes*100)):0;
       const activo=censoSupSeleccionado===x.sup;
       return `<div class="rankcard click${activo?' is-active':''}" data-sup="${esc(x.sup)}"><div class="nom">${esc(x.sup)}</div>
-        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaSemana}</span></div>
-        <div class="n">Visitas de censo esta semana</div>
+        <div class="v">${x.total}<span style="font-size:12px;color:var(--mut)">/${metaMes}</span></div>
+        <div class="n">Visitas de censo este mes</div>
         <div class="prog"><i style="width:${pct}%"></i></div>
         <div class="n">Censados <b style="color:var(--txt)">${x.completados}</b>/${totalVend||0} vendedores</div></div>`;
     }).join("") : '<span class="note">Sin supervisores validados aún.</span>';
@@ -1123,15 +1184,61 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   $("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("open");};
   $("#cfgModal").onclick=e=>{if(e.target.id==="cfgModal")$("#cfgModal").classList.remove("open");};
 
+  // Herramienta de administracion (solo Admin/Gerencia, en Reportes): borra
+  // visitas/censo del Sheet Y sus fotos de Drive juntos, o limpia filas cuyas
+  // fotos ya se borraron directamente en Drive (fuera de la app).
+  function openDelTool(){
+    const sel=$("#delVendedor"); sel.innerHTML='<option value="">Selecciona un vendedor…</option>';
+    VENDEDORES.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});
+    $("#delCliente").value=""; $("#delDesde").value=""; $("#delHasta").value="";
+    $("#delStatus").textContent=""; $("#delStatus").className="status";
+    $("#delModal").classList.add("open");
+  }
+  function delMsg(t,c){ const e=$("#delStatus"); e.textContent=t; e.className="status "+(c||"info"); }
+  $("#btnDelTool").onclick=openDelTool; $("#delClose").onclick=()=>$("#delModal").classList.remove("open");
+  $("#delModal").onclick=e=>{if(e.target.id==="delModal")$("#delModal").classList.remove("open");};
+  $("#delEjecutar").onclick=async()=>{
+    const vendedor=$("#delVendedor").value; if(!vendedor){ delMsg("Selecciona un vendedor.","err"); return; }
+    const tipo=$("#delTipo").value, cliente=$("#delCliente").value.trim(), desde=$("#delDesde").value, hasta=$("#delHasta").value;
+    const resumen=(tipo==="censo"?"censos":"visitas")+" de "+vendedor+(cliente?" · cliente "+cliente:" (todos sus clientes)")+(desde||hasta?" · "+(desde||"…")+" a "+(hasta||"…"):"");
+    if(!confirm("¿Eliminar del Sheet Y de Drive: "+resumen+"? Esta acción no se puede deshacer desde la app.")) return;
+    delMsg('<span class="spin"></span>Eliminando...',"info");
+    const url=apiUrl(); if(!url){ delMsg("Falta configurar la URL del servidor.","err"); return; }
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"eliminarRegistros",payload:{tipo,vendedor,cliente,desde,hasta,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success){ delMsg("Error: "+((data&&data.message)||"no se pudo eliminar."),"err"); return; }
+      delMsg("✔ "+data.eliminados+" fila(s) eliminada(s) del Sheet y sus fotos de Drive.","ok");
+      await refreshReporte();
+    }catch(e){ delMsg("Error: "+e.message,"err"); }
+  };
+  async function limpiarHuerfanos(tipo){
+    if(!confirm("¿Buscar y eliminar del Sheet las filas de "+(tipo==="censo"?"censo":"visitas")+" cuyas fotos ya no existen en Drive?")) return;
+    delMsg('<span class="spin"></span>Buscando huérfanos...',"info");
+    const url=apiUrl(); if(!url){ delMsg("Falta configurar la URL del servidor.","err"); return; }
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"limpiarHuerfanos",payload:{tipo,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success){ delMsg("Error: "+((data&&data.message)||"no se pudo limpiar."),"err"); return; }
+      delMsg("✔ "+data.eliminados+" fila(s) huérfana(s) eliminada(s) del Sheet.","ok");
+      await refreshReporte();
+    }catch(e){ delMsg("Error: "+e.message,"err"); }
+  }
+  $("#delHuerfanosVisita").onclick=()=>limpiarHuerfanos("visita");
+  $("#delHuerfanosCenso").onclick=()=>limpiarHuerfanos("censo");
+
   // ESC cierra el panel/modal que este abierto en ese momento (foto ampliada,
-  // camara, resumen de la visita o configuracion de IA), igual que su boton
-  // "Cerrar" o hacer clic afuera.
+  // camara, resumen de la visita, configuracion de IA o herramienta de borrado),
+  // igual que su boton "Cerrar" o hacer clic afuera.
   document.addEventListener("keydown",e=>{
     if(e.key!=="Escape") return;
     if($("#camModal").classList.contains("open")) cerrarCamara();
     else if($("#resumenModal").classList.contains("open")) $("#resumenModal").classList.remove("open");
     else if($("#modal").classList.contains("open")) $("#modal").classList.remove("open");
     else if($("#cfgModal").classList.contains("open")) $("#cfgModal").classList.remove("open");
+    else if($("#delModal").classList.contains("open")) $("#delModal").classList.remove("open");
   });
 
   // ===================== HELPERS / VISTA =====================
@@ -1165,6 +1272,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const mostrarCalculo=VISTA==="reporte"&&puedeVerCalculoPuntaje();
     $("#notaPuntaje").style.display=mostrarCalculo?"":"none";
     const notaTotal=$("#notaTotalAvance"); if(notaTotal) notaTotal.style.display=mostrarCalculo?"":"none";
+    // Herramienta de borrado Sheet+Drive: solo Admin/Gerencia, solo en Reportes
+    // (nunca en las pantallas de captura de vendedor/supervisor).
+    $("#btnDelTool").style.display=mostrarCalculo?"":"none";
   }
   document.querySelectorAll(".rtab").forEach(b=>b.onclick=()=>{
     document.querySelectorAll(".rtab").forEach(x=>x.classList.toggle("active",x===b));
