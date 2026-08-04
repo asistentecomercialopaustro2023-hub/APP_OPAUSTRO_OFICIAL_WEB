@@ -214,7 +214,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 <div class="modal" id="modal"><div class="inner" id="modalInner"></div></div>
 <div class="modal" id="camModal"><div class="inner">
   <h2 style="font-size:16px;margin-bottom:10px" id="camTitulo">Tomar foto</h2>
-  <video id="camVideo" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:55vh;object-fit:cover;display:block"></video>
+  <div style="position:relative">
+    <video id="camVideo" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:55vh;object-fit:cover;display:block"></video>
+    <div id="camGuia" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62%;aspect-ratio:1/1.4142;border:3px dashed rgba(255,255,255,.9);border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.4);pointer-events:none"></div>
+  </div>
   <canvas id="camCanvas" style="display:none"></canvas>
   <img id="camPreview" style="width:100%;border-radius:12px;display:none;max-height:55vh;object-fit:cover">
   <div class="status" id="camStatus"></div>
@@ -419,9 +422,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // supervisor) se toman en el momento con la camara del dispositivo -- no existe
   // ninguna forma de elegir un archivo ya guardado.
   let camStream=null, camContext=null, camCapturedDataUrl=null;
-  function abrirCamara(titulo,onAccept){
+  // guiaA4: solo para el contrato -- muestra un marco con la proporcion de una
+  // hoja A4 vertical, para que el vendedor encuadre la hoja completa dentro del
+  // marco (asi la IA lee mejor el codigo). Es solo una guia visual, no recorta
+  // ni valida nada: la foto se guarda completa igual que antes.
+  function abrirCamara(titulo,onAccept,guiaA4){
     camContext={onAccept}; camCapturedDataUrl=null;
     $("#camTitulo").textContent=titulo;
+    $("#camGuia").style.display=guiaA4?"":"none";
     $("#camStatus").textContent=""; $("#camStatus").className="status";
     $("#camVideo").style.display=""; $("#camPreview").style.display="none";
     $("#camShoot").style.display=""; $("#camAccept").style.display="none"; $("#camRetry").style.display="none";
@@ -618,7 +626,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       evalVend();
       guardarDraftVend();
       main("Foto guardada.","ok");
-    });
+    },key==="contrato");
   }
 
   // Si el cliente ya tiene un contrato guardado de una visita anterior, se muestra
