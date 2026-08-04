@@ -653,16 +653,16 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         if(!check.ok){ main(check.mensaje,"err"); return; }
       }
       const sellada=await sellar(escalada,geoV,idxV,cliente);
-      main('<span class="spin"></span>Guardando foto en Drive...',"info",true);
+      main('<span class="spin"></span>Cargando foto...',"info",true);
       let subida;
       try{ subida=await subirFotoVendedor(key,cliente,sellada); }
-      catch(e){ main("No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
+      catch(e){ main("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
       cap[key]={img:sellada,raw:escalada,id:subida.fotoId,existente:!!subida.yaExistia};
       if(key==="contrato"&&subida.yaExistia) contratoBloqueado=true;
       pintar("box"+key.charAt(0).toUpperCase()+key.slice(1),sellada);
       evalVend();
       guardarDraftVend();
-      main("Foto guardada.","ok");
+      main("✔ Foto cargada.","ok");
     },key==="contrato");
   }
 
@@ -873,11 +873,12 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(!geoS){ supMsg('<span class="spin"></span>Confirmando ubicación...',"info",true); geoS=await geoSPromise; }
       const img=await dataUrlToImg(raw); const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
       const sellada=await sellar(escalada,geoS,idxS,cliente);
-      supMsg('<span class="spin"></span>Guardando foto en Drive...',"info",true);
+      supMsg('<span class="spin"></span>Cargando foto...',"info",true);
       let subida;
       try{ subida=await subirFotoCenso(cliente,sellada); }
-      catch(e){ supMsg("No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
+      catch(e){ supMsg("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
       capSup.foto={img:sellada,raw:escalada,id:subida.fotoId}; pintar("boxSup",sellada);
+      supMsg("✔ Foto cargada.","ok");
       guardarDraftCenso();
       await analizarCenso();
     });
