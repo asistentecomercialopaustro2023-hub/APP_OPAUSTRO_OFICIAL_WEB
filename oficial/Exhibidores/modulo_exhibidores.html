@@ -216,7 +216,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   <h2 style="font-size:16px;margin-bottom:10px" id="camTitulo">Tomar foto</h2>
   <div style="position:relative">
     <video id="camVideo" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:55vh;object-fit:cover;display:block"></video>
-    <div id="camGuia" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62%;aspect-ratio:1/1.4142;border:3px dashed rgba(255,255,255,.9);border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.4);pointer-events:none"></div>
+    <div id="camGuia" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:92%;aspect-ratio:1/1.4142;border:3px dashed rgba(255,255,255,.9);border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);pointer-events:none"></div>
   </div>
   <canvas id="camCanvas" style="display:none"></canvas>
   <img id="camPreview" style="width:100%;border-radius:12px;display:none;max-height:55vh;object-fit:cover">
@@ -451,7 +451,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const cw=video.clientWidth, ch=video.clientHeight, nw=video.videoWidth, nh=video.videoHeight;
     const scale=Math.max(cw/nw, ch/nh);
     const offX=(nw*scale-cw)/2/scale, offY=(nh*scale-ch)/2/scale;
-    const guiaWCss=cw*0.62, guiaHCss=guiaWCss*1.4142;
+    // El marco se define por ALTURA (92% del alto visible) y el ancho sale de
+    // la proporcion A4 -- asi ocupa casi todo el alto y el negro que sobra
+    // queda solo a los lados (igual que el CSS de #camGuia, que usa height).
+    const guiaHCss=ch*0.92, guiaWCss=guiaHCss/1.4142;
     const guiaXCss=(cw-guiaWCss)/2, guiaYCss=(ch-guiaHCss)/2;
     const sx=Math.max(0,offX+guiaXCss/scale), sy=Math.max(0,offY+guiaYCss/scale);
     return {sx,sy,sw:Math.min(guiaWCss/scale,nw-sx),sh:Math.min(guiaHCss/scale,nh-sy)};
