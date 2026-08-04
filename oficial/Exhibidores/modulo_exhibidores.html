@@ -135,6 +135,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
     <div class="note" style="margin-top:8px">📸 Encuadra <b>solo el exhibidor</b>, de frente y completo.</div>
     <div class="status" id="mainStatus"></div>
+    <div class="btnrow" id="bloqueoClienteBtns" style="display:none">
+      <button class="btn ghost" id="btnSoloContrato">📄 Subir contrato</button>
+      <button class="btn ghost" id="btnOtroClienteVend">🧑 Visitar otro cliente</button>
+    </div>
     <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button></div>
   </div>
 
@@ -152,6 +156,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
     <div class="status" id="supStatus"></div>
     <div class="ia-box hidden" id="supIA"></div>
+    <div class="btnrow" id="bloqueoClienteSupBtns" style="display:none">
+      <button class="btn ghost" id="btnOtroClienteSup">🧑 Censar otro cliente</button>
+    </div>
     <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button></div>
     <div class="note">Meta: <b>20 visitas por vendedor al mes</b>.</div>
   </div>
@@ -559,7 +566,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
   // ===================== VENDEDOR =====================
   const K_DRAFT_V="opaustro_visita_draft";
-  const cap={antes:null,despues:null,contrato:null}; let geoV=null,geoVPromise=null,idxV=null,contratoBloqueado=false,clienteYaVisitadoMes=false;
+  const cap={antes:null,despues:null,contrato:null}; let geoV=null,geoVPromise=null,idxV=null,contratoBloqueado=false,clienteYaVisitadoMes=false,modoSoloContrato=false;
   function clienteVendedor(){ return $("#fCliente").value.trim(); }
   function pintar(box,url){const b=$("#"+box);b.querySelector("img").src=url;b.classList.add("has");}
   function evalVend(){ const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
@@ -624,7 +631,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   async function capturarFotoVendedor(key){
     const cliente=clienteVendedor();
     if(!cliente){ main("Ingresa el código de cliente antes de tomar la foto.","err"); return; }
-    if(clienteYaVisitadoMes){ main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err"); return; }
+    // Si el cliente ya fue visitado este mes, se bloquea todo salvo que el
+    // vendedor haya elegido explicitamente "Subir contrato" (el contrato no
+    // tiene limite mensual, es unico por cliente para siempre).
+    if(clienteYaVisitadoMes&&!(modoSoloContrato&&key==="contrato")){ main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err"); return; }
     if(key==="despues"&&!cap.antes){ main("Primero toma la foto ANTES.","err"); return; }
     if(key==="contrato"&&contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
     if(!idxV) idxV=nextIndex();
@@ -663,7 +673,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // el mismo mes calendario -- se avisa apenas escribe el codigo, ANTES de
   // dejarlo tomar cualquier foto (no recien al enviar la visita).
   async function verificarClienteMes(){
-    const cliente=clienteVendedor(); clienteYaVisitadoMes=false;
+    const cliente=clienteVendedor(); clienteYaVisitadoMes=false; modoSoloContrato=false;
+    $("#bloqueoClienteBtns").style.display="none";
     if(!cliente||!VENDEDOR_ACTUAL) return;
     const url=apiUrl(); if(!url) return;
     try{
@@ -673,7 +684,40 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(data&&data.success&&data.visitado){
         clienteYaVisitadoMes=true;
         main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err");
+        // Puede ser que la visita del mes ya se haya hecho pero todavia falte
+        // subir el contrato (se puede subir en cualquier momento, no tiene
+        // limite mensual) -- se ofrecen las dos salidas en vez de solo bloquear.
+        $("#bloqueoClienteBtns").style.display="";
       }
+    }catch(e){}
+  }
+  // "Subir contrato": deja tomar SOLO la foto del contrato de este cliente,
+  // aunque la visita del mes ya este bloqueada (el contrato no tiene limite
+  // mensual, es una sola vez por cliente para siempre).
+  $("#btnSoloContrato").onclick=()=>{
+    modoSoloContrato=true;
+    $("#bloqueoClienteBtns").style.display="none";
+    main("Puedes tomar la foto del contrato de este cliente.","info");
+  };
+  // "Visitar otro cliente": si ya se alcanzo a subir una foto Antes/Despues a
+  // Drive antes de que se detectara el bloqueo (puede pasar si se toca la
+  // camara justo antes de que termine de responder la verificacion), esa foto
+  // suelta no quedaria referenciada por ninguna visita guardada -- se borra de
+  // Drive para no dejar basura, y se limpia todo el formulario.
+  $("#btnOtroClienteVend").onclick=async()=>{
+    $("#bloqueoClienteBtns").style.display="none";
+    main('<span class="spin"></span>Limpiando...',"info",true);
+    await borrarFotoSueltaSiExiste(cap.antes&&cap.antes.id);
+    await borrarFotoSueltaSiExiste(cap.despues&&cap.despues.id);
+    resetVend(); borrarDraftVend();
+    main("Listo, ingresa el nuevo cliente.","ok");
+  };
+  async function borrarFotoSueltaSiExiste(id){
+    if(!id) return;
+    const url=apiUrl(); if(!url) return;
+    try{
+      await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"borrarFotoSuelta",payload:{id,apiKey:INTERNAL_API_KEY}})});
     }catch(e){}
   }
   async function cargarContratoExistente(){
@@ -726,9 +770,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     borrarDraftVend();
     resetVend();
   }
-  function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;geoVPromise=null;idxV=null;contratoBloqueado=false;clienteYaVisitadoMes=false;
+  function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;geoVPromise=null;idxV=null;contratoBloqueado=false;clienteYaVisitadoMes=false;modoSoloContrato=false;
     ["boxAntes","boxDespues","boxContrato"].forEach(b=>{const el=$("#"+b);el.classList.remove("has","locked");el.querySelector("img").src="";});
-    $("#fCliente").value="";$("#btnSave").disabled=true; }
+    $("#fCliente").value="";$("#btnSave").disabled=true; $("#bloqueoClienteBtns").style.display="none"; }
 
   // Antes de enviar de verdad, se muestra un resumen para revisar/editar.
   $("#btnSave").onclick=()=>{
@@ -762,7 +806,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // censarse con el mismo cliente en el mismo mes (sin importar el supervisor).
   async function verificarClienteCensadoMes(){
     const cliente=$("#sCliente").value.trim(), vendedor=$("#sVendedor").value;
-    clienteYaCensadoMes=false;
+    clienteYaCensadoMes=false; $("#bloqueoClienteSupBtns").style.display="none";
     if(!cliente||!vendedor) return;
     const url=apiUrl(); if(!url) return;
     try{
@@ -772,9 +816,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       if(data&&data.success&&data.visitado){
         clienteYaCensadoMes=true;
         supMsg("Este cliente ya fue censado este mes para este vendedor. Podrás volver a censarlo el próximo mes.","err");
+        $("#bloqueoClienteSupBtns").style.display="";
       }
     }catch(e){}
   }
+  // Igual que en vendedor: si ya se subio la foto del censo a Drive antes de
+  // que la verificacion terminara de responder, esa foto quedaria huerfana
+  // (ningun censo guardado la referenciaria) -- se borra al elegir otro cliente.
+  $("#btnOtroClienteSup").onclick=async()=>{
+    $("#bloqueoClienteSupBtns").style.display="none";
+    supMsg('<span class="spin"></span>Limpiando...',"info",true);
+    if(capSup.foto&&capSup.foto.id){
+      const url=apiUrl();
+      if(url){ try{ await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"borrarFotoSuelta",payload:{id:capSup.foto.id,apiKey:INTERNAL_API_KEY}})}); }catch(e){} }
+    }
+    resetSup(); borrarDraftCenso();
+    supMsg("Listo, ingresa el nuevo cliente.","ok");
+  };
   function guardarDraftCenso(){
     try{ localStorage.setItem(K_DRAFT_C, JSON.stringify({
       supervisor:SUPERVISOR_ACTUAL, vendedor:$("#sVendedor").value, cliente:$("#sCliente").value.trim(), idxS, geoS,
@@ -860,7 +919,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   }
   function resetSup(){ capSup.foto=null;geoS=null;geoSPromise=null;idxS=null;supIA=null;clienteYaCensadoMes=false;
     const b=$("#boxSup");b.classList.remove("has");b.querySelector("img").src="";
-    $("#sCliente").value="";$("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; }
+    $("#sCliente").value="";$("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; $("#bloqueoClienteSupBtns").style.display="none"; }
   $("#sCliente").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
   $("#sVendedor").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
   $("#btnSupSave").onclick=guardarCenso;
