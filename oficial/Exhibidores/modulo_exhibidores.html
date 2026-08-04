@@ -586,7 +586,13 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   const cap={antes:null,despues:null,contrato:null}; let geoV=null,geoVPromise=null,idxV=null,contratoBloqueado=false,clienteYaVisitadoMes=false,modoSoloContrato=false;
   function clienteVendedor(){ return $("#fCliente").value.trim(); }
   function pintar(box,url){const b=$("#"+box);b.querySelector("img").src=url;b.classList.add("has");}
-  function evalVend(){ const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
+  function evalVend(){
+    // Caso "Subir contrato" (cliente ya visitado este mes): en cuanto el
+    // contrato queda subido, se habilita Enviar -- pero al presionarlo solo
+    // se actualiza el contrato de la visita de este mes, no se crea una fila
+    // nueva (ver enviarVisita).
+    if(modoSoloContrato){ const ok=!!(cap.contrato&&cap.contrato.id); $("#btnSave").disabled=!ok; if(ok)main("Contrato listo. Presiona Enviar para asociarlo a la visita de este mes.","ok"); return; }
+    const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
     if(ok)main("Listo para enviar.","ok");
     else if(cap.despues&&!cap.antes)main("Falta la foto ANTES.","info");
     else if(cap.antes&&cap.despues&&!$("#fCliente").value.trim())main("Falta el código de cliente.","info"); }
@@ -675,9 +681,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       }
       const sellada=await sellar(escalada,geoV,idxV,cliente);
       if(key==="contrato"&&modoSoloContrato){
-        // "Subir contrato" es una accion independiente (no hay un "Enviar
-        // visita" acompañandola en este caso) -- esta si se sube a Drive de
-        // inmediato, apenas se toma.
+        // "Subir contrato" (cliente ya visitado este mes): el contrato se
+        // sube a Drive de inmediato, apenas se toma (no espera a "Enviar").
+        // "Enviar visita" se habilita despues (ver evalVend) solo para
+        // asociar este contrato a la visita de este mes -- no crea una fila
+        // nueva.
         main('<span class="spin"></span>Cargando foto...',"info",true);
         let subida;
         try{ subida=await subirFotoVendedor(key,cliente,sellada); }
@@ -685,7 +693,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         cap[key]={img:sellada,raw:escalada,id:subida.fotoId,existente:!!subida.yaExistia};
         if(subida.yaExistia) contratoBloqueado=true;
         pintar("boxContrato",sellada);
-        main("✔ Contrato guardado.","ok");
+        evalVend();
         return;
       }
       // Flujo normal (parte de una visita en progreso): NO se sube a Drive
@@ -776,6 +784,25 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
   async function enviarVisita(){
     const cliente=clienteVendedor(); if(!cliente){main("Falta el código de cliente.","err");return;}
+    // Caso "Subir contrato" (cliente ya visitado este mes): no se crea una
+    // visita nueva -- se busca la fila de la visita de este mes para este
+    // cliente y se le asocia el contrato ya subido a Drive.
+    if(modoSoloContrato){
+      if(!cap.contrato||!cap.contrato.id){ main("Falta tomar la foto del contrato.","err"); return; }
+      $("#btnSave").disabled=true; main('<span class="spin"></span>Asociando contrato a la visita de este mes...',"info",true);
+      const url=apiUrl();
+      if(!url){ main("❌ Falta configurar la URL del servidor.","err"); $("#btnSave").disabled=false; return; }
+      let resultado;
+      try{
+        const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify({action:"actualizarContratoDeVisita",payload:{vendedor:VENDEDOR_ACTUAL,cliente,contratoId:cap.contrato.id,apiKey:INTERNAL_API_KEY}})});
+        resultado=await resp.json();
+      }catch(e){ resultado={success:false,message:"Sin conexión: "+e.message}; }
+      if(!resultado||!resultado.success){ main("❌ "+((resultado&&resultado.message)||"No se pudo actualizar la visita."),"err"); $("#btnSave").disabled=false; return; }
+      main("✔ Contrato asociado a la visita de este mes.","ok");
+      resetVend(); borrarDraftVend();
+      return;
+    }
     if(!cap.antes){main("Falta la foto ANTES.","err");return;}
     if(!cap.despues){main("Falta la foto DESPUÉS.","err");return;}
     $("#btnSave").disabled=true;
