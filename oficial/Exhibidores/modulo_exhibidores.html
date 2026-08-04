@@ -1272,9 +1272,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     const mostrarCalculo=VISTA==="reporte"&&puedeVerCalculoPuntaje();
     $("#notaPuntaje").style.display=mostrarCalculo?"":"none";
     const notaTotal=$("#notaTotalAvance"); if(notaTotal) notaTotal.style.display=mostrarCalculo?"":"none";
-    // Herramienta de borrado Sheet+Drive: solo Admin/Gerencia, solo en Reportes
-    // (nunca en las pantallas de captura de vendedor/supervisor).
-    $("#btnDelTool").style.display=mostrarCalculo?"":"none";
+    // Herramienta de borrado Sheet+Drive: solo Admin/Gerencia, solo en el
+    // Reporte Exhibidores general -- nunca en captura de vendedor/supervisor,
+    // y tampoco en el submodulo "Reporte Exhibidores Supervisor" (SOLO_AVANCE),
+    // aunque quien lo vea tenga rol Admin/Gerencia.
+    $("#btnDelTool").style.display=(mostrarCalculo&&!SOLO_AVANCE)?"":"none";
   }
   document.querySelectorAll(".rtab").forEach(b=>b.onclick=()=>{
     document.querySelectorAll(".rtab").forEach(x=>x.classList.toggle("active",x===b));
