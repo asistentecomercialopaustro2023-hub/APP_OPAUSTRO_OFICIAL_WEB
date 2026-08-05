@@ -713,13 +713,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     box.querySelector(".slot-edit").addEventListener("click",e=>{ e.stopPropagation(); if(box.classList.contains("locked")) return; capturarFotoVendedor(key); });
     box.addEventListener("click",()=>{ if(!box.classList.contains("has")&&!box.classList.contains("locked")) capturarFotoVendedor(key); });
   });
-  async function subirFotoVendedor(tipo,cliente,imagen){
+  // El POST de una foto (sobre todo el contrato, que ahora pesa mas por la
+  // resolucion/calidad subida) a veces falla en el primer intento por un
+  // corte de red o un hipo transitorio de Apps Script -- si ya existe en
+  // Drive (contrato repetido), el servidor no vuelve a subir nada, solo
+  // devuelve el mismo ID, asi que reintentar es seguro. Mismo patron que
+  // serverAnalizarContrato.
+  async function subirFotoVendedor(tipo,cliente,imagen,intento){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
-    const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
-    const data=await resp.json();
-    if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
-    return data;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
+      return data;
+    }catch(e){
+      if(!intento) return subirFotoVendedor(tipo,cliente,imagen,1);
+      throw e;
+    }
   }
   async function capturarFotoVendedor(key){
     if(!VENDEDOR_ACTUAL){ main("Espera a que se identifique tu usuario como vendedor antes de tomar fotos.","err"); return; }
