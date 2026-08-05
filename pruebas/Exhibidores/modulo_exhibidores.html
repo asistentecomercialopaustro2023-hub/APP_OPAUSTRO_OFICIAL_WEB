@@ -473,17 +473,25 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // marco A4 dibujado en CSS sobre el video -- el video usa object-fit:cover,
   // por eso lo que se ve en pantalla no es 1:1 con la resolucion nativa de la
   // camara y hay que traducir las coordenadas.
+  // Antes esto RECALCULABA a mano el tamano/posicion del marco (ch*0.92,
+  // /1.4142, etc.) en vez de leer el elemento real -- esa formula no
+  // coincidia exactamente con el CSS de #camGuia (que ademas suma su borde de
+  // 3px por fuera, al ser content-box), asi que lo recortado quedaba mas
+  // ancho/corrido que lo que se veia dentro del marco en pantalla, y esa
+  // desalineacion es probablemente la causa de que el OCR fallara tan
+  // seguido. Ahora se mide el rectangulo REAL de #camGuia y #camVideo en
+  // pantalla (getBoundingClientRect) y se traduce con la misma logica de
+  // escala de object-fit:cover -- exacto sin importar bordes, redondeos ni
+  // el tamano real del telefono.
   function recorteGuia_(video){
-    const cw=video.clientWidth, ch=video.clientHeight, nw=video.videoWidth, nh=video.videoHeight;
-    const scale=Math.max(cw/nw, ch/nh);
-    const offX=(nw*scale-cw)/2/scale, offY=(nh*scale-ch)/2/scale;
-    // El marco se define por ALTURA (92% del alto visible) y el ancho sale de
-    // la proporcion A4 -- asi ocupa casi todo el alto y el negro que sobra
-    // queda solo a los lados (igual que el CSS de #camGuia, que usa height).
-    const guiaHCss=ch*0.92, guiaWCss=guiaHCss/1.4142;
-    const guiaXCss=(cw-guiaWCss)/2, guiaYCss=(ch-guiaHCss)/2;
-    const sx=Math.max(0,offX+guiaXCss/scale), sy=Math.max(0,offY+guiaYCss/scale);
-    return {sx,sy,sw:Math.min(guiaWCss/scale,nw-sx),sh:Math.min(guiaHCss/scale,nh-sy)};
+    const guia=$("#camGuia");
+    const vRect=video.getBoundingClientRect(), gRect=guia.getBoundingClientRect();
+    const nw=video.videoWidth, nh=video.videoHeight;
+    const scale=Math.max(vRect.width/nw, vRect.height/nh);
+    const offX=(nw*scale-vRect.width)/2, offY=(nh*scale-vRect.height)/2;
+    const gxRel=gRect.left-vRect.left, gyRel=gRect.top-vRect.top;
+    const sx=Math.max(0,(offX+gxRel)/scale), sy=Math.max(0,(offY+gyRel)/scale);
+    return {sx,sy,sw:Math.min(gRect.width/scale,nw-sx),sh:Math.min(gRect.height/scale,nh-sy)};
   }
   $("#camShoot").onclick=()=>{
     const video=$("#camVideo"), canvas=$("#camCanvas");
