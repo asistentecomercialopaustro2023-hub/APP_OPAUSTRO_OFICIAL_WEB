@@ -883,6 +883,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     // reintentar tocando el recuadro despues de un OCR fallido quedaba sin
     // efecto porque el recuadro seguia con esa marca vieja.
     aplicarBloqueosCaptura();
+    // El boton dice "Enviar contrato" en este modo (no "Enviar visita"): no se
+    // crea/actualiza ninguna visita, solo se guarda el contrato como
+    // constancia y se marca en el Sheet para futuras validaciones.
+    $("#btnSave").textContent="📄 Enviar contrato";
     capturarFotoVendedor("contrato");
   };
   // Limpieza compartida por "Visitar otro cliente" y el boton general
@@ -1009,7 +1013,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;geoVPromise=null;idxV=null;contratoBloqueado=false;clienteYaVisitadoMes=false;modoSoloContrato=false;
     envioIniciado=false;enRevision=false;ultimoClienteVerificado=null;
     ["boxAntes","boxDespues","boxContrato"].forEach(b=>{const el=$("#"+b);el.classList.remove("has","locked");el.querySelector("img").src="";});
-    $("#fCliente").value="";$("#fCliente").disabled=false;$("#btnSave").disabled=true; cerrarModalVerificando(); $("#bloqueoClienteBtns").style.display="none"; aplicarBloqueosCaptura(); }
+    $("#fCliente").value="";$("#fCliente").disabled=false;$("#btnSave").disabled=true;$("#btnSave").textContent="📤 Enviar visita"; cerrarModalVerificando(); $("#bloqueoClienteBtns").style.display="none"; aplicarBloqueosCaptura(); }
 
   // Antes de enviar de verdad, se muestra un resumen para revisar/editar.
   $("#btnSave").onclick=()=>{
@@ -1019,7 +1023,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     // foto, nada que revisar/editar -- se envia directo (enviarVisita ya sabe
     // que en este modo solo asocia el contrato, no crea una visita nueva).
     if(modoSoloContrato){
-      if(!cap.contrato||!cap.contrato.id){ main("Falta tomar la foto del contrato.","err"); return; }
+      // No exigir cap.contrato.id aqui: la foto todavia no tiene id de Drive
+      // hasta que enviarVisita la suba (ya no se sube apenas se toma).
+      if(!cap.contrato){ main("Falta tomar la foto del contrato.","err"); return; }
       enviarVisita();
       return;
     }
