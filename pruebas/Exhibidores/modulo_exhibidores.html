@@ -862,6 +862,13 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     cerrarModalVerificando();
     if(contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
     $("#fCliente").disabled=true;
+    // El recuadro de Contrato habia quedado marcado "locked" mientras se
+    // mostraban las opciones (ver aplicarBloqueosCaptura: contratoBloqueadoPorMes
+    // es true hasta que modoSoloContrato pasa a true) -- sin esto, el primer
+    // intento funcionaba (el boton llama directo a capturarFotoVendedor), pero
+    // reintentar tocando el recuadro despues de un OCR fallido quedaba sin
+    // efecto porque el recuadro seguia con esa marca vieja.
+    aplicarBloqueosCaptura();
     capturarFotoVendedor("contrato");
   };
   // Limpieza compartida por "Visitar otro cliente" y el boton general
