@@ -1,20 +1,20 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.12",
-    "label": "OPAUSTRO v1.0.12 - Exhibidores: validacion por rol, OCR y correccion de enlaces cruzados",
+    "version": "1.0.13",
+    "label": "OPAUSTRO v1.0.13 - Exhibidores: flujo de contrato, bloqueos reales y correccion de foto",
     "channel": "oficial",
-    "publishedAt": "2026-08-03",
+    "publishedAt": "2026-08-05",
     "notes": [
-        "Correccion critica: Gerencia > Flujo de Caja apuntaba por error al script de pruebas (quedo mal cruzado en la actualizacion anterior) -- ya se corrigio al deployment oficial.",
-        "Correccion: la URL personalizada que Exhibidores guarda en el dispositivo (localStorage) ahora se resetea sola en cada actualizacion real de la app, para que dos dispositivos con la misma version nunca queden mostrando datos de ambientes distintos.",
-        "Exhibidores: el OCR del contrato (Acta de Entrega y Comodato de Exhibidor) ahora esta afinado a la casilla \"Codigo de cliente en la empresa\" de ese formato especifico, y sabe que ese campo es siempre unicamente numerico -- ignora letras/espacios sueltos y limpia el resultado antes de comparar contra el codigo ingresado.",
-        "Exhibidores: las tarjetas de vendedor y el filtro de censo ahora solo muestran usuarios validados por submodulo ExhibidoresVendedor + Rol=Vendedor exacto en BD_Login (antes bastaba con el submodulo, sin importar el rol real).",
-        "Exhibidores: nueva tarjeta unica de supervisor en \"Reporte Exhibidores Supervisor\" (solo la de quien inicio sesion como supervisor validado; nada para admin/Gerencia), con avance semanal Lun-Sab.",
-        "Exhibidores: en el informe general, \"Censo supervisor\" ahora muestra tarjetas por supervisor (puede haber varios); se agregaron filtros de fecha/cliente/vendedor y un visor de fotos por fila en lugar de los botones \"Vaciar\".",
-        "IMPORTANTE: la version 1.0.10 quedo invalida (tenia errores) y no debe usarse; si se necesita restablecer una version anterior, el punto seguro es la 1.0.9.",
+        "Exhibidores Vendedor: el codigo de cliente ya se puede escribir mientras se identifica el vendedor, pero las fotos y \"Enviar\" ahora exigen Vendedor + Cliente + confirmacion REAL del servidor de que no tiene registro este mes -- nunca se asume \"no visitado\" mientras esa respuesta esta en camino.",
+        "Exhibidores Vendedor: Antes queda bloqueado para siempre en cuanto existe Despues; Despues se puede editar hasta presionar Enviar. Nuevo flujo de revision (Guardar -> Confirmar/Editar) que bloquea Cliente y las fotos mientras se revisa, y solo guarda al confirmar.",
+        "Exhibidores Vendedor: mientras se verifica el cliente aparece un modal centrado con spinner (no se puede hacer nada mas mientras tanto); al resolver, el mismo panel muestra \"Subir contrato\"/\"Visitar otro cliente\" segun corresponda.",
+        "Exhibidores Vendedor: \"Subir contrato\" ya no guarda nada al detectar el codigo -- la foto se sube y se asocia recien al presionar \"Enviar contrato\" (el boton cambia de texto en este modo). Codigo de cliente se bloquea solo al elegir esta opcion, hasta enviar o Limpiar.",
+        "Exhibidores Vendedor: corrige el recorte de la foto del contrato (quedaba desalineado del marco guia) y la vista previa (ya no recortaba arriba/abajo); sube resolucion y calidad de esa foto para que el codigo escrito se lea con claridad.",
+        "Exhibidores Vendedor: reintento automatico al subir fotos a Drive si falla por un corte de red transitorio.",
+        "Exhibidores (backend oficial): actualizarContratoDeVisita ya no suma puntaje retroactivo (el Documento_Firmado solo suma puntos si se sube junto con Antes/Despues en la misma visita), nueva accion combinada estadoClienteMes y optimizacion de getUsersWithSubmodule (abre el Spreadsheet de Login una sola vez) para reducir llamadas al servidor.",
         "Requiere republicar manualmente Exhibidores/Code.gs en el editor de Apps Script oficial -- Gestionar implementaciones > Editar > Version: Nueva version > Implementar; el link /exec no cambia."
     ],
-    "releaseKey": "1.0.12",
+    "releaseKey": "1.0.13",
     "forceUpdate": true,
     "rollback": false
 }

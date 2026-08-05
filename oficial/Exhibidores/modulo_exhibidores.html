@@ -117,9 +117,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   <div class="card" id="cardCaptura">
     <h2>📷 Nueva visita</h2>
     <div class="grid3">
-      <div class="field"><label>Vendedor</label><div id="fVendedorNombre" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px">—</div></div>
+      <div class="field"><label>Vendedor</label><div id="fVendedorNombre" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px">Cargando…</div></div>
       <div class="field"><label>Código de cliente</label><input id="fCliente" inputmode="numeric" placeholder="Ej: 1024"></div>
-      <div class="field"><label>Marca</label><input id="fMarca" value="Mondelez"></div>
+      <div class="field"><label>Marca</label><input id="fMarca" value="Mondelez" disabled></div>
     </div>
     <h3 class="sec">📦 Foto del exhibidor <span style="color:var(--mut);font-weight:400;text-transform:none;letter-spacing:0">— toma la foto en el momento, no se puede subir de la galería</span></h3>
     <div class="slots">
@@ -135,10 +135,6 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     </div>
     <div class="note" style="margin-top:8px">📸 Encuadra <b>solo el exhibidor</b>, de frente y completo.</div>
     <div class="status" id="mainStatus"></div>
-    <div class="btnrow" id="bloqueoClienteBtns" style="display:none">
-      <button class="btn ghost" id="btnSoloContrato">📄 Subir contrato</button>
-      <button class="btn ghost" id="btnOtroClienteVend">🧑 Visitar otro cliente</button>
-    </div>
     <div class="btnrow"><button class="btn green" id="btnSave" disabled>📤 Enviar visita</button><button class="btn ghost" id="btnLimpiarVend">↺ Limpiar</button></div>
   </div>
 
@@ -219,6 +215,16 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 </div>
 
 <div class="modal" id="modal"><div class="inner" id="modalInner"></div></div>
+<div class="modal" id="verifClienteModal"><div class="inner" style="text-align:center">
+  <div id="verifClienteSpinner"><span class="spin" style="width:34px;height:34px;border-width:4px;margin:0 auto 14px;display:block"></span>Verificando cliente…</div>
+  <div id="verifClienteResultado" style="display:none">
+    <div class="note" id="verifClienteMsg" style="margin-bottom:14px;font-size:14px"></div>
+    <div class="btnrow" id="bloqueoClienteBtns" style="display:none;justify-content:center">
+      <button class="btn ghost" id="btnSoloContrato">📄 Subir contrato</button>
+      <button class="btn ghost" id="btnOtroClienteVend">🧑 Visitar otro cliente</button>
+    </div>
+  </div>
+</div></div>
 <div class="modal" id="camModal"><div class="inner">
   <h2 style="font-size:16px;margin-bottom:10px" id="camTitulo">Tomar foto</h2>
   <div style="position:relative">
@@ -226,7 +232,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     <div id="camGuia" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:92%;aspect-ratio:1/1.4142;border:3px dashed rgba(255,255,255,.9);border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);pointer-events:none"></div>
   </div>
   <canvas id="camCanvas" style="display:none"></canvas>
-  <img id="camPreview" style="width:100%;border-radius:12px;display:none;max-height:55vh;object-fit:cover">
+  <img id="camPreview" style="width:100%;border-radius:12px;display:none;max-height:55vh;object-fit:contain;background:#000">
   <div class="status" id="camStatus"></div>
   <div class="btnrow">
     <button class="btn primary" id="camShoot">📸 Capturar</button>
@@ -287,7 +293,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // muestra directamente solo la pestaña "Avance por vendedor" (sin selector).
   const SOLO_AVANCE=new URLSearchParams(location.search).get("solo")==="avance";
   let VENDEDORES=[];
-  // Deployment /exec del Apps Script de Exhibidores de ESTE ambiente (pruebas). Asi el
+  // Deployment /exec del Apps Script de Exhibidores de ESTE ambiente (oficial). Asi el
   // vendedor no tiene que configurar nada: sin esto el envio al Sheet quedaba en silencio.
   const DEFAULT_API_URL="https://script.google.com/macros/s/AKfycbwB0jIJSWruBV7s9XyKdrTUaWt7gTzroHbu3QfAiOMgH4uftR6vHohxdpaJxaVrikhnWw/exec";
   // Misma clave interna compartida por Login/Logistica/ICE_Pinguino (no es un secreto
@@ -323,10 +329,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function saveC(l){ try{localStorage.setItem(K_CENSO,JSON.stringify(l));}catch(e){supMsg("Memoria llena. Exporta y vacía.","err");} }
 
   // ===== Vendedores en selects =====
-  // Lista real desde Control_Modulos_Submodulos_Usarios_Pruebas (solo usuarios
+  // Lista real desde Control_Modulos_Submodulos_Usuarios (solo usuarios
   // con el submodulo ExhibidoresVendedor activo), no un listado inventado. La
   // consulta la resuelve el propio Apps Script de Exhibidores (getUsersWithSubmodule
-  // en AppsScript_PRUEBAS/Exhibidores/Code.gs), que lee esa hoja del Sheet de
+  // en Exhibidores/Code.gs), que lee esa hoja del Sheet de
   // Login solo para consulta -- Exhibidores nunca escribe ahi.
   async function usuariosConSubmodulo_(submodulo,rol){
     const url=apiUrl(); if(!url) return [];
@@ -386,7 +392,20 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     return resuelto;
   }
   let VENDEDOR_ACTUAL="";
-  async function cargarVendedorActual(){ VENDEDOR_ACTUAL=await identidadActual("#fVendedorNombre","ExhibidoresVendedor","No identificado — inicia sesión como vendedor","Vendedor"); }
+  // El campo Codigo de cliente SI se puede escribir mientras el Vendedor
+  // todavia esta cargando (el vendedor tarda un poco en resolverse contra el
+  // servidor) -- lo que queda bloqueado hasta tener Vendedor + Cliente son las
+  // fotos y el boton Enviar (ver aplicarBloqueosCaptura). Pero si el vendedor
+  // ya escribio el cliente ANTES de que el vendedor terminara de resolverse,
+  // hay que revalidar ese cliente apenas el vendedor este listo -- si no, la
+  // verificacion de "ya visitado este mes"/contrato existente (que dependen de
+  // VENDEDOR_ACTUAL) se habria saltado en silencio y las fotos quedarian mal
+  // habilitadas apenas listoParaCapturar() pase a true.
+  async function cargarVendedorActual(){
+    VENDEDOR_ACTUAL=await identidadActual("#fVendedorNombre","ExhibidoresVendedor","No identificado — inicia sesión como vendedor","Vendedor");
+    if(VENDEDOR_ACTUAL&&clienteVendedor()){ verificarClienteMes(); }
+    aplicarBloqueosCaptura();
+  }
   let SUPERVISOR_ACTUAL="";
   async function cargarSupervisorActual(){ SUPERVISOR_ACTUAL=await identidadActual("#supNombre","ExhibidoresSupervisor","No identificado — inicia sesión como supervisor","Supervisor"); }
   $("#sVendedor").addEventListener("change",()=>localStorage.setItem(K_VEND,$("#sVendedor").value));
@@ -410,7 +429,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function fmtDate(d){const M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
   function escala(img,max){const c=document.createElement("canvas");const k=Math.min(1,max/Math.max(img.width,img.height));c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c;}
   function dataUrlToImg(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>res(img);img.src=dataUrl;});}
-  function sellar(dataUrl,geo,idx,codigoCliente){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=img.width;c.height=img.height;const x=c.getContext("2d");x.drawImage(img,0,0);
+  function sellar(dataUrl,geo,idx,codigoCliente,calidad){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=img.width;c.height=img.height;const x=c.getContext("2d");x.drawImage(img,0,0);
     const lines=[fmtDate(new Date())];((geo&&geo.lugar)||[]).forEach(l=>lines.push(l));
     if(geo&&geo.lat!=null)lines.push(`Lat ${geo.lat.toFixed(5)}  Lng ${geo.lng.toFixed(5)}`);
     if(geo&&geo.alt!=null)lines.push(`Altitud: ${geo.alt.toFixed(1)} msnm`);
@@ -421,7 +440,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     x.fillStyle=g;x.fillRect(0,c.height-bh-40,c.width,bh+40);x.font=`700 ${fs}px "Segoe UI",Arial`;x.textBaseline="top";x.shadowColor="rgba(0,0,0,.9)";x.shadowBlur=4;
     let y=c.height-bh+pad;lines.forEach((t,i)=>{x.fillStyle=i===0?"#ffd24a":"#ff8a1e";x.fillText(t,pad,y);y+=lh;});
     x.shadowBlur=3;x.font=`800 ${Math.round(fs*0.9)}px "Segoe UI",Arial`;x.fillStyle="rgba(255,255,255,.9)";const tag="OPAUSTRO";x.fillText(tag,c.width-x.measureText(tag).width-pad,pad);
-    res(c.toDataURL("image/jpeg",0.85));};img.src=dataUrl;});}
+    res(c.toDataURL("image/jpeg",calidad||0.85));};img.src=dataUrl;});}
   function hacerThumb(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=escala(img,240);res(c.toDataURL("image/jpeg",0.5));};img.onerror=()=>res("");img.src=dataUrl;});}
 
   // ===================== CAMARA EN VIVO (sin galeria) =====================
@@ -454,17 +473,25 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // marco A4 dibujado en CSS sobre el video -- el video usa object-fit:cover,
   // por eso lo que se ve en pantalla no es 1:1 con la resolucion nativa de la
   // camara y hay que traducir las coordenadas.
+  // Antes esto RECALCULABA a mano el tamano/posicion del marco (ch*0.92,
+  // /1.4142, etc.) en vez de leer el elemento real -- esa formula no
+  // coincidia exactamente con el CSS de #camGuia (que ademas suma su borde de
+  // 3px por fuera, al ser content-box), asi que lo recortado quedaba mas
+  // ancho/corrido que lo que se veia dentro del marco en pantalla, y esa
+  // desalineacion es probablemente la causa de que el OCR fallara tan
+  // seguido. Ahora se mide el rectangulo REAL de #camGuia y #camVideo en
+  // pantalla (getBoundingClientRect) y se traduce con la misma logica de
+  // escala de object-fit:cover -- exacto sin importar bordes, redondeos ni
+  // el tamano real del telefono.
   function recorteGuia_(video){
-    const cw=video.clientWidth, ch=video.clientHeight, nw=video.videoWidth, nh=video.videoHeight;
-    const scale=Math.max(cw/nw, ch/nh);
-    const offX=(nw*scale-cw)/2/scale, offY=(nh*scale-ch)/2/scale;
-    // El marco se define por ALTURA (92% del alto visible) y el ancho sale de
-    // la proporcion A4 -- asi ocupa casi todo el alto y el negro que sobra
-    // queda solo a los lados (igual que el CSS de #camGuia, que usa height).
-    const guiaHCss=ch*0.92, guiaWCss=guiaHCss/1.4142;
-    const guiaXCss=(cw-guiaWCss)/2, guiaYCss=(ch-guiaHCss)/2;
-    const sx=Math.max(0,offX+guiaXCss/scale), sy=Math.max(0,offY+guiaYCss/scale);
-    return {sx,sy,sw:Math.min(guiaWCss/scale,nw-sx),sh:Math.min(guiaHCss/scale,nh-sy)};
+    const guia=$("#camGuia");
+    const vRect=video.getBoundingClientRect(), gRect=guia.getBoundingClientRect();
+    const nw=video.videoWidth, nh=video.videoHeight;
+    const scale=Math.max(vRect.width/nw, vRect.height/nh);
+    const offX=(nw*scale-vRect.width)/2, offY=(nh*scale-vRect.height)/2;
+    const gxRel=gRect.left-vRect.left, gyRel=gRect.top-vRect.top;
+    const sx=Math.max(0,(offX+gxRel)/scale), sy=Math.max(0,(offY+gyRel)/scale);
+    return {sx,sy,sw:Math.min(gRect.width/scale,nw-sx),sh:Math.min(gRect.height/scale,nh-sy)};
   }
   $("#camShoot").onclick=()=>{
     const video=$("#camVideo"), canvas=$("#camCanvas");
@@ -584,18 +611,52 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // ===================== VENDEDOR =====================
   const K_DRAFT_V="opaustro_visita_draft";
   const cap={antes:null,despues:null,contrato:null}; let geoV=null,geoVPromise=null,idxV=null,contratoBloqueado=false,clienteYaVisitadoMes=false,modoSoloContrato=false;
+  // envioIniciado: se activa la primera vez que se presiona "Enviar visita" y
+  // bloquea el codigo de cliente para el resto de esta visita (aunque despues
+  // se presione "Editar" en el resumen) -- solo se libera al limpiar/enviar.
+  // enRevision: activo solo mientras se muestra el resumen de confirmacion;
+  // bloquea tambien Despues/Contrato mientras se revisa, y se libera con
+  // "Editar" (Antes nunca se libera aqui, eso es una regla aparte y permanente).
+  let envioIniciado=false, enRevision=false;
   function clienteVendedor(){ return $("#fCliente").value.trim(); }
   function pintar(box,url){const b=$("#"+box);b.querySelector("img").src=url;b.classList.add("has");}
+  // Unico punto que decide si cada slot de foto puede tomarse/editarse ahora.
+  // Reglas: (1) nada se habilita hasta tener Vendedor + Codigo de cliente;
+  // (2) Antes queda bloqueado para siempre en cuanto existe Despues; (3)
+  // Despues y Contrato se bloquean mientras se esta revisando el resumen
+  // (recien tomados o ya guardados) y se liberan de nuevo con "Editar"; (4)
+  // Contrato ademas queda bloqueado para siempre si ya existia de una visita
+  // anterior (contratoBloqueado, sin relacion con la revision).
+  // No basta con tener Vendedor + Cliente escritos: hace falta ademas que la
+  // consulta real al servidor ("este cliente, ya fue visitado este mes?") haya
+  // respondido para ESTE MISMO codigo de cliente (ultimoClienteVerificado). Si
+  // esa consulta todavia no responde (o el cliente cambio despues de pedirla),
+  // se trata igual que "bloqueado" -- nunca se asume "no visitado" por defecto.
+  function listoParaCapturar(){ return !!(VENDEDOR_ACTUAL&&clienteVendedor()&&ultimoClienteVerificado===clienteVendedor()); }
+  function aplicarBloqueosCaptura(){
+    const gate=!listoParaCapturar();
+    // Ademas de vendedor+cliente+verificado, Antes/Despues nunca se habilitan
+    // si el cliente ya fue visitado este mes (sin excepcion). Contrato tiene
+    // una sola excepcion: el bypass "Subir contrato" (modoSoloContrato), que
+    // es justo para tomar SOLO esa foto aunque el cliente ya este bloqueado.
+    const bloqueadoPorMes=clienteYaVisitadoMes;
+    const contratoBloqueadoPorMes=clienteYaVisitadoMes&&!modoSoloContrato;
+    $("#boxAntes").classList.toggle("locked",gate||bloqueadoPorMes||!!cap.despues);
+    $("#boxDespues").classList.toggle("locked",gate||bloqueadoPorMes||enRevision);
+    $("#boxContrato").classList.toggle("locked",gate||contratoBloqueadoPorMes||contratoBloqueado||enRevision);
+    $("#btnSoloContrato").disabled=gate;
+  }
   function evalVend(){
+    aplicarBloqueosCaptura();
     // Caso "Subir contrato" (cliente ya visitado este mes): en cuanto el
     // contrato queda subido, se habilita Enviar -- pero al presionarlo solo
     // se actualiza el contrato de la visita de este mes, no se crea una fila
     // nueva (ver enviarVisita).
-    if(modoSoloContrato){ const ok=!!(cap.contrato&&cap.contrato.id); $("#btnSave").disabled=!ok; if(ok)main("Contrato listo. Presiona Enviar para asociarlo a la visita de este mes.","ok"); return; }
-    const ok=$("#fCliente").value.trim()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
+    if(modoSoloContrato){ const ok=!!cap.contrato; $("#btnSave").disabled=!ok; if(ok)main("Contrato listo. Presiona Enviar para asociarlo a la visita de este mes.","ok"); return; }
+    const ok=listoParaCapturar()&&cap.antes&&cap.despues&&!clienteYaVisitadoMes; $("#btnSave").disabled=!ok;
     if(ok)main("Listo para enviar.","ok");
     else if(cap.despues&&!cap.antes)main("Falta la foto ANTES.","info");
-    else if(cap.antes&&cap.despues&&!$("#fCliente").value.trim())main("Falta el código de cliente.","info"); }
+    else if(cap.antes&&cap.despues&&!listoParaCapturar())main("Falta el código de cliente.","info"); }
 
   // Las fotos NO se suben a Drive apenas se toman -- se guardan solo en el
   // navegador (localStorage, base64 completo) hasta presionar "Enviar visita".
@@ -629,7 +690,12 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         }
       });
       evalVend();
-      if(d.cliente) main("Se recuperó la visita que quedó pendiente de este cliente.","info");
+      // El cliente restaurado todavia no tiene una respuesta real y reciente
+      // del servidor sobre "visitado este mes" (ultimoClienteVerificado se
+      // reinicio con la pagina) -- se vuelve a pedir, igual que si el
+      // vendedor acabara de escribir este codigo, antes de dejar seguir
+      // editando Despues/Contrato.
+      if(d.cliente){ verificarClienteMes(); main("Se recuperó la visita que quedó pendiente de este cliente.","info"); }
     }catch(e){}
   }
 
@@ -644,26 +710,45 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   document.querySelectorAll('#cardCaptura .slot-box[data-key]').forEach(box=>{
     const key=box.dataset.key;
     box.querySelector("img").addEventListener("click",e=>{ e.stopPropagation(); if(box.classList.contains("has")) verFotoGrande(e.target.src); });
-    box.querySelector(".slot-edit").addEventListener("click",e=>{ e.stopPropagation(); capturarFotoVendedor(key); });
-    box.addEventListener("click",()=>{ if(!box.classList.contains("has")) capturarFotoVendedor(key); });
+    box.querySelector(".slot-edit").addEventListener("click",e=>{ e.stopPropagation(); if(box.classList.contains("locked")) return; capturarFotoVendedor(key); });
+    box.addEventListener("click",()=>{ if(!box.classList.contains("has")&&!box.classList.contains("locked")) capturarFotoVendedor(key); });
   });
-  async function subirFotoVendedor(tipo,cliente,imagen){
+  // El POST de una foto (sobre todo el contrato, que ahora pesa mas por la
+  // resolucion/calidad subida) a veces falla en el primer intento por un
+  // corte de red o un hipo transitorio de Apps Script -- si ya existe en
+  // Drive (contrato repetido), el servidor no vuelve a subir nada, solo
+  // devuelve el mismo ID, asi que reintentar es seguro. Mismo patron que
+  // serverAnalizarContrato.
+  async function subirFotoVendedor(tipo,cliente,imagen,intento){
     const url=apiUrl(); if(!url) throw new Error("falta configurar la URL del servidor");
-    const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
-    const data=await resp.json();
-    if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
-    return data;
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({action:"guardarFotoVisita",payload:{tipo,cliente,vendedor:VENDEDOR_ACTUAL,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),imagen,apiKey:INTERNAL_API_KEY}})});
+      const data=await resp.json();
+      if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar en Drive");
+      return data;
+    }catch(e){
+      if(!intento) return subirFotoVendedor(tipo,cliente,imagen,1);
+      throw e;
+    }
   }
   async function capturarFotoVendedor(key){
+    if(!VENDEDOR_ACTUAL){ main("Espera a que se identifique tu usuario como vendedor antes de tomar fotos.","err"); return; }
     const cliente=clienteVendedor();
     if(!cliente){ main("Ingresa el código de cliente antes de tomar la foto.","err"); return; }
+    // Defensa adicional (ya deberia estar bloqueado visualmente via .locked):
+    // nunca tomar una foto para un cliente que todavia no tiene confirmacion
+    // real del servidor de "no visitado este mes" para ese codigo exacto.
+    if(ultimoClienteVerificado!==cliente){ main("Espera a que se confirme el código de cliente antes de tomar fotos.","err"); return; }
     // Si el cliente ya fue visitado este mes, se bloquea todo salvo que el
     // vendedor haya elegido explicitamente "Subir contrato" (el contrato no
     // tiene limite mensual, es unico por cliente para siempre).
     if(clienteYaVisitadoMes&&!(modoSoloContrato&&key==="contrato")){ main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err"); return; }
     if(key==="despues"&&!cap.antes){ main("Primero toma la foto ANTES.","err"); return; }
+    if(key==="antes"&&cap.despues){ main("Ya tomaste la foto DESPUÉS; ANTES ya no se puede editar.","info"); return; }
+    if(key==="despues"&&enRevision){ main("Presiona \"Editar\" en el resumen antes de volver a tomar esta foto.","info"); return; }
     if(key==="contrato"&&contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
+    if(key==="contrato"&&enRevision){ main("Presiona \"Editar\" en el resumen antes de volver a tomar esta foto.","info"); return; }
     if(!idxV) idxV=nextIndex();
     // El GPS se pide EN PARALELO con que se abre la camara y el vendedor encuadra
     // la foto (en vez de recien despues de tomarla) -- antes, la espera del GPS
@@ -673,79 +758,146 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     abrirCamara(TITULOS_SLOT[key],async(raw)=>{
       if(!geoV){ main('<span class="spin"></span>Confirmando ubicación...',"info",true); geoV=await geoVPromise; }
       const img=await dataUrlToImg(raw);
-      const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
+      // El contrato necesita mas resolucion y calidad que Antes/Despues --
+      // tiene texto pequeno (codigo de cliente escrito a mano) que el OCR y
+      // el propio vendedor necesitan poder leer con claridad; 1280px/0.82 lo
+      // dejaba borroso para ese uso.
+      const escalada=key==="contrato"
+        ? escala(img,1920).toDataURL("image/jpeg",0.92)
+        : escala(img,1280).toDataURL("image/jpeg",0.82);
       if(key==="contrato"){
         main('<span class="spin"></span>Verificando código del contrato...',"info",true);
         const check=await verificarContrato(escalada,cliente);
         if(!check.ok){ main(check.mensaje,"err"); return; }
       }
-      const sellada=await sellar(escalada,geoV,idxV,cliente);
-      if(key==="contrato"&&modoSoloContrato){
-        // "Subir contrato" (cliente ya visitado este mes): el contrato se
-        // sube a Drive de inmediato, apenas se toma (no espera a "Enviar").
-        // "Enviar visita" se habilita despues (ver evalVend) solo para
-        // asociar este contrato a la visita de este mes -- no crea una fila
-        // nueva.
-        main('<span class="spin"></span>Cargando foto...',"info",true);
-        let subida;
-        try{ subida=await subirFotoVendedor(key,cliente,sellada); }
-        catch(e){ main("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); return; }
-        cap[key]={img:sellada,raw:escalada,id:subida.fotoId,existente:!!subida.yaExistia};
-        if(subida.yaExistia) contratoBloqueado=true;
-        pintar("boxContrato",sellada);
-        evalVend();
-        return;
-      }
-      // Flujo normal (parte de una visita en progreso): NO se sube a Drive
-      // todavia -- se sube junto con el resto al presionar "Enviar visita".
+      const sellada=await sellar(escalada,geoV,idxV,cliente,key==="contrato"?0.95:undefined);
+      // NO se sube a Drive apenas se toma (ni siquiera en el modo "Subir
+      // contrato" del bypass) -- se guarda solo localmente hasta presionar
+      // "Enviar visita"; recien ahi se sube la foto y se asocia/guarda de
+      // verdad (ver enviarVisita). Asi, detectar el codigo correcto en el
+      // contrato nunca guarda nada por si solo, solo lo deja listo para
+      // enviar.
       cap[key]={img:sellada,raw:escalada};
       pintar("box"+key.charAt(0).toUpperCase()+key.slice(1),sellada);
       evalVend();
       guardarDraftVend();
-      main("Foto lista.","ok");
+      main(key==="contrato"&&modoSoloContrato?"Contrato listo. Presiona Enviar para guardarlo.":"Foto lista.","ok");
     },key==="contrato");
   }
 
   // Si el cliente ya tiene un contrato guardado de una visita anterior, se muestra
   // y se bloquea el slot -- una sola foto de contrato por cliente, para siempre.
-  $("#fCliente").addEventListener("change",()=>{ verificarClienteMes(); cargarContratoExistente(); guardarDraftVend(); });
+  $("#fCliente").addEventListener("change",()=>{ verificarClienteMes(); guardarDraftVend(); });
+  // Cliente para el cual YA se confirmo la respuesta real del servidor sobre
+  // "visitado este mes" (null mientras no hay ninguna respuesta confirmada
+  // todavia, o si el texto del campo cambio despues de esa respuesta). Las
+  // fotos solo se habilitan si este valor coincide EXACTAMENTE con lo que hay
+  // escrito ahora en #fCliente (ver aplicarBloqueosCaptura) -- asi mientras la
+  // consulta al servidor todavia esta en vuelo (o si el vendedor escribe mas
+  // rapido de lo que tarda en responder) las fotos quedan bloqueadas, en vez
+  // de asumir "no visitado" por defecto mientras se espera la respuesta real.
+  let ultimoClienteVerificado=null;
+  // El modal centrado (mismo patron que #modal/#resumenModal) que se ve mientras
+  // se verifica el cliente y, si corresponde, muestra el resultado con sus
+  // opciones -- se queda abierto (no se cierra con Escape ni clic afuera) para
+  // que el vendedor no pueda seguir haciendo otras cosas mientras se resuelve.
+  function abrirModalVerificando(){
+    $("#verifClienteSpinner").style.display="";
+    $("#verifClienteResultado").style.display="none";
+    $("#bloqueoClienteBtns").style.display="none";
+    $("#verifClienteModal").classList.add("open");
+  }
+  function cerrarModalVerificando(){ $("#verifClienteModal").classList.remove("open"); }
+  function mostrarBloqueoCliente(mensaje,mostrarSoloContrato){
+    $("#verifClienteMsg").textContent=mensaje;
+    $("#verifClienteSpinner").style.display="none";
+    $("#verifClienteResultado").style.display="";
+    $("#btnSoloContrato").style.display=mostrarSoloContrato?"":"none";
+    $("#bloqueoClienteBtns").style.display="";
+    $("#verifClienteModal").classList.add("open");
+  }
   // Un mismo vendedor no puede volver a visitar/fotografiar al mismo cliente en
   // el mismo mes calendario -- se avisa apenas escribe el codigo, ANTES de
-  // dejarlo tomar cualquier foto (no recien al enviar la visita).
+  // dejarlo tomar cualquier foto (no recien al enviar la visita). Antes esto
+  // hacia 2-3 llamadas por separado al servidor (clienteVisitadoMes, y
+  // getContratoCliente hasta dos veces) -- cada viaje de ida y vuelta a Apps
+  // Script es caro, asi que ahora se pide todo junto en una sola accion
+  // (estadoClienteMes) para que la validacion tarde lo minimo posible.
   async function verificarClienteMes(){
-    const cliente=clienteVendedor(); clienteYaVisitadoMes=false; modoSoloContrato=false;
+    const cliente=clienteVendedor(); clienteYaVisitadoMes=false; modoSoloContrato=false; ultimoClienteVerificado=null;
     $("#bloqueoClienteBtns").style.display="none"; $("#btnSoloContrato").style.display="";
+    aplicarBloqueosCaptura();
     if(!cliente||!VENDEDOR_ACTUAL) return;
     const url=apiUrl(); if(!url) return;
+    // Mientras se confirma con el servidor si este cliente ya tiene registro
+    // este mes (y si ya tiene contrato), se muestra el modal con spinner
+    // centrado -- normalmente responde en menos de 3 segundos. Las fotos
+    // siguen bloqueadas todo este tiempo (ver aplicarBloqueosCaptura/
+    // listoParaCapturar).
+    abrirModalVerificando();
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"clienteVisitadoMes",payload:{vendedor:VENDEDOR_ACTUAL,cliente,apiKey:INTERNAL_API_KEY}})});
+        body:JSON.stringify({action:"estadoClienteMes",payload:{vendedor:VENDEDOR_ACTUAL,cliente,apiKey:INTERNAL_API_KEY}})});
       const data=await resp.json();
-      if(data&&data.success&&data.visitado){
-        clienteYaVisitadoMes=true;
-        main("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.","err");
+      if(!data||!data.success){ cerrarModalVerificando(); main("❌ No se pudo verificar el cliente"+((data&&data.message)?": "+data.message:"")+". Vuelve a intentar.","err"); return; } // respuesta invalida: no se confirma nada, sigue bloqueado
+      clienteYaVisitadoMes=!!data.visitado;
+      const contratoId=String(data.contratoId||"").trim();
+      // Solo se marca como "verificado" (y se libera el bloqueo) si el campo
+      // sigue mostrando exactamente este mismo cliente -- si el vendedor ya
+      // escribio otro codigo mientras esta respuesta viajaba, esta respuesta
+      // quedo obsoleta y no debe habilitar nada.
+      const sigueSiendoEsteCliente=clienteVendedor()===cliente;
+      if(sigueSiendoEsteCliente) ultimoClienteVerificado=cliente;
+      // Si ya tiene contrato (de cualquier mes), se muestra y se bloquea el
+      // slot -- una sola foto de contrato por cliente, para siempre. Solo se
+      // busca la foto (fetchFoto, un viaje aparte -- trae la imagen) si hay
+      // algo que mostrar.
+      if(contratoId&&sigueSiendoEsteCliente&&!contratoBloqueado){
+        const foto=await fetchFoto(contratoId);
+        if(foto){
+          cap.contrato={img:foto,id:contratoId,existente:true}; contratoBloqueado=true;
+          pintar("boxContrato",foto); $("#boxContrato").classList.add("locked");
+          guardarDraftVend();
+        }
+      }
+      if(clienteYaVisitadoMes){
         // Si el cliente ya tiene contrato registrado (en cualquier mes), no
         // hace falta ofrecer "Subir contrato" -- solo queda "Visitar otro
-        // cliente". Si todavia no tiene, se ofrecen las dos salidas.
-        let tieneContrato=false;
-        try{
-          const r2=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-            body:JSON.stringify({action:"getContratoCliente",payload:{cliente,apiKey:INTERNAL_API_KEY}})});
-          const d2=await r2.json();
-          tieneContrato=!!(d2&&d2.success&&d2.contratoId);
-        }catch(e){}
-        $("#btnSoloContrato").style.display=tieneContrato?"none":"";
-        $("#bloqueoClienteBtns").style.display="";
+        // cliente". Si todavia no tiene, se ofrecen las dos salidas. El modal
+        // se queda abierto mostrando el mensaje y esas opciones (en vez de
+        // cerrarse) hasta que el vendedor elija una.
+        mostrarBloqueoCliente("Este cliente ya fue censado o visitado este mes. Podrás volver a visitarlo el próximo mes.",!contratoId);
+      } else {
+        // No tiene registro este mes: simplemente se cierra el modal y se
+        // habilita lo que corresponda (aplicarBloqueosCaptura en el finally).
+        cerrarModalVerificando();
+        main(contratoId?"Cliente disponible (ya tiene contrato registrado). Puedes tomar las fotos.":"Cliente disponible. Puedes tomar las fotos.","ok");
       }
-    }catch(e){}
+    }catch(e){ cerrarModalVerificando(); main("❌ No se pudo verificar el cliente (sin conexión). Vuelve a intentar.","err"); }
+    finally{ aplicarBloqueosCaptura(); }
   }
   // "Subir contrato": deja tomar SOLO la foto del contrato de este cliente,
   // aunque la visita del mes ya este bloqueada (el contrato no tiene limite
-  // mensual, es una sola vez por cliente para siempre).
+  // mensual, es una sola vez por cliente para siempre). Recien AHORA (al
+  // elegir esta opcion, no antes, mientras solo se mostraban las opciones) se
+  // bloquea el Codigo de cliente -- se libera al enviar con exito o al
+  // presionar Limpiar (ver resetVend), nunca antes.
   $("#btnSoloContrato").onclick=()=>{
     modoSoloContrato=true;
-    $("#bloqueoClienteBtns").style.display="none";
+    cerrarModalVerificando();
     if(contratoBloqueado){ main("Este cliente ya tiene un contrato registrado; no hace falta otra foto.","info"); return; }
+    $("#fCliente").disabled=true;
+    // El recuadro de Contrato habia quedado marcado "locked" mientras se
+    // mostraban las opciones (ver aplicarBloqueosCaptura: contratoBloqueadoPorMes
+    // es true hasta que modoSoloContrato pasa a true) -- sin esto, el primer
+    // intento funcionaba (el boton llama directo a capturarFotoVendedor), pero
+    // reintentar tocando el recuadro despues de un OCR fallido quedaba sin
+    // efecto porque el recuadro seguia con esa marca vieja.
+    aplicarBloqueosCaptura();
+    // El boton dice "Enviar contrato" en este modo (no "Enviar visita"): no se
+    // crea/actualiza ninguna visita, solo se guarda el contrato como
+    // constancia y se marca en el Sheet para futuras validaciones.
+    $("#btnSave").textContent="📄 Enviar contrato";
     capturarFotoVendedor("contrato");
   };
   // Limpieza compartida por "Visitar otro cliente" y el boton general
@@ -755,7 +907,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // quedaria referenciada por ninguna visita guardada -- se borra de Drive
   // para no dejar basura, y se limpia todo el formulario + la cache local.
   async function limpiarTodoVend(){
-    $("#bloqueoClienteBtns").style.display="none";
+    cerrarModalVerificando();
     main('<span class="spin"></span>Limpiando...',"info",true);
     await borrarFotoSueltaSiExiste(cap.antes&&cap.antes.id);
     await borrarFotoSueltaSiExiste(cap.despues&&cap.despues.id);
@@ -772,37 +924,29 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         body:JSON.stringify({action:"borrarFotoSuelta",payload:{id,apiKey:INTERNAL_API_KEY}})});
     }catch(e){}
   }
-  async function cargarContratoExistente(){
-    const cliente=clienteVendedor();
-    if(contratoBloqueado||!cliente) return;
-    const url=apiUrl(); if(!url) return;
-    try{
-      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({action:"getContratoCliente",payload:{cliente,apiKey:INTERNAL_API_KEY}})});
-      const data=await resp.json();
-      if(data&&data.success&&data.contratoId){
-        main('<span class="spin"></span>Cargando contrato existente del cliente...',"info",true);
-        const foto=await fetchFoto(data.contratoId);
-        if(foto){
-          cap.contrato={img:foto,id:data.contratoId,existente:true}; contratoBloqueado=true;
-          pintar("boxContrato",foto); $("#boxContrato").classList.add("locked");
-          main("Contrato ya registrado para este cliente.","ok");
-          guardarDraftVend();
-        }
-      }
-    }catch(e){}
-  }
+  // (La verificacion de contrato existente ya no es una llamada separada --
+  // quedo integrada dentro de verificarClienteMes/estadoClienteMes para evitar
+  // un segundo viaje de ida y vuelta al servidor por cada codigo de cliente.)
 
   async function enviarVisita(){
     const cliente=clienteVendedor(); if(!cliente){main("Falta el código de cliente.","err");return;}
     // Caso "Subir contrato" (cliente ya visitado este mes): no se crea una
     // visita nueva -- se busca la fila de la visita de este mes para este
-    // cliente y se le asocia el contrato ya subido a Drive.
+    // cliente y se le asocia el contrato. La foto todavia no esta en Drive
+    // (ya no se sube apenas se toma, ver capturarFotoVendedor) -- se sube
+    // AHORA, recien al confirmar el envio, y solo entonces se asocia.
     if(modoSoloContrato){
-      if(!cap.contrato||!cap.contrato.id){ main("Falta tomar la foto del contrato.","err"); return; }
-      $("#btnSave").disabled=true; main('<span class="spin"></span>Asociando contrato a la visita de este mes...',"info",true);
+      if(!cap.contrato){ main("Falta tomar la foto del contrato.","err"); return; }
+      $("#btnSave").disabled=true;
       const url=apiUrl();
       if(!url){ main("❌ Falta configurar la URL del servidor.","err"); $("#btnSave").disabled=false; return; }
+      if(!cap.contrato.id){
+        main('<span class="spin"></span>Cargando foto...',"info",true);
+        try{ const s=await subirFotoVendedor("contrato",cliente,cap.contrato.img); cap.contrato.id=s.fotoId; if(s.yaExistia) cap.contrato.existente=true; }
+        catch(e){ main("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); $("#btnSave").disabled=false; return; }
+        guardarDraftVend();
+      }
+      main('<span class="spin"></span>Asociando contrato a la visita de este mes...',"info",true);
       let resultado;
       try{
         const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -862,9 +1006,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       const msg=(resultado&&resultado.message)||"No se pudo guardar la visita.";
       main("❌ "+msg,"err");
       $("#btnSave").disabled=false;
+      // El intento fallo (ej. sin conexion, o el servidor lo rechazo): se
+      // sigue en revision pero se libera Despues/Contrato por si el vendedor
+      // necesita retomar algo antes de reintentar (el cliente sigue bloqueado,
+      // esa visita ya esta en curso).
+      enRevision=false; aplicarBloqueosCaptura();
       // Si el rechazo es porque el cliente ya fue visitado este mes, mostrar
       // las mismas opciones de "Subir contrato"/"Visitar otro cliente".
-      if(/ya fue visitado este mes/i.test(msg)){ clienteYaVisitadoMes=true; $("#bloqueoClienteBtns").style.display=""; }
+      if(/ya fue visitado este mes/i.test(msg)){ clienteYaVisitadoMes=true; mostrarBloqueoCliente(msg,true); }
       return;
     }
     const l=loadV();l.unshift(rec);saveV(l);
@@ -873,15 +1022,31 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     resetVend();
   }
   function resetVend(){ Object.keys(cap).forEach(k=>cap[k]=null);geoV=null;geoVPromise=null;idxV=null;contratoBloqueado=false;clienteYaVisitadoMes=false;modoSoloContrato=false;
+    envioIniciado=false;enRevision=false;ultimoClienteVerificado=null;
     ["boxAntes","boxDespues","boxContrato"].forEach(b=>{const el=$("#"+b);el.classList.remove("has","locked");el.querySelector("img").src="";});
-    $("#fCliente").value="";$("#btnSave").disabled=true; $("#bloqueoClienteBtns").style.display="none"; }
+    $("#fCliente").value="";$("#fCliente").disabled=false;$("#btnSave").disabled=true;$("#btnSave").textContent="📤 Enviar visita"; cerrarModalVerificando(); $("#bloqueoClienteBtns").style.display="none"; aplicarBloqueosCaptura(); }
 
   // Antes de enviar de verdad, se muestra un resumen para revisar/editar.
   $("#btnSave").onclick=()=>{
     const cliente=clienteVendedor();
     if(!cliente){main("Falta el código de cliente.","err");return;}
+    // Caso "Subir contrato" (cliente ya visitado este mes, bypass): una sola
+    // foto, nada que revisar/editar -- se envia directo (enviarVisita ya sabe
+    // que en este modo solo asocia el contrato, no crea una visita nueva).
+    if(modoSoloContrato){
+      // No exigir cap.contrato.id aqui: la foto todavia no tiene id de Drive
+      // hasta que enviarVisita la suba (ya no se sube apenas se toma).
+      if(!cap.contrato){ main("Falta tomar la foto del contrato.","err"); return; }
+      enviarVisita();
+      return;
+    }
     if(!cap.antes){main("Falta la foto ANTES.","err");return;}
     if(!cap.despues){main("Falta la foto DESPUÉS.","err");return;}
+    // A partir de aqui el codigo de cliente queda bloqueado para el resto de
+    // esta visita (aunque despues se presione "Editar" en el resumen).
+    envioIniciado=true; enRevision=true;
+    $("#fCliente").disabled=true;
+    aplicarBloqueosCaptura();
     mostrarResumenVisita();
   };
   function mostrarResumenVisita(){
@@ -897,7 +1062,15 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       </div>`;
     $("#resumenModal").classList.add("open");
   }
-  $("#resumenEditar").onclick=()=>$("#resumenModal").classList.remove("open");
+  // "Editar" solo libera Despues/Contrato (aplicarBloqueosCaptura ya deja
+  // Antes bloqueado porque cap.despues sigue existiendo, y el Codigo de
+  // cliente sigue bloqueado porque envioIniciado no se resetea aqui).
+  $("#resumenEditar").onclick=()=>{
+    enRevision=false;
+    $("#resumenModal").classList.remove("open");
+    aplicarBloqueosCaptura();
+    evalVend();
+  };
   $("#resumenConfirmar").onclick=async()=>{ $("#resumenModal").classList.remove("open"); await enviarVisita(); };
   $("#resumenModal").addEventListener("click",e=>{ if(e.target.id==="resumenModal") $("#resumenModal").classList.remove("open"); });
 
@@ -1510,10 +1683,18 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     // Las 3 llamadas salen a la vez (antes se esperaba vendedores/supervisores
     // antes de recien pedir visitas/censo -- dos vueltas de red en serie).
     Promise.all([cargarVendedores(),cargarSupervisores(),fetchReporteData()]).then(renderReporte);
-  } else {
+  } else if(VISTA==="supervisor"){
+    // Solo hace falta la lista de vendedores (selector "Vendedor a censar")
+    // en la vista de supervisor. En la vista de vendedor esto NO se usa para
+    // nada (esos selects son de Supervisor/Reportes) y antes se pedia igual,
+    // compitiendo por el mismo servidor justo con cargarVendedorActual() --
+    // eso demoraba mas de lo necesario la identificacion del vendedor.
     cargarVendedores();
   }
-  if(VISTA==="vendedor") cargarVendedorActual().then(restaurarDraftVend);
+  // Bloquea las fotos desde el primer render (antes de que termine de
+  // resolverse el Vendedor), para que nunca se vean habilitadas ni un
+  // instante mientras esa consulta esta en vuelo.
+  if(VISTA==="vendedor"){ aplicarBloqueosCaptura(); cargarVendedorActual().then(restaurarDraftVend); }
   if(VISTA==="supervisor") cargarSupervisorActual().then(restaurarDraftCenso);
 })();
 </script>
