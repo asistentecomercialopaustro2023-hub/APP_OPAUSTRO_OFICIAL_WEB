@@ -3,27 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<meta name="theme-color" content="#0a1628">
+<meta name="theme-color" content="#ffffff">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.bigdatacloud.net https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>Exhibidores — Opaustro</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a1628;--panel:#0f1f3a;--border:rgba(255,255,255,.10);--txt:#e6eefb;--mut:rgba(230,238,251,.55);--blue:#0099ff;--blue2:#005B9E;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7}
+:root{--bg:#ffffff;--panel:#eef2f7;--border:rgba(10,22,40,.12);--txt:#0a1628;--mut:rgba(10,22,40,.55);--blue:#0099ff;--blue2:#005B9E;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7}
 body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:16px;padding-bottom:40px}
-body:before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 18% 12%,rgba(4,120,87,.20),transparent 45%),radial-gradient(ellipse at 85% 88%,rgba(0,91,158,.18),transparent 46%),linear-gradient(135deg,#0a1628,#0d2240 55%,#0a1628);pointer-events:none;z-index:0}
-.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 18% 12%,rgba(16,185,129,.06),transparent 45%),radial-gradient(ellipse at 85% 88%,rgba(0,153,255,.06),transparent 46%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto}
 .head{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.logo{background:#fff;border-radius:12px;padding:8px 16px}.logo img{height:28px;display:block}
+.logo{background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 16px}.logo img{height:28px;display:block}
 .head h1{font-size:20px;font-weight:800}.head .sub{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em;font-weight:600}
 .spacer{flex:1}
-.iconbtn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
-.iconbtn:hover{background:rgba(255,255,255,.13)}
-.card{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+.iconbtn{background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+.iconbtn:hover{background:rgba(10,22,40,.09)}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(10,22,40,.05)}
 .card h2{font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
 h3.sec{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 label{display:block;font-size:11px;color:var(--mut);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 input,select,textarea{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:10px 12px;font-size:14px;font-family:inherit}
+/* El selector nativo de fecha (el calendario que se abre al tocar el input)
+   sigue el tema claro/oscuro del sistema -- en un fondo oscuro como el
+   nuestro terminaba mostrando texto oscuro sobre fondo oscuro, ilegible.
+   "color-scheme:light" fuerza a que ESE popup (no el input, que ya tiene
+   nuestros propios colores) se dibuje siempre en claro, legible. */
+input[type="date"]{color-scheme:light}
 input:focus,select:focus{outline:none;border-color:var(--blue)}
 .field{margin-bottom:12px}
 .slots{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -44,61 +50,114 @@ input:focus,select:focus{outline:none;border-color:var(--blue)}
 .btn.primary{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff}
 .btn.green{background:linear-gradient(135deg,#047857,var(--green));color:#fff}
 .btn.purple{background:linear-gradient(135deg,#7c3aed,var(--purple));color:#fff}
-.btn.ghost{background:rgba(255,255,255,.07);color:var(--txt);border:1px solid var(--border)}
-.btn.red{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
-.btn:disabled{opacity:.45;cursor:not-allowed}.btn:hover:not(:disabled){filter:brightness(1.1)}
+.btn.ghost{background:rgba(10,22,40,.05);color:var(--txt);border:1px solid var(--border)}
+.btn.red{background:rgba(239,68,68,.12);color:#b91c1c;border:1px solid rgba(239,68,68,.35)}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn:hover:not(:disabled){filter:brightness(1.05)}
 .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
-.b-ok{background:rgba(16,185,129,.18);color:#6ee7b7}.b-warn{background:rgba(245,158,11,.18);color:#fcd34d}.b-bad{background:rgba(239,68,68,.18);color:#fca5a5}
-.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+.b-ok{background:rgba(16,185,129,.16);color:#047857}.b-warn{background:rgba(245,158,11,.18);color:#92400e}.b-bad{background:rgba(239,68,68,.14);color:#b91c1c}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(10,22,40,.15);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .kv{margin:4px 0}.kv b{color:var(--txt)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.chip{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:3px 9px;font-size:12px}
-.chip.g{background:rgba(16,185,129,.14);color:#6ee7b7;border-color:rgba(16,185,129,.3)}
-.bar{height:9px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-top:4px}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
+.chip{background:rgba(239,68,68,.12);color:#b91c1c;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:3px 9px;font-size:12px}
+.chip.g{background:rgba(16,185,129,.14);color:#047857;border-color:rgba(16,185,129,.35)}
+.bar{height:9px;background:rgba(10,22,40,.08);border-radius:6px;overflow:hidden;margin-top:4px}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
 .ia-box{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel);margin-top:12px;font-size:13px;line-height:1.6}.ia-box.hidden{display:none}
 .score{font-size:38px;font-weight:800;line-height:1}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border)}
 th{color:var(--mut);text-transform:uppercase;font-size:10.5px;letter-spacing:.05em}
-tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
+tr.click{cursor:pointer}tr.click:hover{background:rgba(10,22,40,.035)}
 .tbox{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
-.rank{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
-.rankcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:210px;flex:1}
+/* Grid en vez de flex:1 -- con flex:1, si solo hay 2 tarjetas cada una se
+   estira para llenar toda la fila (dejando la pantalla ancha "vacia" en el
+   sentido de que las tarjetas se ven infladas en vez de mostrarse mas chicas
+   y caber 3 o 4 por fila). Con auto-fill, entran tantas columnas de ~260px
+   como quepan segun el ancho real de pantalla -- 3, 4 o mas en un monitor
+   ancho, y se reacomoda solo en movil (ver @media mas abajo, que sigue
+   forzando 2 columnas fijas en pantalla chica). */
+.rank{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:14px}
+.rankcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:0}
 .rankcard.click{cursor:pointer}.rankcard.click:hover{border-color:var(--acc,#3b82f6)}
 .rankcard.is-active{border-color:var(--acc,#3b82f6);box-shadow:0 0 0 1px var(--acc,#3b82f6)}
 .fecha-filtro{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mut)}
 .fecha-filtro input{margin-top:2px}
 .avance-toolbar{justify-content:space-between}
 .avance-toolbar #rankSupervisores{margin-left:auto;max-width:260px}
+/* Un solo "chip" compacto (borde propio, fondo propio) en vez de 2 campos
+   con su etiqueta arriba (altas, cada una con distinta altura que el select
+   de al lado -- eso era lo que se veia como escalera). Todo en una sola
+   linea, misma altura, con la "✕" pegada al final. Mismo chip en las 3
+   pestañas del Reporte (Avance, Visitas, Censo). */
+.fecha-chip{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:5px 10px}
+.fecha-chip-lbl{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.fecha-chip input[type=date]{width:auto;max-width:120px;padding:4px 2px;font-size:12.5px;background:transparent;border:none;color:var(--txt)}
+.fecha-chip input[type=date]:focus{outline:none}
+.btn-limpiar-fecha{border:1px solid var(--border);background:transparent;color:var(--txt);border-radius:7px;padding:3px 7px;cursor:pointer;font-size:12px;line-height:1.4;flex-shrink:0}
+.btn-limpiar-fecha:hover{border-color:var(--acc,#3b82f6)}
+.btn-limpiar-fecha:disabled{opacity:.5;cursor:not-allowed}
+/* Con el tema ahora claro, el icono nativo del calendario (oscuro por
+   defecto) ya se ve bien solo -- no hace falta invertirlo. */
+input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
 .icon-btn-sm{border:1px solid var(--border);background:transparent;color:var(--txt);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:13px}
 .icon-btn-sm:hover{border-color:var(--acc,#3b82f6)}
+.icon-btn-sm:disabled{opacity:.5;cursor:not-allowed}
+#btnRefrescarReporte{margin-left:auto;flex-shrink:0;white-space:nowrap;background:rgba(0,153,255,.12);border-color:rgba(0,153,255,.35);color:var(--blue2)}
+#btnRefrescarReporte:hover{background:rgba(0,153,255,.18);border-color:rgba(0,153,255,.5)}
+#btnRefrescarReporte .ico{display:inline-block}
+#btnRefrescarReporte .ico.spin{animation:sp .8s linear infinite}
+@media(max-width:420px){#btnRefrescarReporte span.txt{display:none}}
 @media(max-width:700px){
   #rank.rank,#rankCenso.rank{display:grid;grid-template-columns:repeat(2,1fr)}
   #rank.rank .rankcard,#rankCenso.rank .rankcard{min-width:0}
   .avance-toolbar{flex-direction:column;align-items:stretch}
   .avance-toolbar #rankSupervisores{margin-left:0;max-width:100%}
+  .avance-toolbar .fecha-chip{width:100%;justify-content:space-between}
+  .avance-toolbar .fecha-chip input[type=date]{max-width:none;flex:1 1 0;min-width:0}
 }
 .rankcard .nom{font-size:14px;font-weight:700;margin-bottom:4px}.rankcard .v{font-size:26px;font-weight:800}.rankcard .n{font-size:11.5px;color:var(--mut);margin-top:5px}
-.prog{height:8px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin:8px 0 3px}.prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue))}
+.prog{height:8px;background:rgba(10,22,40,.08);border-radius:5px;overflow:hidden;margin:8px 0 3px}.prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue))}
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .rtab{background:none;border:none;color:var(--mut);padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}.rtab.active{color:var(--txt);border-bottom-color:var(--blue)}
+/* Pantalla chica: las 3 pestañas de Reporte en grid de 2 columnas (Avance +
+   Visitas en la primera fila, Censo supervisor sola en la segunda) en vez de
+   apiladas una por fila. El select del vendedor de la pestaña activa se mueve
+   (ver ajustarFiltroMovil en el script) al final de esta misma barra, cayendo
+   justo al lado de "Censo supervisor" en esa segunda fila. */
+@media(max-width:700px){
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;border-bottom:none}
+  .tabs .rtab{border:1px solid var(--border);border-radius:10px;text-align:center;margin-bottom:0;background:rgba(10,22,40,.035)}
+  .tabs .rtab.active{border-color:var(--blue);background:rgba(0,153,255,.14)}
+  .tabs select{margin:0;align-self:center}
+  /* Fila de filtros de Visitas/Censo: en vez de apilar cliente, fechas y el
+     boton "Exportar..." (texto largo) cada uno en su propia linea, quedan en
+     grid de 2 columnas -- fila 1: Cliente + boton Exportar (solo iconos, sin
+     texto); fila 2: Desde + Hasta. El select de vendedor no entra aca: ya se
+     movio arriba, a la barra de pestañas (ver ajustarFiltroMovil). */
+  .filtros-reporte{display:grid;grid-template-columns:1fr auto;gap:8px 10px;align-items:end;margin-top:0}
+  .filtros-reporte select{display:none}
+  .filtros-reporte #repFiltroCliente,.filtros-reporte #cFiltroCliente{order:1;max-width:130px}
+  .filtros-reporte #btnExport,.filtros-reporte #btnExportCenso{order:2;padding:10px 14px;white-space:nowrap;justify-self:end}
+  .filtros-reporte #btnExport .txt,.filtros-reporte #btnExportCenso .txt{display:none}
+  .filtros-reporte .fecha-chip{order:3;grid-column:1/-1;width:100%;justify-content:space-between}
+  .filtros-reporte .fecha-chip input[type=date]{max-width:none;flex:1 1 0;min-width:0}
+}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
 .gitem{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);cursor:pointer;position:relative}.gitem img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
 .fotos-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
 .fotobox{flex:1 1 0;min-width:90px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);cursor:pointer;display:flex;flex-direction:column}
-.fotobox span{font-size:11px;color:var(--mut);text-align:center;padding:4px 0;background:rgba(255,255,255,.04)}
+.fotobox span{font-size:11px;color:var(--mut);text-align:center;padding:4px 0;background:rgba(10,22,40,.035)}
 .fotobox img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
 .fotobox.empty{cursor:default;align-items:center}
 .fotobox.empty .fotobox-ph{aspect-ratio:1/1;width:100%;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:11px}
 .gitem .tag{position:absolute;top:5px;right:5px;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700}
 .empty{color:var(--mut);font-size:13px;text-align:center;padding:22px}
-.status{font-size:14px;margin-top:12px;min-height:18px}.status.err{color:#fca5a5}.status.ok{color:#6ee7b7}.status.info{color:var(--mut)}
-.modal{position:fixed;inset:0;background:rgba(3,8,20,.8);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.modal.open{display:flex}
-.modal .inner{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:20px}.modal .inner img{width:100%;border-radius:12px;margin-bottom:8px}
+.status{font-size:14px;margin-top:12px;min-height:18px}.status.err{color:#b91c1c}.status.ok{color:#047857}.status.info{color:var(--mut)}
+.modal{position:fixed;inset:0;background:rgba(3,8,20,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.modal.open{display:flex}
+.modal .inner{background:#fff;border:1px solid var(--border);border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:20px;box-shadow:0 8px 30px rgba(10,22,40,.15)}.modal .inner img{width:100%;border-radius:12px;margin-bottom:8px}
 .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.thumbs figure{font-size:10px;color:var(--mut);text-align:center}.thumbs img{width:100%;border-radius:8px;margin:0 0 3px}
 .note{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.5}
-.pill{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--mut)}.pill.demo{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fcd34d}
+.pill{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--mut)}.pill.demo{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#92400e}
 @media(max-width:600px){.grid3,.grid2{grid-template-columns:1fr}body{padding:12px}}
 </style>
 </head>
@@ -155,13 +214,13 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     <div class="btnrow" id="bloqueoClienteSupBtns" style="display:none">
       <button class="btn ghost" id="btnOtroClienteSup">🧑 Censar otro cliente</button>
     </div>
-    <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button></div>
+    <div class="btnrow"><button class="btn purple" id="btnSupSave" disabled>💾 Guardar censo</button><button class="btn ghost" id="btnLimpiarSup">↺ Limpiar</button></div>
     <div class="note">Meta: <b>20 visitas por vendedor al mes</b>.</div>
   </div>
 
   <!-- ===== VISTA REPORTE ===== -->
   <div class="card" id="cardReporte">
-    <h2>📊 Reportes <span class="pill" id="repCount">0</span></h2>
+    <h2>📊 Reportes <span class="pill" id="repCount">0</span><button type="button" class="icon-btn-sm" id="btnRefrescarReporte" title="Actualizar información"><span class="ico">🔄</span> <span class="txt">Actualizar</span></button></h2>
     <div class="tabs">
       <button class="rtab active" data-tab="vendedores">👤 Avance por vendedor</button>
       <button class="rtab" data-tab="visitas">🗂️ Visitas (vendedor)</button>
@@ -171,19 +230,27 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     <div id="tabVendedores" class="tabpane">
       <div class="btnrow avance-toolbar" style="margin-top:0;margin-bottom:12px;align-items:flex-start">
         <select id="fFiltroAvance" style="max-width:220px"><option value="">Todos los vendedores</option></select>
+        <div class="fecha-chip">
+          <span class="fecha-chip-lbl">Desde</span><input type="date" id="avanceDesde">
+          <span class="fecha-chip-lbl">Hasta</span><input type="date" id="avanceHasta">
+          <button type="button" class="btn-limpiar-fecha" id="btnLimpiarFechaAvance" title="Quitar filtro de fecha (volver al mes actual)">✕</button>
+        </div>
         <div class="rank" id="rankSupervisores"></div>
       </div>
-      <div class="note" id="notaTotalAvance" style="margin:0 0 12px">Total /100 = ejecución del vendedor (/65) + censo del supervisor (/35).</div>
+      <div class="note" id="notaTotalAvance" style="margin:0 0 12px">Total /100 = acumulado vendedor (/65) + acumulado supervisor (/35) del rango elegido.</div>
       <div class="rank" id="rank"></div>
     </div>
 
     <div id="tabVisitas" class="tabpane" style="display:none">
-      <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+      <div class="btnrow filtros-reporte" style="margin-top:0;margin-bottom:12px">
         <select id="fFiltro" style="max-width:220px"><option value="">Todos los vendedores</option></select>
         <input id="repFiltroCliente" placeholder="Cliente..." style="max-width:150px">
-        <label class="fecha-filtro">Desde<input type="date" id="repDesde"></label>
-        <label class="fecha-filtro">Hasta<input type="date" id="repHasta"></label>
-        <button class="btn ghost" id="btnExport">⬇️ Exportar visitas (XLSX)</button>
+        <div class="fecha-chip">
+          <span class="fecha-chip-lbl">Desde</span><input type="date" id="repDesde">
+          <span class="fecha-chip-lbl">Hasta</span><input type="date" id="repHasta">
+          <button type="button" class="btn-limpiar-fecha" id="btnLimpiarFechaVisitas" title="Quitar filtro de fecha">✕</button>
+        </div>
+        <button class="btn ghost" id="btnExport" title="Exportar visitas a Excel (XLSX)"><span class="ico">⬇️📊</span> <span class="txt">Exportar visitas (XLSX)</span></button>
       </div>
       <div class="tbox"><table>
         <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>% Llenado</th><th>Doc</th><th>Antes/Desp</th><th>Puntaje /65</th><th>Fotos</th></tr></thead>
@@ -194,12 +261,15 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
 
     <div id="tabCenso" class="tabpane" style="display:none">
       <div class="rank" id="rankCenso"></div>
-      <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+      <div class="btnrow filtros-reporte" style="margin-top:0;margin-bottom:12px">
         <select id="cFiltroVendedor" style="max-width:220px"><option value="">Todos los vendedores</option></select>
         <input id="cFiltroCliente" placeholder="Cliente..." style="max-width:150px">
-        <label class="fecha-filtro">Desde<input type="date" id="cDesde"></label>
-        <label class="fecha-filtro">Hasta<input type="date" id="cHasta"></label>
-        <button class="btn ghost" id="btnExportCenso">⬇️ Exportar censo (XLSX)</button>
+        <div class="fecha-chip">
+          <span class="fecha-chip-lbl">Desde</span><input type="date" id="cDesde">
+          <span class="fecha-chip-lbl">Hasta</span><input type="date" id="cHasta">
+          <button type="button" class="btn-limpiar-fecha" id="btnLimpiarFechaCenso" title="Quitar filtro de fecha">✕</button>
+        </div>
+        <button class="btn ghost" id="btnExportCenso" title="Exportar censo a Excel (XLSX)"><span class="ico">⬇️📊</span> <span class="txt">Exportar censo (XLSX)</span></button>
       </div>
       <div class="tbox"><table>
         <thead><tr><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Contaminado</th><th>Invasiones</th><th>Pts /35</th><th>Fotos</th></tr></thead>
@@ -276,6 +346,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   <div class="btnrow"><button class="btn red" id="delEjecutar">🗑️ Eliminar lo filtrado</button><button class="btn ghost" id="delClose">Cerrar</button></div>
   <div class="note" style="margin-top:14px">🧹 Filas cuyas fotos ya se borraron directamente en Drive (fuera de la app): esto las quita también del Sheet, no hace falta indicar vendedor.</div>
   <div class="btnrow"><button class="btn ghost" id="delHuerfanosVisita">🧹 Limpiar huérfanos (Visitas)</button><button class="btn ghost" id="delHuerfanosCenso">🧹 Limpiar huérfanos (Censo)</button></div>
+  <div class="note" style="margin-top:14px">🗜️ Filas viejas que ya tienen una miniatura pesada guardada (de antes de achicarlas): esto trae la foto completa, genera una miniatura chica nueva (igual que las que se guardan ahora) y la reemplaza, sin tocar la foto original en Drive. Puede tardar varios minutos si hay muchas filas.</div>
+  <div class="btnrow"><button class="btn ghost" id="btnAchicarMiniaturas">🗜️ Achicar miniaturas viejas</button></div>
   <div class="status" id="delStatus"></div>
 </div></div>
 
@@ -418,6 +490,23 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   $("#cDesde").addEventListener("change",renderCenso);
   $("#cHasta").addEventListener("change",renderCenso);
   $("#fFiltroAvance").addEventListener("change",renderVendedores);
+  $("#avanceDesde").addEventListener("change",renderVendedores);
+  $("#avanceHasta").addEventListener("change",renderVendedores);
+  // Botones "✕" junto a cada filtro de fecha: Avance vuelve al mes actual (1
+  // del mes hasta hoy, el default natural de esa pestaña); Visitas/Censo solo
+  // vacian Desde/Hasta (su default sin fecha es mostrar todo, sin filtrar).
+  $("#btnLimpiarFechaAvance").addEventListener("click",()=>{
+    const n=new Date(), p=ecuadorParts_(n);
+    $("#avanceDesde").value=fmtFechaInput(ecuadorMidnightUTC_(p.y,p.m,1));
+    $("#avanceHasta").value=fmtFechaInput(n);
+    renderVendedores();
+  });
+  $("#btnLimpiarFechaVisitas").addEventListener("click",()=>{
+    $("#repDesde").value=""; $("#repHasta").value=""; renderVisitas();
+  });
+  $("#btnLimpiarFechaCenso").addEventListener("click",()=>{
+    $("#cDesde").value=""; $("#cHasta").value=""; renderCenso();
+  });
   $("#fCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalVend();});
   $("#sCliente").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"");evalSup();});
 
@@ -429,6 +518,24 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   function fmtDate(d){const M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
   function escala(img,max){const c=document.createElement("canvas");const k=Math.min(1,max/Math.max(img.width,img.height));c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c;}
   function dataUrlToImg(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>res(img);img.src=dataUrl;});}
+  // Detecta una foto en negro/muy oscura (lente tapado, flash que no disparo,
+  // camara que no tuvo tiempo de ajustar exposicion) ANTES de aceptarla o
+  // mandarla a analizar con IA -- una foto asi no muestra nada real del
+  // exhibidor, y la IA de contaminacion respondia "sin contaminacion" con
+  // confianza igual, porque el prompt no tiene una salida para "no se puede
+  // ver nada" (siempre elige contaminado true/false). Se mide el brillo
+  // promedio (luminancia) sobre una copia chica (40x40) de la foto -- barato,
+  // no hace falta la resolucion completa para esto.
+  function brilloPromedio_(imgEl){
+    const w=40,h=40;
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    const ctx=c.getContext("2d"); ctx.drawImage(imgEl,0,0,w,h);
+    const data=ctx.getImageData(0,0,w,h).data;
+    let suma=0;
+    for(let i=0;i<data.length;i+=4){ suma+=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114; }
+    return suma/(data.length/4); // 0 (negro) - 255 (blanco)
+  }
+  const BRILLO_MINIMO=15; // por debajo de esto se considera "foto en negro"
   function sellar(dataUrl,geo,idx,codigoCliente,calidad){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=img.width;c.height=img.height;const x=c.getContext("2d");x.drawImage(img,0,0);
     const lines=[fmtDate(new Date())];((geo&&geo.lugar)||[]).forEach(l=>lines.push(l));
     if(geo&&geo.lat!=null)lines.push(`Lat ${geo.lat.toFixed(5)}  Lng ${geo.lng.toFixed(5)}`);
@@ -441,7 +548,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     let y=c.height-bh+pad;lines.forEach((t,i)=>{x.fillStyle=i===0?"#ffd24a":"#ff8a1e";x.fillText(t,pad,y);y+=lh;});
     x.shadowBlur=3;x.font=`800 ${Math.round(fs*0.9)}px "Segoe UI",Arial`;x.fillStyle="rgba(255,255,255,.9)";const tag="OPAUSTRO";x.fillText(tag,c.width-x.measureText(tag).width-pad,pad);
     res(c.toDataURL("image/jpeg",calidad||0.85));};img.src=dataUrl;});}
-  function hacerThumb(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=escala(img,240);res(c.toDataURL("image/jpeg",0.5));};img.onerror=()=>res("");img.src=dataUrl;});}
+  // Mas chica y con menos calidad que antes (240px/0.5 -> 150px/0.4): con
+  // varias decenas de visitas, cada una cargando hasta 3 miniaturas (Antes,
+  // Despues, Contrato) en la misma respuesta de getVisitas, el payload total
+  // crecia a varios cientos de KB (se midio ~900KB con 18 filas), lo que
+  // tardaba mas de 10 segundos solo en transferirse -- mucho mas de los "no
+  // mas de 3 segundos" pedidos. Una miniatura mas chica sigue viendose bien
+  // en la tabla/galeria (se muestra a ~120px), pero pesa una fraccion.
+  function hacerThumb(dataUrl){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=escala(img,150);res(c.toDataURL("image/jpeg",0.4));};img.onerror=()=>res("");img.src=dataUrl;});}
 
   // ===================== CAMARA EN VIVO (sin galeria) =====================
   // Todas las fotos del modulo (antes/despues/contrato del vendedor, censo del
@@ -758,6 +872,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     abrirCamara(TITULOS_SLOT[key],async(raw)=>{
       if(!geoV){ main('<span class="spin"></span>Confirmando ubicación...',"info",true); geoV=await geoVPromise; }
       const img=await dataUrlToImg(raw);
+      if(brilloPromedio_(img)<BRILLO_MINIMO){ main("❌ La foto salió muy oscura/en negro, no se pudo ver el exhibidor. Vuelve a tomarla con mejor luz.","err"); return; }
       // El contrato necesita mas resolucion y calidad que Antes/Despues --
       // tiene texto pequeno (codigo de cliente escrito a mano) que el OCR y
       // el propio vendedor necesitan poder leer con claridad; 1280px/0.82 lo
@@ -947,10 +1062,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         guardarDraftVend();
       }
       main('<span class="spin"></span>Asociando contrato a la visita de este mes...',"info",true);
+      const thumbContrato=await hacerThumb(cap.contrato.img);
       let resultado;
       try{
         const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-          body:JSON.stringify({action:"actualizarContratoDeVisita",payload:{vendedor:VENDEDOR_ACTUAL,cliente,contratoId:cap.contrato.id,apiKey:INTERNAL_API_KEY}})});
+          body:JSON.stringify({action:"actualizarContratoDeVisita",payload:{vendedor:VENDEDOR_ACTUAL,cliente,contratoId:cap.contrato.id,thumbContrato:thumbContrato||"",apiKey:INTERNAL_API_KEY}})});
         resultado=await resp.json();
       }catch(e){ resultado={success:false,message:"Sin conexión: "+e.message}; }
       if(!resultado||!resultado.success){ main("❌ "+((resultado&&resultado.message)||"No se pudo actualizar la visita."),"err"); $("#btnSave").disabled=false; return; }
@@ -980,7 +1096,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     catch(e){ r={porcentaje_llenado:0,orden_limpieza:"",observaciones:"Sin análisis: "+e.message}; }
     const doc=!!cap.contrato, ev=!!(cap.antes&&cap.despues), ll=clamp(r.porcentaje_llenado);
     const puntaje=Math.round(35*ll/100)+(doc?20:0)+(ev?10:0);
+    // Miniaturas de las 3 fotos (no solo "Despues"): sin esto, Antes y Contrato
+    // llegaban al reporte sin nada que mostrar hasta que el navegador pedia la
+    // foto completa a Drive (lenta) -- se veian con el icono de imagen rota
+    // varios segundos. Con las 3 miniaturas viajando ya en la misma respuesta
+    // de getVisitas, el reporte siempre tiene algo nitido al instante.
     const thumb=await hacerThumb(cap.despues.img);
+    const thumbAntes=cap.antes?await hacerThumb(cap.antes.img):"";
+    const thumbContrato=cap.contrato?await hacerThumb(cap.contrato.img):"";
     const rec={id:Date.now(),index:idxV,fecha:(geoV&&geoV.fecha)||new Date().toISOString(),vendedor:VENDEDOR_ACTUAL,cliente:cliente,marca:$("#fMarca").value.trim()||"Mondelez",
       lat:geoV&&geoV.lat,lng:geoV&&geoV.lng,lugar:(geoV&&geoV.lugar)||[],
       fotoAntes:cap.antes&&cap.antes.img,fotoDespues:cap.despues.img,contrato:cap.contrato&&cap.contrato.img,thumb:thumb,
@@ -999,7 +1122,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
           porcentaje_llenado:ll,documento_firmado:doc,evidencia_completa:ev,orden_limpieza:r.orden_limpieza,observaciones:r.observaciones,
           lat:rec.lat,lng:rec.lng,lugar:(rec.lugar||[]).join(", "),
           fotoAntesId:cap.antes.id||"",fotoDespuesId:cap.despues.id||"",contratoId:cap.contrato?(cap.contrato.id||""):"",
-          thumb:rec.thumb||"",device:"web",apiKey:INTERNAL_API_KEY}})});
+          thumb:rec.thumb||"",thumbAntes:thumbAntes||"",thumbContrato:thumbContrato||"",device:"web",apiKey:INTERNAL_API_KEY}})});
       resultado=await resp.json();
     }catch(e){ resultado={success:false,message:"Sin conexión: "+e.message}; }
     if(!resultado||!resultado.success){
@@ -1077,28 +1200,68 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // ===================== SUPERVISOR =====================
   const K_DRAFT_C="opaustro_censo_draft";
   const capSup={foto:null}; let geoS=null,geoSPromise=null,idxS=null,supIA=null,clienteYaCensadoMes=false;
+  // Mismo patron que el vendedor (ultimoClienteVerificado): no basta con que
+  // Vendedor+Cliente esten llenos -- hace falta ademas que la consulta real al
+  // servidor ("ya fue censado este mes?") haya respondido para ESA MISMA
+  // combinacion. Mientras esa respuesta no llegue (o si Vendedor/Cliente
+  // cambio despues de pedirla), se trata igual que "bloqueado": nunca se
+  // asume "disponible" por defecto mientras se espera.
+  let ultimoClienteVerificadoSup=null;
+  function claveSup_(){ return $("#sVendedor").value+"|"+$("#sCliente").value.trim(); }
+  // Listo para tomar la foto SOLO si: hay Supervisor identificado, Vendedor
+  // elegido, Cliente escrito, la verificacion del servidor ya respondio para
+  // esa combinacion exacta, y no esta ya censado este mes.
+  function listoParaCensar(){
+    return !!(SUPERVISOR_ACTUAL && $("#sVendedor").value && $("#sCliente").value.trim()
+      && ultimoClienteVerificadoSup===claveSup_() && !clienteYaCensadoMes);
+  }
+  // Unico punto que decide si la foto se puede tomar ahora (igual que
+  // aplicarBloqueosCaptura del vendedor): mientras no este "listo", el
+  // recuadro de la foto queda bloqueado. En cuanto queda listo (verificacion
+  // aprobada), Vendedor y Cliente se bloquean de inmediato -- ya no se pueden
+  // cambiar sin presionar "Limpiar"/"Censar otro cliente", para no terminar
+  // tomando la foto de un cliente distinto al que se valido.
+  function aplicarBloqueosCenso(){
+    const listo=listoParaCensar();
+    $("#sVendedor").disabled=listo; $("#sCliente").disabled=listo;
+    $("#boxSup").classList.toggle("locked",!listo);
+  }
   // Mismo criterio que el vendedor: un vendedor censado no puede volver a
   // censarse con el mismo cliente en el mismo mes (sin importar el supervisor).
   async function verificarClienteCensadoMes(){
-    const cliente=$("#sCliente").value.trim(), vendedor=$("#sVendedor").value;
-    clienteYaCensadoMes=false; $("#bloqueoClienteSupBtns").style.display="none";
-    if(!cliente||!vendedor) return;
+    const vendedor=$("#sVendedor").value, cliente=$("#sCliente").value.trim();
+    clienteYaCensadoMes=false; ultimoClienteVerificadoSup=null;
+    $("#bloqueoClienteSupBtns").style.display="none";
+    aplicarBloqueosCenso();
+    if(!cliente||!vendedor||!SUPERVISOR_ACTUAL) return;
     const url=apiUrl(); if(!url) return;
+    const claveEnVuelo=vendedor+"|"+cliente;
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({action:"clienteCensadoMes",payload:{vendedor,cliente,apiKey:INTERNAL_API_KEY}})});
       const data=await resp.json();
-      if(data&&data.success&&data.visitado){
-        clienteYaCensadoMes=true;
+      if(!data||!data.success){ supMsg("❌ No se pudo verificar el cliente. Vuelve a intentar.","err"); return; }
+      // Si Vendedor/Cliente cambiaron mientras esta respuesta viajaba, ya
+      // quedo obsoleta -- no debe habilitar nada para la combinacion vieja.
+      if(claveSup_()!==claveEnVuelo) return;
+      clienteYaCensadoMes=!!data.visitado;
+      if(clienteYaCensadoMes){
         supMsg("Este cliente ya fue censado este mes para este vendedor. Podrás volver a censarlo el próximo mes.","err");
         $("#bloqueoClienteSupBtns").style.display="";
+      } else {
+        ultimoClienteVerificadoSup=claveEnVuelo;
+        supMsg("Cliente disponible. Puedes tomar la foto.","ok");
       }
-    }catch(e){}
+    }catch(e){ supMsg("❌ No se pudo verificar el cliente (sin conexión). Vuelve a intentar.","err"); }
+    finally{ aplicarBloqueosCenso(); }
   }
-  // Igual que en vendedor: si ya se subio la foto del censo a Drive antes de
-  // que la verificacion terminara de responder, esa foto quedaria huerfana
-  // (ningun censo guardado la referenciaria) -- se borra al elegir otro cliente.
-  $("#btnOtroClienteSup").onclick=async()=>{
+  // Compartida por "Censar otro cliente" (cuando el cliente ya esta bloqueado
+  // este mes) y el boton general "Limpiar": si ya se alcanzo a subir la foto
+  // del censo a Drive antes de guardar, esa foto quedaria huerfana (ningun
+  // censo guardado la referenciaria) -- se borra, y se limpia todo el
+  // formulario + la cache local (draft), dejando Vendedor/Cliente editables
+  // de nuevo para empezar otro censo.
+  async function limpiarTodoSup(){
     $("#bloqueoClienteSupBtns").style.display="none";
     supMsg('<span class="spin"></span>Limpiando...',"info",true);
     if(capSup.foto&&capSup.foto.id){
@@ -1108,7 +1271,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     }
     resetSup(); borrarDraftCenso();
     supMsg("Listo, ingresa el nuevo cliente.","ok");
-  };
+  }
+  $("#btnOtroClienteSup").onclick=limpiarTodoSup;
+  $("#btnLimpiarSup").onclick=limpiarTodoSup;
   // Igual que en vendedor: la foto NO se sube a Drive apenas se toma, se
   // guarda completa (base64) en localStorage y recien se sube al presionar
   // "Guardar censo" -- asi no queda huerfana en Drive si nunca se guarda.
@@ -1128,9 +1293,14 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       idxS=d.idxS||null; geoS=d.geoS||null;
       if(d.foto&&d.foto.img){
         capSup.foto={img:d.foto.img,raw:d.foto.raw}; pintar("boxSup",d.foto.img);
-        supMsg('<span class="spin"></span>Se recuperó el censo pendiente, volviendo a analizar...',"info",true);
-        analizarCenso();
+        supMsg("Se recuperó el censo pendiente. Presiona Guardar censo.","ok");
+        evalSup();
       }
+      // El vendedor/cliente restaurados todavia no tienen una respuesta real y
+      // reciente del servidor sobre "ya censado este mes" (ultimoClienteVerificadoSup
+      // se reinicio con la pagina) -- se vuelve a pedir, igual que si el
+      // supervisor acabara de elegirlos, antes de dejar tomar/retomar la foto.
+      if(d.cliente&&d.vendedor) verificarClienteCensadoMes();
     }catch(e){}
   }
   async function subirFotoCenso(cliente,imagen){
@@ -1143,19 +1313,28 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   }
   function capturarFotoSupervisor(){
     const cliente=$("#sCliente").value.trim();
-    if(!cliente){ supMsg("Ingresa el código de cliente antes de tomar la foto.","err"); return; }
-    if(clienteYaCensadoMes){ supMsg("Este cliente ya fue censado este mes para este vendedor. Podrás volver a censarlo el próximo mes.","err"); return; }
+    // Defensa adicional (ya deberia estar bloqueado visualmente via .locked):
+    // nunca tomar la foto sin Supervisor+Vendedor+Cliente confirmados por el
+    // servidor como disponibles para censar.
+    if(!listoParaCensar()){ supMsg("Espera a que se confirme el vendedor y el cliente antes de tomar la foto.","err"); return; }
     if(!idxS)idxS=nextIndex();
     if(!geoS&&!geoSPromise) geoSPromise=getGeo();
     abrirCamara("Foto del exhibidor (censo)",async raw=>{
       if(!geoS){ supMsg('<span class="spin"></span>Confirmando ubicación...',"info",true); geoS=await geoSPromise; }
-      const img=await dataUrlToImg(raw); const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
+      const img=await dataUrlToImg(raw);
+      if(brilloPromedio_(img)<BRILLO_MINIMO){ supMsg("❌ La foto salió muy oscura/en negro, no se pudo ver el exhibidor. Vuelve a tomarla con mejor luz.","err"); return; }
+      const escalada=escala(img,1280).toDataURL("image/jpeg",0.82);
       const sellada=await sellar(escalada,geoS,idxS,cliente);
-      // No se sube a Drive todavia -- se sube al presionar "Guardar censo".
-      capSup.foto={img:sellada,raw:escalada}; pintar("boxSup",sellada);
-      supMsg("Foto lista.","ok");
+      // No se sube a Drive todavia -- se sube al presionar "Guardar censo". El
+      // analisis de contaminacion (IA) tampoco se hace aqui -- antes se hacia
+      // apenas se tomaba la foto y HASTA QUE TERMINABA (varios segundos) no se
+      // podia hacer nada mas, lo que se sentia como que "la foto tardaba en
+      // cargar". Ahora, igual que el llenado del vendedor, el analisis se hace
+      // recien al presionar "Guardar censo" -- tomar la foto queda inmediato.
+      capSup.foto={img:sellada,raw:escalada}; pintar("boxSup",sellada); supIA=null;
+      supMsg("Foto lista. Presiona Guardar censo.","ok");
       guardarDraftCenso();
-      await analizarCenso();
+      evalSup();
     });
   }
   (function(){
@@ -1165,11 +1344,8 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     box.addEventListener("click",()=>{ if(!box.classList.contains("has")) capturarFotoSupervisor(); });
   })();
   async function analizarCenso(){
-    supMsg('<span class="spin"></span>Analizando contaminación...',"info",true); supIA=null;
-    try{ supIA=demoOn()?await demoContam():await claudeCall(capSup.foto.raw.split(",")[1],"contaminacion"); }
-    catch(e){ supMsg("No se pudo analizar: "+e.message,"err"); return; }
-    renderSupIA(supIA); $("#btnSupSave").disabled=false; supMsg("Revisa el resultado y guarda el censo.","ok");
-    evalSup();
+    try{ supIA=demoOn()?await demoContam():await claudeCall(capSup.foto.raw.split(",")[1],"contaminacion"); return true; }
+    catch(e){ supMsg("❌ No se pudo analizar la foto: "+e.message+". Vuelve a intentar.","err"); return false; }
   }
   // El detalle del analisis (contaminado/invasiones/observaciones) es para
   // analisis interno de gerencia/administracion en Reportes -- al supervisor
@@ -1177,15 +1353,36 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // sin mostrarle el resultado.
   function renderSupIA(r){ const box=$("#supIA");box.classList.remove("hidden");
     box.innerHTML=`<div class="kv">✔ Foto analizada. Revisa y guarda el censo.</div>`; }
-  function evalSup(){ const ok=$("#sCliente").value.trim()&&capSup.foto&&supIA&&!clienteYaCensadoMes; $("#btnSupSave").disabled=!ok; }
+  // supIA ya no es requisito para habilitar "Guardar censo" -- el analisis se
+  // hace recien al presionar ese boton (ver guardarCenso), no apenas se toma
+  // la foto.
+  // "Guardar censo" solo se habilita si ademas de estar todo listo
+  // (listoParaCensar) ya hay una foto tomada -- el boton existe siempre pero
+  // se mantiene desactivado (nunca se puede enviar) hasta que haya foto.
+  function evalSup(){ $("#btnSupSave").disabled=!(listoParaCensar()&&capSup.foto); }
+  // Bloqueo "duro" TEMPORAL mientras se guarda el censo en curso (distinto de
+  // aplicarBloqueosCenso, que bloquea/desbloquea segun si esta validado):
+  // aca se fuerza bloqueado sin importar el estado, para que nada se toque
+  // mientras la subida esta en vuelo.
+  function bloquearCamposSup(bloquear){
+    if(bloquear){ $("#sVendedor").disabled=true; $("#sCliente").disabled=true; $("#boxSup").classList.add("locked"); }
+    else{ aplicarBloqueosCenso(); }
+  }
   async function guardarCenso(){
     const cliente=$("#sCliente").value.trim(); if(!cliente){supMsg("Falta el código de cliente.","err");return;}
-    if(!capSup.foto||!supIA){supMsg("Toma la foto primero.","err");return;}
+    if(!capSup.foto){supMsg("Toma la foto primero.","err");return;}
     $("#btnSupSave").disabled=true;
+    bloquearCamposSup(true);
+    if(!supIA){
+      supMsg('<span class="spin"></span>Analizando contaminación...',"info",true);
+      const ok=await analizarCenso();
+      if(!ok){ evalSup(); bloquearCamposSup(false); return; }
+      renderSupIA(supIA);
+    }
     if(!capSup.foto.id){
       supMsg('<span class="spin"></span>Cargando foto...',"info",true);
       try{ const s=await subirFotoCenso(cliente,capSup.foto.img); capSup.foto.id=s.fotoId; }
-      catch(e){ supMsg("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); $("#btnSupSave").disabled=false; return; }
+      catch(e){ supMsg("❌ No se pudo guardar la foto en Drive: "+e.message+". Vuelve a intentar.","err"); evalSup(); bloquearCamposSup(false); return; }
       guardarDraftCenso();
     }
     supMsg('<span class="spin"></span>Guardando censo...',"info",true);
@@ -1197,7 +1394,7 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     // realmente lo rechazaba (ej. cliente ya censado este mes) -- ahora se
     // espera la respuesta real antes de decir que se guardo.
     const url=apiUrl();
-    if(!url){ supMsg("❌ Falta configurar la URL del servidor.","err"); $("#btnSupSave").disabled=false; return; }
+    if(!url){ supMsg("❌ Falta configurar la URL del servidor.","err"); evalSup(); bloquearCamposSup(false); return; }
     let resultado;
     try{
       const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -1209,18 +1406,23 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     if(!resultado||!resultado.success){
       const msg=(resultado&&resultado.message)||"No se pudo guardar el censo.";
       supMsg("❌ "+msg,"err");
-      $("#btnSupSave").disabled=false;
-      if(/ya fue censado este mes/i.test(msg)){ clienteYaCensadoMes=true; $("#bloqueoClienteSupBtns").style.display=""; }
+      if(/ya fue censado este mes/i.test(msg)){ clienteYaCensadoMes=true; ultimoClienteVerificadoSup=null; $("#bloqueoClienteSupBtns").style.display=""; }
+      evalSup(); bloquearCamposSup(false);
       return;
     }
+    // Al guardar con exito se borran los datos y la cache (draft) del formulario
+    // -- resetSup() ya deja Vendedor/Cliente en blanco y editables de nuevo,
+    // sin restos del censo anterior que pudieran complicar el siguiente.
     const l=loadC();l.unshift(rec);saveC(l);
     supMsg("✔ Censo guardado.","ok");
     borrarDraftCenso();
     resetSup();
   }
-  function resetSup(){ capSup.foto=null;geoS=null;geoSPromise=null;idxS=null;supIA=null;clienteYaCensadoMes=false;
+  function resetSup(){ capSup.foto=null;geoS=null;geoSPromise=null;idxS=null;supIA=null;clienteYaCensadoMes=false;ultimoClienteVerificadoSup=null;
     const b=$("#boxSup");b.classList.remove("has");b.querySelector("img").src="";
-    $("#sCliente").value="";$("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; $("#bloqueoClienteSupBtns").style.display="none"; }
+    $("#sCliente").value="";
+    $("#supIA").classList.add("hidden");$("#supIA").innerHTML="";$("#btnSupSave").disabled=true; $("#bloqueoClienteSupBtns").style.display="none";
+    aplicarBloqueosCenso(); }
   $("#sCliente").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
   $("#sVendedor").addEventListener("change",()=>{ verificarClienteCensadoMes(); guardarDraftCenso(); });
   $("#btnSupSave").onclick=guardarCenso;
@@ -1237,18 +1439,52 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // aparecieran en las visitas/censo, aunque ya no tuvieran el submodulo o
   // pertenecieran a otro rol -- eso mostraba tarjetas que no correspondian.
   function vendoresUnicos(){ return VENDEDORES.slice(); }
-  function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
+  // fotoAntes/contrato usan sus propias miniaturas (thumbAntes/thumbContrato,
+  // guardadas junto con la visita) en vez de quedar vacios: antes de esto, en
+  // el reporte esas dos fotos arrancaban con el icono de imagen rota hasta que
+  // terminaba de llegar la foto completa desde Drive (lenta). fetchFoto sigue
+  // llamandose despues para traer la version en full resolucion (ver
+  // detalleVisita/abrirFotos), pero ya no hay nada roto mientras tanto.
+  function mapVisita(v){ return {id:v.id,index:v.id,fecha:v.fecha,vendedor:v.vendedor,cliente:v.cliente,marca:v.marca,lugar:v.ubicacion?[v.ubicacion]:[],lat:Number(v.lat)||null,lng:Number(v.lng)||null,thumb:v.thumb,fotoDespues:v.thumb,fotoAntes:v.thumbAntes||"",contrato:v.thumbContrato||"",_server:true,fotoAntesId:v.fotoAntesId,fotoDespuesId:v.fotoDespuesId,contratoId:v.contratoId,ia:{porcentaje_llenado:v.porcentaje_llenado,documento_firmado:v.documento_firmado,evidencia_completa:v.evidencia_completa,puntaje:v.puntaje,orden_limpieza:v.orden_limpieza,observaciones:v.observaciones}}; }
   function mapCenso(c){ return {id:c.id,index:c.id,fecha:c.fecha,vendedor:c.vendedor,supervisor:c.supervisor||"",cliente:c.cliente,lugar:c.ubicacion?[c.ubicacion]:[],lat:Number(c.lat)||null,lng:Number(c.lng)||null,thumb:c.thumb,foto:c.thumb,_server:true,fotoId:c.fotoId,contaminado:c.contaminado,invasiones:c.invasiones?String(c.invasiones).split(" / ").filter(Boolean):[],puntaje:c.puntaje,observaciones:c.observaciones}; }
-  // Mes calendario completo (dia 1 00:00 al ultimo dia 23:59:59). Antes era
-  // semana Lun-Sab, pero la meta de censo/visitas es MENSUAL, no semanal.
+  // Ecuador (America/Guayaquil) es UTC-5 fijo todo el ano (no tiene horario de
+  // verano). "Que dia es" una visita/censo NO debe depender de la zona
+  // horaria del celular/computador de quien esta viendo el reporte -- un
+  // registro guardado a las 19:22 hora Ecuador del 30/07 viaja como
+  // "2026-07-31T00:22:53Z" (UTC), y si el navegador que lo mira esta en otra
+  // zona horaria, los getters locales (getDate/getDay/etc.) lo agrupaban en
+  // el dia equivocado (31/07 en vez de 30/07) -- eso hacia que algunos rangos
+  // de fecha del reporte "no dieran lo que es" y otros si, segun donde
+  // cayera el limite. Estas 3 funciones SIEMPRE calculan en hora de Ecuador,
+  // sin importar la zona horaria del dispositivo.
+  const TZ_OFFSET_MS_=5*3600000;
+  function ecuadorParts_(fecha){
+    const d=(fecha instanceof Date)?fecha:new Date(fecha);
+    const e=new Date(d.getTime()-TZ_OFFSET_MS_);
+    return {y:e.getUTCFullYear(),m:e.getUTCMonth(),day:e.getUTCDate(),wd:e.getUTCDay()};
+  }
+  // Medianoche (00:00) hora Ecuador de un y-m-day, expresada como el instante
+  // UTC real que le corresponde (05:00 UTC) -- para poder comparar contra
+  // fechas ISO (siempre son un instante absoluto, sin ambiguedad).
+  function ecuadorMidnightUTC_(y,m,day){ return new Date(Date.UTC(y,m,day,5,0,0,0)); }
+  // Convierte un string "YYYY-MM-DD" (lo que entrega un <input type="date">,
+  // pensado siempre como un dia de Ecuador) al instante UTC real de su inicio
+  // (00:00) o su fin (23:59:59.999) en Ecuador.
+  function parseFechaInputEcuador_(str,finDelDia){
+    const p=str.split("-").map(Number);
+    return finDelDia?new Date(ecuadorMidnightUTC_(p[0],p[1]-1,p[2]+1).getTime()-1):ecuadorMidnightUTC_(p[0],p[1]-1,p[2]);
+  }
+  // Mes calendario completo en Ecuador (dia 1 00:00 al ultimo dia 23:59:59.999).
+  // Antes era semana Lun-Sab, pero la meta de censo/visitas es MENSUAL, no semanal.
   function monthRangeFor(date){
-    const start=new Date(date.getFullYear(),date.getMonth(),1,0,0,0,0);
-    const end=new Date(date.getFullYear(),date.getMonth()+1,0,23,59,59,999);
+    const p=ecuadorParts_(date);
+    const start=ecuadorMidnightUTC_(p.y,p.m,1);
+    const end=new Date(ecuadorMidnightUTC_(p.y,p.m+1,1).getTime()-1);
     return {start,end};
   }
   function enRango(fechaISO,start,end){ const t=new Date(fechaISO).getTime(); return t>=start.getTime()&&t<=end.getTime(); }
-  function diaLocal(fechaISO){ const d=new Date(fechaISO); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-  function fmtFechaInput(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function diaLocal(fechaISO){ const p=ecuadorParts_(fechaISO); return p.y+"-"+String(p.m+1).padStart(2,"0")+"-"+String(p.day).padStart(2,"0"); }
+  function fmtFechaInput(d){ return diaLocal(d); }
   async function fetchFoto(id){ const url=apiUrl(); if(!url||!id) return null; try{const r=await fetch(url+"?action=getFoto&id="+encodeURIComponent(id)+"&apiKey="+encodeURIComponent(INTERNAL_API_KEY));const d=await r.json();return d&&d.success?d.dataUrl:null;}catch(e){return null;} }
 
   // Trae visitas/censo del servidor. Separado de refreshReporte() para poder
@@ -1258,16 +1494,108 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // necesario).
   async function fetchReporteData(){
     const url=apiUrl();
-    if(!url) return;
+    if(!url) return false;
     try{
       const [rv,rc]=await Promise.all([
         fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
         fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
       srvV=(rv&&rv.success?rv.visitas:[]).map(mapVisita);
       srvC=(rc&&rc.success?rc.censo:[]).map(mapCenso);
-    }catch(e){ srvV=null; srvC=null; }
+      // rv/rc pueden llegar con success:false (ej. respuesta del servidor con
+      // error) sin que fetch() ni .json() lancen excepcion -- eso tambien debe
+      // contar como refresco fallido para el boton Actualizar (X, no visto).
+      return !!(rv&&rv.success&&rc&&rc.success);
+    }catch(e){ srvV=null; srvC=null; return false; }
   }
-  async function refreshReporte(){ await fetchReporteData(); renderReporte(); }
+  async function refreshReporte(){ const ok=await fetchReporteData(); renderReporte(); return ok; }
+
+  // ===================== AUTO-REFRESCO (tiempo real) =====================
+  // La vista Reporte (y "Reporte Exhibidores Supervisor") no tiene forma de
+  // enterarse sola cuando el Sheet cambia (Apps Script no soporta push/websocket),
+  // asi que se refresca sola cada pocos segundos en segundo plano -- sin que el
+  // usuario tenga que recargar la pagina para ver una visita/censo nuevo. Se
+  // pausa mientras la pestaña esta oculta (no gastar cuota del servidor sin
+  // nadie mirando) y refresca al volver a ella. skipSiOcupado evita que dos
+  // refrescos se pisen si una vuelta de red tarda mas que el intervalo.
+  let refrescoEnCurso=false, refrescoTimer=null;
+  const REFRESCO_MS=8000;
+  async function tickAutoRefresco(){
+    if(refrescoEnCurso || document.hidden) return;
+    refrescoEnCurso=true;
+    try{ await refreshReporte(); }
+    finally{ refrescoEnCurso=false; }
+  }
+  function iniciarAutoRefrescoReporte(){
+    if(refrescoTimer) return;
+    refrescoTimer=setInterval(tickAutoRefresco,REFRESCO_MS);
+    document.addEventListener("visibilitychange",()=>{ if(!document.hidden) tickAutoRefresco(); });
+  }
+  // Mientras se actualiza a pedido del usuario (boton "Actualizar"), se
+  // bloquean los filtros/selects/exportar de las 3 pestañas -- asi ninguna
+  // accion (cambiar un filtro, exportar) interrumpe ni queda pisada por el
+  // refresco en curso, y apenas termina se liberan para seguir filtrando.
+  // (El auto-refresco de fondo cada 8s NO bloquea nada -- seria molesto
+  // bloquear campos sin que el usuario haya pedido nada.)
+  const CAMPOS_FILTRO_REPORTE=["#fFiltroAvance","#avanceDesde","#avanceHasta","#btnLimpiarFechaAvance",
+    "#fFiltro","#repFiltroCliente","#repDesde","#repHasta","#btnLimpiarFechaVisitas","#btnExport",
+    "#cFiltroVendedor","#cFiltroCliente","#cDesde","#cHasta","#btnLimpiarFechaCenso","#btnExportCenso"];
+  function bloquearFiltrosReporte(bloquear){
+    CAMPOS_FILTRO_REPORTE.forEach(sel=>{ const el=$(sel); if(el) el.disabled=bloquear; });
+  }
+  // Boton "Actualizar" del cuadro de Reportes: mismo refresco que el
+  // automatico, pero a pedido del usuario. Mientras carga, el icono gira
+  // (misma animacion "sp" del spinner); al terminar muestra ✅ si salio bien o
+  // ❌ si fallo, y a los 2 segundos vuelve solo al icono 🔄 para poder
+  // presionarlo de nuevo (por eso el timeout se guarda, para poder cancelarlo
+  // si el usuario alcanza a hacer clic otra vez antes de que se cumplan los
+  // 2 segundos).
+  const btnRefrescar=$("#btnRefrescarReporte");
+  let refrescoManualRevertTimer=null;
+  if(btnRefrescar){
+    const icoRefrescar=btnRefrescar.querySelector(".ico");
+    const txtRefrescar=btnRefrescar.querySelector(".txt");
+    btnRefrescar.addEventListener("click",async()=>{
+      if(btnRefrescar.disabled) return;
+      clearTimeout(refrescoManualRevertTimer);
+      btnRefrescar.disabled=true;
+      bloquearFiltrosReporte(true);
+      icoRefrescar.textContent="🔄"; icoRefrescar.classList.add("spin");
+      if(txtRefrescar) txtRefrescar.textContent="Actualizando…";
+      let ok=false;
+      refrescoEnCurso=true;
+      try{
+        // Si la lista de vendedores/supervisores no llego a cargar bien
+        // (ej. se presiono Actualizar durante la carga inicial, o ese primer
+        // intento fallo), las tarjetas se quedaban en "Sin datos aun." aunque
+        // las visitas/censos SI existieran -- renderVendedores no tiene sobre
+        // quien iterar sin esa lista. Por eso, SOLO si esta vacia, se vuelve a
+        // pedir tambien (ademas de visitas/censo); si ya estaba cargada, no
+        // se repite ese viaje de mas (por eso el boton sigue siendo rapido en
+        // el caso normal -- pedir esas 2 listas de nuevo cada vez, aunque ya
+        // estuvieran bien, era lo que lo dejaba tardando mas de un minuto).
+        if(!VENDEDORES.length||!SUPERVISORES.length){
+          const prevAvance=$("#fFiltroAvance").value, prevVisitas=$("#fFiltro").value, prevCenso=$("#cFiltroVendedor").value;
+          await Promise.all([cargarVendedores(),cargarSupervisores()]);
+          // cargarVendedores() reconstruye esos 3 <select> desde cero -- eso
+          // borra la seleccion que tuviera el usuario, se restaura apenas
+          // quedan reconstruidos.
+          if(prevAvance) $("#fFiltroAvance").value=prevAvance;
+          if(prevVisitas) $("#fFiltro").value=prevVisitas;
+          if(prevCenso) $("#cFiltroVendedor").value=prevCenso;
+        }
+        ok=await refreshReporte();
+      }
+      finally{ refrescoEnCurso=false; bloquearFiltrosReporte(false); }
+      icoRefrescar.classList.remove("spin");
+      icoRefrescar.textContent=ok?"✅":"❌";
+      if(txtRefrescar) txtRefrescar.textContent=ok?"Actualizado":"Error";
+      refrescoManualRevertTimer=setTimeout(()=>{
+        icoRefrescar.textContent="🔄";
+        if(txtRefrescar) txtRefrescar.textContent="Actualizar";
+        btnRefrescar.disabled=false;
+      },2000);
+    });
+  }
 
   function renderReporte(){ renderSupervisores(); renderVendedores(); renderVisitas(); renderCenso(); $("#repCount").textContent=dataV().length+dataC().length; }
 
@@ -1314,55 +1642,141 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
   }
 
+  function esFinde_(d){ return ecuadorParts_(d).wd%6===0; }
+  // Dias laborables (Lun-Vie) entre `inicio` y `fin` (inclusive), MAS cualquier
+  // sabado/domingo en ese rango en que ESTE vendedor haya registrado al menos
+  // una visita -- ese dia cuenta como un laborable mas SOLO para el (no le
+  // suma laborables a los demas vendedores): si trabaja un fin de semana, ese
+  // dia pesa igual que cualquier otro dia (se suma a su numerador de puntos Y
+  // a su propio denominador de dias), para que sea equitativo -- ni lo
+  // penaliza ni le infla el promedio.
+  function diasLaborablesVendedor_(visitasVendedorEnRango,inicio,fin){
+    let n=0;
+    // Se avanza sumando 24h en milisegundos (no con setDate/getDate locales)
+    // para que el conteo de dias no dependa de la zona horaria del navegador
+    // -- inicio queda anclado exactamente a medianoche Ecuador, y sumar 24h
+    // siempre cae en la medianoche Ecuador del dia siguiente (Ecuador no
+    // tiene horario de verano, asi que esto es exacto).
+    for(let t=inicio.getTime();t<=fin.getTime();t+=86400000){ if(!esFinde_(new Date(t))) n++; }
+    const findesTrabajados=new Set();
+    visitasVendedorEnRango.forEach(r=>{ const f=new Date(r.fecha); if(esFinde_(f)) findesTrabajados.add(diaLocal(r.fecha)); });
+    return Math.max(1,n+findesTrabajados.size);
+  }
+  // Rango del selector "Mes" de Avance por vendedor. Si es el mes calendario
+  // ACTUAL, el rango va del dia 1 hasta HOY (acumulado en vivo, se sigue
+  // llenando con cada visita/censo nuevo); si es un mes anterior, va del dia 1
+  // al ultimo dia de ese mes (mes ya cerrado). esMesActual indica si
+  // corresponde mostrar tambien "Ejecucion/Contaminacion de hoy" -- no
+  // aplica a un rango que no llega hasta hoy (mes/periodo ya cerrado).
+  // Por defecto (campos vacios) el rango es del 1 del mes actual hasta hoy --
+  // el vendedor/supervisor elige "Desde"/"Hasta" (mismo patron que en Visitas
+  // y Censo) para revisar un periodo anterior.
+  function rangoAvance_(){
+    const dEl=$("#avanceDesde"), hEl=$("#avanceHasta");
+    const hoyP=ecuadorParts_(new Date());
+    const inicioMesActual=ecuadorMidnightUTC_(hoyP.y,hoyP.m,1);
+    const hoyFin=new Date(ecuadorMidnightUTC_(hoyP.y,hoyP.m,hoyP.day+1).getTime()-1);
+    const desdeVal=dEl&&dEl.value?dEl.value:"", hastaVal=hEl&&hEl.value?hEl.value:"";
+    const inicio=desdeVal?parseFechaInputEcuador_(desdeVal,false):inicioMesActual;
+    let fin=hastaVal?parseFechaInputEcuador_(hastaVal,true):hoyFin;
+    const esHoy=fin>=hoyFin; // el rango llega hasta hoy (o mas alla, que igual no tiene datos)
+    if(fin>hoyFin) fin=hoyFin; // nunca contar dias laborables futuros que aun no existen
+    return {inicio,fin,esHoy};
+  }
+  // Puntaje diario del vendedor (Ejecucion, /65): la meta es 15 visitas/dia a
+  // 65 pts cada una = 975 pts objetivo por dia. En vez de mostrar "700/975" si
+  // hizo menos visitas, se muestra el EQUIVALENTE sobre 65 (lo que hubiera
+  // sacado si esos mismos puntos fueran sobre la escala de 65): suma de hoy /
+  // 975 * 65 = suma de hoy / 15. Tope 65 (no puede pasarse, aunque haga mas de
+  // 15 visitas en el dia).
+  //
+  // Puntaje diario del supervisor (Contaminacion, /35): no hay una meta fija
+  // de censos POR DIA en la app (solo 20 por MES) -- se usa el promedio simple
+  // de los censos de hoy para ese vendedor (cada censo ya es 0 o 35, promediar
+  // se mantiene solo entre 0 y 35, sin inventar una cuota diaria).
+  //
+  // Acumulado vendedor (/65) y acumulado supervisor (/35): mismo criterio que
+  // el diario pero sobre el mes elegido completo -- acumulado vendedor = suma
+  // de puntos de visitas del mes / (dias laborables transcurridos * 15), tope
+  // 65; acumulado supervisor = suma de puntos de censos del mes / 20 (META_CENSO,
+  // ya que cada censo es /35 y la meta es 20/mes = maximo 700 pts), tope 35.
+  // Total /100 = acumulado vendedor + acumulado supervisor (maximo 100).
   function renderVendedores(){
     const filtro=$("#fFiltroAvance")?$("#fFiltroAvance").value:"";
     const V=dataV(), C=dataC();
     const base=filtro?[filtro]:vendoresUnicos();
     const hoy=diaLocal(new Date());
-    const {start:mesIni,end:mesFin}=monthRangeFor(new Date());
+    const {inicio:rangoIni,fin:rangoFin,esHoy}=rangoAvance_();
     const rows=base.map(v=>{
       const vis=V.filter(r=>r.vendedor===v), cen=C.filter(r=>r.vendedor===v);
-      const ejec=avg(vis.map(r=>r.ia?r.ia.puntaje:0));        // 0-65
-      const cont=avg(cen.map(r=>r.puntaje));                   // 0-35
-      const total=ejec+cont;                                   // 0-100
-      // Meta: 15 visitas por DIA; 20 censos por MES -- no acumulado historico.
-      // El total/Ejecucion/Contaminacion siguen siendo el promedio historico
-      // (rendimiento general); nvis/ncen son solo el avance del periodo vigente.
-      const nvis=vis.filter(r=>diaLocal(r.fecha)===hoy).length;
-      const ncen=cen.filter(r=>enRango(r.fecha,mesIni,mesFin)).length;
-      return {v,ejec,cont,total,nvis,ncen,tieneDatos:vis.length||cen.length};
+      const visRango=vis.filter(r=>{const f=new Date(r.fecha); return f>=rangoIni&&f<=rangoFin;});
+      const cenRango=cen.filter(r=>{const f=new Date(r.fecha); return f>=rangoIni&&f<=rangoFin;});
+      const sumVisRango=visRango.reduce((a,r)=>a+(r.ia?r.ia.puntaje:0),0);
+      const sumCenRango=cenRango.reduce((a,r)=>a+(r.puntaje||0),0);
+      const nLaborables=diasLaborablesVendedor_(visRango,rangoIni,rangoFin);
+      // Redondeado a entero para mostrar, pero el tope (65/35) se aplica ANTES
+      // de redondear (Math.min primero) -- asi nunca puede redondear a algo
+      // mayor a 65 o 35. El Total se calcula sumando estas DOS partes YA
+      // redondeadas (no las cifras exactas sin redondear) para que siempre
+      // cuadre con lo que se ve en las otras dos lineas de la tarjeta.
+      const acumVendedor=Math.round(Math.min(65,sumVisRango/(nLaborables*META_VISITAS)));
+      const acumSupervisor=Math.round(Math.min(35,sumCenRango/META_CENSO));
+      const total=Math.min(100,acumVendedor+acumSupervisor);
+      let ejecDiario=null, contDiario=null, nvis=0;
+      if(esHoy){
+        const visHoy=vis.filter(r=>diaLocal(r.fecha)===hoy);
+        const cenHoy=cen.filter(r=>diaLocal(r.fecha)===hoy);
+        const sumVisHoy=visHoy.reduce((a,r)=>a+(r.ia?r.ia.puntaje:0),0);
+        ejecDiario=Math.round(Math.min(65,sumVisHoy/META_VISITAS));
+        contDiario=cenHoy.length?Math.round(Math.min(35,avg(cenHoy.map(r=>r.puntaje)))):0;
+        nvis=visHoy.length;
+      }
+      const ncen=cenRango.length, nvisRango=visRango.length;
+      return {v,acumVendedor,acumSupervisor,total,ejecDiario,contDiario,nvis,ncen,nvisRango,tieneDatos:vis.length||cen.length};
     }).filter(x=>x.tieneDatos).sort((a,b)=>b.total-a.total);
-    $("#rank").innerHTML=rows.map(x=>{const cls=x.total>=80?"b-ok":(x.total>=50?"b-warn":"b-bad");const pct=Math.min(100,Math.round(x.nvis/META_VISITAS*100));
-      return `<div class="rankcard${SOLO_AVANCE?' click':''}" data-v="${esc(x.v)}"><div class="nom">${esc(x.v)}</div>
-        <div class="v" style="color:${x.total>=80?'#6ee7b7':(x.total>=50?'#fcd34d':'#fca5a5')}">${x.total}<span style="font-size:12px;color:var(--mut)">/100</span></div>
-        <div class="n">Ejecución <b style="color:var(--txt)">${x.ejec}</b>/65 · Contaminación <b style="color:var(--txt)">${x.cont}</b>/35</div>
-        <div class="prog"><i style="width:${pct}%"></i></div>
-        <div class="n">Visitas <b style="color:var(--txt)">${x.nvis}</b>/${META_VISITAS} · Censados <b style="color:var(--txt)">${x.ncen}</b>/${META_CENSO}</div></div>`;}).join("")||'<span class="note">Sin datos aún.</span>';
-    // El detalle diario por vendedor solo aplica al submodulo Reporte
-    // Supervisor (avance); en Exhibidores Reporte (informe general) la
-    // tarjeta es solo informativa y no abre nada al presionarla.
-    if(SOLO_AVANCE) $("#rank").querySelectorAll("[data-v]").forEach(el=>el.addEventListener("click",()=>detalleVendedorDia(el.dataset.v)));
+    $("#rank").innerHTML=rows.map(x=>{
+      const lineaDiaria=x.ejecDiario===null?"":
+        `<div class="n">Ejecución hoy <b style="color:var(--txt)">${x.ejecDiario}</b>/65 · Contaminación hoy <b style="color:var(--txt)">${x.contDiario}</b>/35</div>
+        <div class="prog"><i style="width:${Math.min(100,Math.round(x.nvis/META_VISITAS*100))}%"></i></div>
+        <div class="n">Visitas hoy <b style="color:var(--txt)">${x.nvis}</b>/${META_VISITAS}</div>`;
+      return `<div class="rankcard click" data-v="${esc(x.v)}"><div class="nom">${esc(x.v)}</div>
+        <div class="v" style="color:${x.total>=80?'#047857':(x.total>=50?'#92400e':'#b91c1c')}">${x.total}<span style="font-size:12px;color:var(--mut)">/100</span></div>
+        ${lineaDiaria}
+        <div class="n">Visitas en el rango <b style="color:var(--txt)">${x.nvisRango}</b> · Censos en el rango <b style="color:var(--txt)">${x.ncen}</b></div>
+        <div class="n">Acumulado vendedor <b style="color:var(--txt)">${x.acumVendedor}</b>/65 · Acumulado supervisor <b style="color:var(--txt)">${x.acumSupervisor}</b>/35</div></div>`;
+    }).join("")||'<span class="note">Sin datos aún.</span>';
+    // El detalle diario por vendedor: en las 2 pantallas (Reporte Exhibidores
+    // general y Reporte Exhibidores Supervisor) la tarjeta abre el mismo panel.
+    $("#rank").querySelectorAll("[data-v]").forEach(el=>el.addEventListener("click",()=>detalleVendedorDia(el.dataset.v)));
   }
 
   function detalleVendedorDia(v){
     const {start,end}=monthRangeFor(new Date());
     const render=()=>{
       const desde=$("#ddDesde").value, hasta=$("#ddHasta").value;
-      const dStart=desde?new Date(desde+"T00:00:00"):start, dEnd=hasta?new Date(hasta+"T23:59:59"):end;
+      const dStart=desde?parseFechaInputEcuador_(desde,false):start, dEnd=hasta?parseFechaInputEcuador_(hasta,true):end;
       const vis=dataV().filter(r=>r.vendedor===v && new Date(r.fecha).getTime()>=dStart.getTime() && new Date(r.fecha).getTime()<=dEnd.getTime());
       const porDia={};
       vis.forEach(r=>{ (porDia[diaLocal(r.fecha)]=porDia[diaLocal(r.fecha)]||[]).push(r); });
       const dias=Object.keys(porDia).sort().reverse();
-      $("#ddBody").innerHTML=dias.map(k=>{const arr=porDia[k];const prom=avg(arr.map(r=>r.ia?r.ia.puntaje:0));
-        return `<tr><td>${k}</td><td>${arr.length}</td><td>${prom}/65</td></tr>`;}).join("")
-        ||'<tr><td colspan="3" style="text-align:center;color:var(--mut)">Sin visitas en el rango seleccionado.</td></tr>';
+      // Puntaje DIARIO (no el promedio por visita): la meta es 15 visitas/dia
+      // a 65 pts cada una = 975 pts objetivo por dia -- se muestra el
+      // equivalente sobre 65, igual criterio que "Ejecucion hoy" en la
+      // tarjeta. Ej: 1 sola visita con 65 pts = (65/975)*65 = 4.33 -> 4/65
+      // ese dia (no "65/65", que seria el promedio por visita).
+      $("#ddBody").innerHTML=dias.map(k=>{const arr=porDia[k];
+        const sumaDia=arr.reduce((a,r)=>a+(r.ia?r.ia.puntaje:0),0);
+        const puntajeDia=Math.round(Math.min(65,sumaDia/META_VISITAS));
+        return `<tr><td>${k}</td><td>${arr.length}</td><td>${puntajeDia}/65</td><td><button class="icon-btn-sm" type="button" data-dia="${k}">Detalle</button></td></tr>`;}).join("")
+        ||'<tr><td colspan="4" style="text-align:center;color:var(--mut)">Sin visitas en el rango seleccionado.</td></tr>';
+      $("#ddBody").querySelectorAll("[data-dia]").forEach(btn=>btn.addEventListener("click",()=>detalleDiaVendedor(v,btn.dataset.dia)));
     };
     $("#modalInner").innerHTML=`<div class="kv"><b>Vendedor:</b> ${esc(v)}</div>
       <div class="btnrow" style="margin:10px 0;gap:12px">
         <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)">Desde<input type="date" id="ddDesde" value="${fmtFechaInput(start)}"></label>
         <label style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)">Hasta<input type="date" id="ddHasta" value="${fmtFechaInput(end)}"></label>
       </div>
-      <table><thead><tr><th>Día</th><th>Visitas</th><th>Puntaje prom.</th></tr></thead><tbody id="ddBody"></tbody></table>
+      <div class="tbox"><table><thead><tr><th>Día</th><th>Visitas</th><th>Puntaje diario</th><th></th></tr></thead><tbody id="ddBody"></tbody></table></div>
       <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
     $("#modal").classList.add("open");
     $("#closeD").onclick=()=>$("#modal").classList.remove("open");
@@ -1370,11 +1784,39 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     $("#ddHasta").addEventListener("change",render);
     render();
   }
+  // Panel de "Detalle" de un dia puntual de un vendedor: lista los clientes
+  // visitados ESE dia (misma tabla que la pestaña "Visitas (vendedor)", ya
+  // filtrada) -- cada fila abre el detalle completo con fotos (detalleVisita),
+  // igual que en Visitas. "← Volver" regresa al resumen por dia sin volver a
+  // pedir nada al servidor (los datos ya estan en memoria).
+  function detalleDiaVendedor(v,diaKey){
+    const vis=dataV().filter(r=>r.vendedor===v && diaLocal(r.fecha)===diaKey);
+    $("#modalInner").innerHTML=`<div class="kv"><b>Vendedor:</b> ${esc(v)} · <b>Día:</b> ${diaKey}</div>
+      <div class="tbox"><table>
+        <thead><tr><th>Hora</th><th>Cliente</th><th>% Llenado</th><th>Doc</th><th>Antes/Desp</th><th>Puntaje /65</th><th>Fotos</th></tr></thead>
+        <tbody id="ddDiaBody"></tbody></table></div>
+      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="btnVolverDia">← Volver</button><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+    $("#ddDiaBody").innerHTML=vis.map(r=>{const p=r.ia?r.ia.puntaje:0;const cls=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
+      return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{hour:"2-digit",minute:"2-digit"})}</td>
+        <td>${esc(r.cliente||"—")}</td><td>${r.ia?r.ia.porcentaje_llenado:0}%</td>
+        <td>${r.ia&&r.ia.documento_firmado?"✔":"—"}</td><td>${r.ia&&r.ia.evidencia_completa?"✔":"—"}</td>
+        <td><span class="badge ${cls}">${p}</span></td>
+        <td><button class="icon-btn-sm" type="button" data-ver="${r.id}" title="Ver fotos">👁️ Ver</button></td></tr>`;}).join("")
+      ||'<tr><td colspan="7" style="text-align:center;color:var(--mut)">Sin visitas este día.</td></tr>';
+    // Al abrir el detalle/fotos de una visita DESDE aca, "Volver" regresa a
+    // esta misma lista del dia (no a las tarjetas) -- por eso se le pasa
+    // este callback; en la pestaña Visitas (vendedor) esas mismas funciones
+    // se llaman SIN el callback, asi que ahi no cambia nada.
+    $("#ddDiaBody").querySelectorAll("tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>detalleVisita(tr.dataset.id,()=>detalleDiaVendedor(v,diaKey))));
+    $("#ddDiaBody").querySelectorAll("[data-ver]").forEach(btn=>btn.addEventListener("click",(e)=>{e.stopPropagation();verFotosVisita(btn.dataset.ver,()=>detalleDiaVendedor(v,diaKey));}));
+    $("#btnVolverDia").onclick=()=>detalleVendedorDia(v);
+    $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+  }
 
   function enRangoInputs(fechaISO,desde,hasta){
     const t=new Date(fechaISO).getTime();
-    if(desde && t<new Date(desde+"T00:00:00").getTime()) return false;
-    if(hasta && t>new Date(hasta+"T23:59:59").getTime()) return false;
+    if(desde && t<parseFechaInputEcuador_(desde,false).getTime()) return false;
+    if(hasta && t>parseFechaInputEcuador_(hasta,true).getTime()) return false;
     return true;
   }
   function renderVisitas(){
@@ -1472,17 +1914,23 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     if(!item.src && !item.id) return `<div class="fotobox empty"><span>${esc(item.label)}</span><div class="fotobox-ph">Sin foto</div></div>`;
     return `<div class="fotobox" data-idx="${i}"><span>${esc(item.label)}</span><img data-foto-id="${item.id||''}" src="${item.src||''}" loading="lazy"></div>`;
   }
-  function abrirFotos(titulo,items){
+  // onVolver es opcional: solo lo pasan las pantallas que llegan aca DESDE otro
+  // panel (ej. el detalle de un dia puntual en "Avance por vendedor") -- ahi
+  // "Cerrar" cierra todo, pero ademas aparece "← Volver" para regresar a ese
+  // panel anterior sin cerrar el modal. En Visitas/Censo (donde no hay un panel
+  // anterior al que volver) no se pasa nada y todo queda igual que siempre.
+  function abrirFotos(titulo,items,onVolver){
     $("#modalInner").innerHTML=`<div class="kv"><b>${esc(titulo)}</b></div>
       <div class="fotos-row">${items.map(fotoBoxHtml).join("")}</div>
-      <div class="btnrow" style="margin-top:14px"><button class="btn ghost" id="closeD">Cerrar</button></div>`;
+      <div class="btnrow" style="margin-top:14px">${onVolver?'<button class="btn ghost" id="btnVolverD">← Volver</button>':''}<button class="btn ghost" id="closeD">Cerrar</button></div>`;
     $("#modal").classList.add("open");
     $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    if(onVolver) $("#btnVolverD").onclick=onVolver;
     $("#modalInner").querySelectorAll(".fotobox:not(.empty)").forEach(box=>{
       const img=box.querySelector("img");
       const id=img.dataset.fotoId;
       if(id) fetchFoto(id).then(u=>{ if(u) img.src=u; });
-      box.addEventListener("click",()=>mostrarFotoGrande(img.src||img.getAttribute("src"),()=>abrirFotos(titulo,items)));
+      box.addEventListener("click",()=>mostrarFotoGrande(img.src||img.getAttribute("src"),()=>abrirFotos(titulo,items,onVolver)));
     });
   }
   function mostrarFotoGrande(src,onVolver){
@@ -1498,10 +1946,10 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
       {label:"Contrato",src:r.contrato||"",id:r.contratoId||""}
     ];
   }
-  function verFotosVisita(id){ const r=dataV().find(x=>String(x.id)===String(id)); if(!r) return; abrirFotos(`${r.vendedor||"—"} · Cliente ${r.cliente||"—"}`,fotosDeVisita(r)); }
+  function verFotosVisita(id,onVolver){ const r=dataV().find(x=>String(x.id)===String(id)); if(!r) return; abrirFotos(`${r.vendedor||"—"} · Cliente ${r.cliente||"—"}`,fotosDeVisita(r),onVolver); }
   function verFotosCenso(id){ const r=dataC().find(x=>String(x.id)===String(id)); if(!r) return; abrirFotos(`${r.vendedor||"—"} · Cliente ${r.cliente||"—"}`,[{label:"Censo",src:r.foto||r.thumb||"",id:r.fotoId||""}]); }
 
-  function detalleVisita(id){ const r=dataV().find(x=>String(x.id)===String(id));if(!r)return;const ia=r.ia||{};
+  function detalleVisita(id,onVolver){ const r=dataV().find(x=>String(x.id)===String(id));if(!r)return;const ia=r.ia||{};
     const t=(s,idA,c)=>(s||idA)?`<figure><img ${idA?`id="${idA}"`:""} src="${s||''}">${c}</figure>`:"";
     $("#modalInner").innerHTML=`<img id="dvMain" src="${r.fotoDespues||r.thumb||''}">
       <div class="thumbs">${t(r.fotoAntes,r.fotoAntesId?'dvAntes':'',"Antes")}${t(r.contrato,r.contratoId?'dvContrato':'',"Contrato")}</div>
@@ -1513,8 +1961,9 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
         <tr><td>Documento</td><td style="text-align:right">${ia.documento_firmado?20:0}/20</td><td style="color:var(--mut)">${ia.documento_firmado?"contrato subido":"sin contrato"}</td></tr>
         <tr><td>Antes/Después</td><td style="text-align:right">${ia.evidencia_completa?10:0}/10</td><td style="color:var(--mut)">${ia.evidencia_completa?"completa":"falta una"}</td></tr></table>
         <div class="kv" style="margin-top:6px"><b>Observación:</b> ${esc(ia.observaciones||"")}</div></div>
-      <div class="btnrow" style="margin-top:14px">${!r._server?'<button class="btn red" id="delV">🗑️ Eliminar</button>':''}<button class="btn ghost" id="closeD">Cerrar</button></div>`;
+      <div class="btnrow" style="margin-top:14px">${!r._server?'<button class="btn red" id="delV">🗑️ Eliminar</button>':''}${onVolver?'<button class="btn ghost" id="btnVolverD">← Volver</button>':''}<button class="btn ghost" id="closeD">Cerrar</button></div>`;
     $("#modal").classList.add("open"); $("#closeD").onclick=()=>$("#modal").classList.remove("open");
+    if(onVolver) $("#btnVolverD").onclick=onVolver;
     const dv=$("#delV"); if(dv) dv.onclick=()=>{saveV(loadV().filter(x=>String(x.id)!==String(id)));$("#modal").classList.remove("open");refreshReporte();};
     if(r._server){ if(r.fotoDespuesId)fetchFoto(r.fotoDespuesId).then(u=>{const e=$("#dvMain");if(u&&e)e.src=u;});
       if(r.fotoAntesId)fetchFoto(r.fotoAntesId).then(u=>{const e=$("#dvAntes");if(u&&e)e.src=u;});
@@ -1621,10 +2070,67 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   }
   $("#delHuerfanosVisita").onclick=()=>limpiarHuerfanos("visita");
   $("#delHuerfanosCenso").onclick=()=>limpiarHuerfanos("censo");
+  // Achica las miniaturas viejas (guardadas grandes, antes de reducir el
+  // tamano/calidad de hacerThumb): trae la foto COMPLETA de cada una (ya
+  // existe en Drive, fetchFoto la trae), genera una miniatura chica nueva con
+  // el mismo canvas que usan las visitas/censos nuevos, y la guarda de vuelta
+  // (actualizarThumb) -- sin tocar la foto original en Drive ni ningun otro
+  // dato de la fila. Una foto a la vez (no en paralelo) para no saturar el
+  // servidor ni perder el hilo si una falla.
+  async function achicarMiniaturasViejas(){
+    const url=apiUrl(); if(!url){ delMsg("❌ Falta configurar la URL del servidor.","err"); return; }
+    $("#btnAchicarMiniaturas").disabled=true;
+    delMsg("Buscando fotos para achicar...","info");
+    let visitas=[], censos=[];
+    try{
+      const [rv,rc]=await Promise.all([
+        fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
+        fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
+      visitas=(rv&&rv.success?rv.visitas:[])||[];
+      censos=(rc&&rc.success?rc.censo:[])||[];
+    }catch(e){ delMsg("❌ No se pudo leer las visitas/censos: "+e.message,"err"); $("#btnAchicarMiniaturas").disabled=false; return; }
+    const tareas=[];
+    visitas.forEach(v=>{
+      if(v.fotoAntesId) tareas.push({tipo:"visita",id:v.id,fotoId:v.fotoAntesId,campo:"Foto_Thumb_Antes"});
+      if(v.fotoDespuesId) tareas.push({tipo:"visita",id:v.id,fotoId:v.fotoDespuesId,campo:"Foto_Thumb"});
+      if(v.contratoId) tareas.push({tipo:"visita",id:v.id,fotoId:v.contratoId,campo:"Foto_Thumb_Contrato"});
+    });
+    censos.forEach(c=>{ if(c.fotoId) tareas.push({tipo:"censo",id:c.id,fotoId:c.fotoId,campo:"Foto_Thumb"}); });
+    if(!tareas.length){ delMsg("No hay fotos para achicar.","ok"); $("#btnAchicarMiniaturas").disabled=false; return; }
+    let ok=0, fail=0;
+    for(let i=0;i<tareas.length;i++){
+      const t=tareas[i];
+      delMsg(`Achicando ${i+1} de ${tareas.length}... (${ok} ok, ${fail} con error)`,"info");
+      try{
+        const dataUrl=await fetchFoto(t.fotoId);
+        if(!dataUrl) throw new Error("no se pudo traer la foto");
+        const thumb=await hacerThumb(dataUrl);
+        if(!thumb) throw new Error("no se pudo generar la miniatura");
+        const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify({action:"actualizarThumb",payload:{tipo:t.tipo,id:t.id,campo:t.campo,thumb,apiKey:INTERNAL_API_KEY}})});
+        const data=await resp.json();
+        if(!data||!data.success) throw new Error((data&&data.message)||"no se pudo guardar");
+        ok++;
+      }catch(e){ fail++; }
+    }
+    delMsg(`✔ Listo: ${ok} miniatura(s) achicada(s)`+(fail?`, ${fail} con error`:"")+".","ok");
+    $("#btnAchicarMiniaturas").disabled=false;
+    await refreshReporte();
+  }
+  $("#btnAchicarMiniaturas").onclick=achicarMiniaturasViejas;
 
   // ESC cierra el panel/modal que este abierto en ese momento (foto ampliada,
   // camara, resumen de la visita, configuracion de IA o herramienta de borrado),
   // igual que su boton "Cerrar" o hacer clic afuera.
+  // Al tocar/presionar CUALQUIER parte de un campo de fecha (no solo el
+  // iconito del calendario) se abre el selector nativo -- delegado en
+  // document (no en cada input por separado) para que tambien cubra los
+  // campos de fecha que se crean recien al abrir un panel (ej. ddDesde/
+  // ddHasta del detalle por dia), sin tener que volver a conectar nada ahi.
+  document.addEventListener("click",e=>{
+    const el=e.target.closest('input[type="date"]');
+    if(el&&el.showPicker){ try{ el.showPicker(); }catch(err){} }
+  });
   document.addEventListener("keydown",e=>{
     if(e.key!=="Escape") return;
     if($("#camModal").classList.contains("open")) cerrarCamara();
@@ -1670,19 +2176,66 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
     // y tampoco en el submodulo "Reporte Exhibidores Supervisor" (SOLO_AVANCE),
     // aunque quien lo vea tenga rol Admin/Gerencia.
     $("#btnDelTool").style.display=(mostrarCalculo&&!SOLO_AVANCE)?"":"none";
+    ajustarFiltroMovil();
   }
   document.querySelectorAll(".rtab").forEach(b=>b.onclick=()=>{
     document.querySelectorAll(".rtab").forEach(x=>x.classList.toggle("active",x===b));
     $("#tabVendedores").style.display=b.dataset.tab==="vendedores"?"":"none";
     $("#tabVisitas").style.display=b.dataset.tab==="visitas"?"":"none";
     $("#tabCenso").style.display=b.dataset.tab==="censo"?"":"none";
+    ajustarFiltroMovil();
   });
+
+  // ===================== FILTRO DE VENDEDOR EN PANTALLA CHICA =====================
+  // Cada pestaña del Reporte tiene su propio select de vendedor (fFiltroAvance,
+  // fFiltro, cFiltroVendedor), cada uno dentro de su propia pestaña. En pantalla
+  // chica, para que no quede todo apilado en una columna larga, el select de la
+  // pestaña ACTIVA se mueve (mismo elemento, no una copia -- sus listeners y su
+  // valor no se pierden) al final de la barra de pestañas: como esa barra pasa a
+  // grid de 2 columnas (ver CSS @media max-width:700px), el select cae justo al
+  // lado de "Censo supervisor" en la segunda fila. En pantalla grande se devuelve
+  // a su lugar original, tal cual estaba.
+  const FILTRO_VENDEDOR_IDS=["fFiltroAvance","fFiltro","cFiltroVendedor"];
+  const filtroVendedorCasa={};
+  FILTRO_VENDEDOR_IDS.forEach(id=>{ const el=$("#"+id); if(el) filtroVendedorCasa[id]={parent:el.parentNode,next:el.nextSibling}; });
+  let filtroVendedorEnTabs=null;
+  function filtroVendedorActivoId(){
+    const b=document.querySelector(".rtab.active");
+    const tab=b?b.dataset.tab:"vendedores";
+    return tab==="visitas"?"fFiltro":(tab==="censo"?"cFiltroVendedor":"fFiltroAvance");
+  }
+  function ajustarFiltroMovil(){
+    // Solo aplica al Reporte general (con pestañas); en "Reporte Exhibidores
+    // Supervisor" (SOLO_AVANCE) la barra de pestañas esta oculta -- mover el
+    // select ahi lo dejaria invisible.
+    if(VISTA!=="reporte"||SOLO_AVANCE) return;
+    const esMovil=window.matchMedia("(max-width:700px)").matches;
+    const activo=filtroVendedorActivoId();
+    if(filtroVendedorEnTabs&&(!esMovil||filtroVendedorEnTabs!==activo)){
+      const id=filtroVendedorEnTabs, el=$("#"+id), casa=filtroVendedorCasa[id];
+      if(el&&casa) casa.parent.insertBefore(el,casa.next);
+      filtroVendedorEnTabs=null;
+    }
+    if(esMovil&&filtroVendedorEnTabs!==activo){
+      const el=$("#"+activo), tabs=document.querySelector(".tabs");
+      if(el&&tabs){ tabs.appendChild(el); filtroVendedorEnTabs=activo; }
+    }
+  }
+  let filtroMovilResizeTimer=null;
+  window.addEventListener("resize",()=>{ clearTimeout(filtroMovilResizeTimer); filtroMovilResizeTimer=setTimeout(ajustarFiltroMovil,150); });
 
   applyVista(); refreshPill();
   if(VISTA==="reporte"){
+    // Rango por defecto: del 1 del mes actual a hoy -- se ve escrito en los
+    // campos para que quede claro que periodo se esta calculando, y se puede
+    // cambiar a mano para revisar un periodo anterior.
+    const dAv=$("#avanceDesde"), hAv=$("#avanceHasta");
+    if(dAv&&!dAv.value){ const p=ecuadorParts_(new Date()); dAv.value=fmtFechaInput(ecuadorMidnightUTC_(p.y,p.m,1)); }
+    if(hAv&&!hAv.value){ hAv.value=fmtFechaInput(new Date()); }
     // Las 3 llamadas salen a la vez (antes se esperaba vendedores/supervisores
     // antes de recien pedir visitas/censo -- dos vueltas de red en serie).
     Promise.all([cargarVendedores(),cargarSupervisores(),fetchReporteData()]).then(renderReporte);
+    iniciarAutoRefrescoReporte();
   } else if(VISTA==="supervisor"){
     // Solo hace falta la lista de vendedores (selector "Vendedor a censar")
     // en la vista de supervisor. En la vista de vendedor esto NO se usa para
@@ -1695,7 +2248,11 @@ tr.click{cursor:pointer}tr.click:hover{background:rgba(255,255,255,.04)}
   // resolverse el Vendedor), para que nunca se vean habilitadas ni un
   // instante mientras esa consulta esta en vuelo.
   if(VISTA==="vendedor"){ aplicarBloqueosCaptura(); cargarVendedorActual().then(restaurarDraftVend); }
-  if(VISTA==="supervisor") cargarSupervisorActual().then(restaurarDraftCenso);
+  // aplicarBloqueosCenso() primero (deja la foto bloqueada desde el primer
+  // render, antes de que termine de resolverse el Supervisor) y despues
+  // restaurarDraftCenso (que si hay un borrador pendiente, vuelve a verificar
+  // ese cliente/vendedor y ahi reabre el bloqueo segun corresponda).
+  if(VISTA==="supervisor") cargarSupervisorActual().then(()=>{ aplicarBloqueosCenso(); restaurarDraftCenso(); });
 })();
 </script>
 <script src="../session-activity.js"></script>
