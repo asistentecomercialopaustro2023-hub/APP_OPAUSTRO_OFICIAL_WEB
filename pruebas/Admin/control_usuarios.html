@@ -302,7 +302,27 @@
     </section>
   </div>
 
-  <script src="../module-catalog.js"></script>
+  <script src="../module-catalog.js?v=20260814"></script>
+  <script>
+  (function(){
+    // Vigila module-catalog.js en segundo plano: si detecta que cambio en el
+    // servidor (se agrego/quito un modulo), recarga la pagina sola para que
+    // el catalogo de Control de usuarios siempre este al dia.
+    var CATALOG_URL = '../module-catalog.js';
+    var CHECK_MS = 60000;
+    var baseline = null;
+    function fetchCatalogText(){
+      return fetch(CATALOG_URL + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.text(); });
+    }
+    fetchCatalogText().then(function(text){ baseline = text; }).catch(function(){});
+    setInterval(function(){
+      if (baseline === null) return;
+      fetchCatalogText().then(function(text){
+        if (text && text !== baseline) location.reload();
+      }).catch(function(){});
+    }, CHECK_MS);
+  })();
+  </script>
   <script>
     const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec";
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";

@@ -110,6 +110,13 @@ const MODULE_DEFINITIONS = {
     path: "../Logistica/cabinets.html?embed=1&v=1.0.0",
     embed: true
   },
+  CabinetsBodega: {
+    label: "Cabinets en Bodega",
+    icon: "../Recuros_imagenes/congelador.svg",
+    description: "Consulta de cabinets en Bodega OK",
+    path: "../Logistica/cabinets_bodega.html?embed=1",
+    embed: true
+  },
   Gerencia: {
     label: "Gerencia",
     icon: "../Recuros_imagenes/reporte.png?v=1.0.0",
@@ -217,7 +224,7 @@ const VENTAS_MODULES = ["MapaVentas", "VentasOperativo", "BiVendedor", "Cartera"
 const ADMIN_VENTAS_MODULES = ["VentasOperativo", "BiVendedor", "MapaVentas", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"];
 const VENDEDOR_MODULES = ["NuevoDia", "BiVendedor", "Cartera", "Retorno", "MapaVentas"];
 const CARTERA_MODULES = ["Cartera"];
-const LOGISTICA_MODULES = ["Logistica", "Retorno"];
+const LOGISTICA_MODULES = ["Logistica", "Retorno", "CabinetsBodega"];
 const ICE_ADMIN_MODULES = ["IceResumen", "IceInventario", "IceReportes"];
 const ICE_OPERATIVO_MODULES = ["IceEscaneo", "IceMisVisitas"];
 const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"];
@@ -247,7 +254,7 @@ const AREA_GROUPS = [
     label: "Logística",
     icon: "&#128666;",
     iconPath: "../Recuros_imagenes/inventario.png?v=1.0.0",
-    modules: ["Logistica"]
+    modules: ["Logistica", "CabinetsBodega"]
   },
   {
     id: "Gerencia",
