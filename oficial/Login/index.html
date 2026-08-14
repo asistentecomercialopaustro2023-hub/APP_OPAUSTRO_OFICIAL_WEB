@@ -2354,7 +2354,27 @@
     <nav class="bottom-nav" id="bottomModules" aria-label="M&oacute;dulos"></nav>
   </section>
 
-  <script src="../module-catalog.js"></script>
+  <script src="../module-catalog.js?v=20260814"></script>
+  <script>
+  (function(){
+    // Vigila module-catalog.js en segundo plano: si detecta que cambio en el
+    // servidor (se agrego/quito un modulo), recarga la pagina sola para que
+    // el usuario siempre vea el menu al dia sin tener que refrescar a mano.
+    var CATALOG_URL = '../module-catalog.js';
+    var CHECK_MS = 60000;
+    var baseline = null;
+    function fetchCatalogText(){
+      return fetch(CATALOG_URL + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.text(); });
+    }
+    fetchCatalogText().then(function(text){ baseline = text; }).catch(function(){});
+    setInterval(function(){
+      if (baseline === null) return;
+      fetchCatalogText().then(function(text){
+        if (text && text !== baseline) location.reload();
+      }).catch(function(){});
+    }, CHECK_MS);
+  })();
+  </script>
   <script>
     const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec';
     const ICE_API_URL = 'https://script.google.com/macros/s/AKfycbylQXIRKDLW-1R9A8ek4uYK0Ci-E2QW-sgoaPaUJMNX9YCJIPe3LC4mgj1qGaEWdJP9vw/exec';
