@@ -1641,7 +1641,9 @@ async function loadData(){
     if(d.db){
       DB=d.db;
       if(d.usuarios&&d.usuarios.length){DB.usuarios=d.usuarios;}
-      saveL();rAll();llenarUsuariosLogin();setS('✅ '+hora());notifyHostStatus('ok','Datos conectados');return;
+      saveL();rAll();llenarUsuariosLogin();setS('✅ '+hora());notifyHostStatus('ok','Datos conectados');
+      sincronizarModelosConInventario();
+      return;
     }
     throw new Error(d.error||'sin datos');
   }
@@ -1650,6 +1652,25 @@ async function loadData(){
     notifyHostStatus('err','Sin conexión a datos');
     toast('No se pudo sincronizar con Google Sheets','err');
   }
+}
+// Corrige, en segundo plano, el Modelo de los equipos cuya placa ya existe
+// en BD_Inventario_Cabinets (la BD compartida con ICE) y quedo con un
+// modelo distinto en la hoja propia de Logistica -- silencioso si no hay
+// nada que corregir, solo avisa cuando de verdad actualiza algo.
+async function sincronizarModelosConInventario(){
+  if(LOCAL||!AURL)return;
+  try{
+    var p={action:'sincronizarModelos'};
+    if(LOGISTICA_API_KEY)p.apiKey=LOGISTICA_API_KEY;
+    var r=await fetch(AURL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)});
+    var d=await r.json();
+    if(d.ok&&d.actualizados){
+      toast('✔ '+d.actualizados+' modelo(s) corregido(s) desde el inventario de ICE','ok');
+      var r2=await fetch(AURL+'?action=getAll'+apiKeyParam(),{redirect:'follow'});
+      var d2=await r2.json();
+      if(d2.db){ DB=d2.db; if(d2.usuarios&&d2.usuarios.length)DB.usuarios=d2.usuarios; saveL(); rAll(); }
+    }
+  }catch(e){ console.error('No se pudo sincronizar modelos con inventario:',e); }
 }
 async function push(p){
   if(LOCAL||!AURL){saveL();return false;}
