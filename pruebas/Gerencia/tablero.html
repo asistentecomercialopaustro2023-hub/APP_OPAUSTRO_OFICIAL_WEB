@@ -1490,8 +1490,11 @@ function procesarSheetsInvMeses(){
     const registros = raw.map(r=>{
       const obj={};
       Object.keys(r).forEach(k=>{ obj[nk(k)]=r[k]; });
+      // ICE viene mezclado con Unilever bajo el mismo Proveedor; se separa por Division.
+      let prov = cleanStr(obj['PROVEEDOR']);
+      if(prov.toUpperCase().includes('UNILEVER') && cleanStr(obj['DIVISION']).toUpperCase()==='FOODS & REFRESHMENT'){ prov='ICE'; }
       return {
-        PROV:  cleanStr(obj['PROVEEDOR']),
+        PROV:  prov,
         CAT:   cleanStr(obj['CATEGORIA']),
         MARCA: cleanStr(obj['MARCA']),
         ART:   cleanStr(obj['ARTICULO']),
