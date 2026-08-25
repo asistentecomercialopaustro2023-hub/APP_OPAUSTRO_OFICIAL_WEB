@@ -960,13 +960,13 @@
     <div class="chart-grid" style="margin-bottom:18px;grid-template-columns:1fr">
       <div class="chart-box"><h3>Evolución del valor de inventario (a costo)</h3><canvas id="chart-invg-valor"></canvas></div>
     </div>
+    <div class="chart-grid" style="margin-bottom:18px;grid-template-columns:1fr">
+      <div class="chart-box"><h3>Evolución del valor de inventario por proveedor</h3><canvas id="chart-invg-prov-evol"></canvas></div>
+    </div>
     <div class="chart-grid" style="margin-bottom:18px">
       <div class="chart-box"><h3>Valor de inventario por proveedor (a costo) <small id="invg-prov-periodo" style="color:var(--gray3);font-weight:400;font-size:11px"></small></h3><canvas id="chart-invg-prov"></canvas></div>
       <div class="chart-box"><h3>Distribución del valor <small id="invg-dist-periodo" style="color:var(--gray3);font-weight:400;font-size:11px"></small></h3><canvas id="chart-invg-dist"></canvas></div>
     </div>
-    <hr class="divider"/>
-    <div class="section-title" style="font-size:13px">📋 Detalle Mensual <small style="color:var(--gray3);font-size:11px;font-weight:400">(Enero 2025 → Julio 2026)</small></div>
-    <div class="table-wrap" style="margin-bottom:18px"><table id="tbl-invg-meses"><thead></thead><tbody></tbody></table></div>
     <hr class="divider"/>
     <div class="section-title" style="font-size:13px">📋 Detalle por Proveedor <small id="invg-detprov-periodo" style="color:var(--gray3);font-size:11px;font-weight:400"></small> <small style="color:var(--gray3);font-size:11px;font-weight:400">(clic para ver los productos)</small></div>
     <div class="table-wrap" style="margin-bottom:12px"><table id="tbl-invg-prov"><thead></thead><tbody></tbody></table></div>
@@ -1548,14 +1548,19 @@ function renderInventarioGlobal(f){
     if(idx>=0) targetIdx = idx; else exactMatch = false;
   }
   const actual=serie[targetIdx], primero=serie[0];
-  const variacion=actual.valor-primero.valor;
-  const variacionPct=primero.valor?(variacion/primero.valor*100):0;
+  // Comparación año contra año: si existe el mismo mes del año anterior, se usa como base
+  // (ej. Jul 26 vs Jul 25); si no hay 12 meses atrás todavía, se compara contra el primer período.
+  const idxAñoAtras = invGlobalPeriodos.findIndex(p=>p.mes===actual.mes && p.año===actual.año-1);
+  const base = idxAñoAtras>=0 ? serie[idxAñoAtras] : primero;
+  const baseLabelTxt = idxAñoAtras>=0 ? `hace 1 año · ${base.label}` : `inicial (${base.label})`;
+  const variacion=actual.valor-base.valor;
+  const variacionPct=base.valor?(variacion/base.valor*100):0;
   const labelActual = exactMatch ? actual.label : `${actual.label} · sin datos para ese mes`;
 
   renderKPI('kpi-invg',[
     {label:`📦 Valor en ${labelActual}`, value:fmt$(actual.valor), cls:'green'},
-    {label:`🕐 Valor inicial (${primero.label})`, value:fmt$(primero.valor), cls:''},
-    {label:'📈 Variación hasta ese mes', value:(variacion>=0?'+':'')+fmt$(variacion), cls:variacion>=0?'green':'red'},
+    {label:`🕐 Valor ${baseLabelTxt}`, value:fmt$(base.valor), cls:''},
+    {label:'📈 Variación', value:(variacion>=0?'+':'')+fmt$(variacion), cls:variacion>=0?'green':'red'},
     {label:'📊 % Variación', value:(variacionPct>=0?'+':'')+variacionPct.toFixed(1)+'%', cls:variacionPct>=0?'green':'red'},
   ]);
 
@@ -1567,6 +1572,34 @@ function renderInventarioGlobal(f){
     type:'line',
     data:{labels:serie.map(s=>s.label),datasets:[{label:'Valor (costo)',data:serie.map(s=>s.valor),borderColor:'#1A7A8A',backgroundColor:'rgba(26,122,138,.12)',fill:true,tension:.3,pointRadius:pointRadii,pointHoverRadius:8,pointBackgroundColor:pointColors,pointBorderColor:pointColors}]},
     options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt$(ctx.raw)}}},scales:{y:{ticks:{callback:v=>fmt$(v)}}}}
+  });
+
+  // ── Evolución del valor por proveedor (top 8 + Otros) ──
+  const CLP=['#1A7A8A','#F0A500','#1DB87A','#E05252','#7B6CF6','#2BAFCA','#0B3C49','#E39A00'];
+  const serieProvMap = serie.map(s=>{
+    const m={};
+    s.regs.forEach(r=>{ m[r.PROV]=(m[r.PROV]||0)+r.COSTO; });
+    return m;
+  });
+  const provTotales={};
+  serieProvMap.forEach(m=>Object.entries(m).forEach(([p,v])=>{ provTotales[p]=(provTotales[p]||0)+v; }));
+  const topProvsEvol=Object.entries(provTotales).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+  const otrosProvsEvol=Object.keys(provTotales).filter(p=>!topProvsEvol.includes(p));
+  const datasetsProvEvol=topProvsEvol.map((prov,i)=>({
+    label:prov, data:serieProvMap.map(m=>m[prov]||0),
+    borderColor:CLP[i%CLP.length], backgroundColor:'transparent', borderWidth:2, tension:.3, pointRadius:2, pointHoverRadius:6
+  }));
+  if(otrosProvsEvol.length){
+    datasetsProvEvol.push({
+      label:`Otros (${otrosProvsEvol.length})`, data:serieProvMap.map(m=>otrosProvsEvol.reduce((s,p)=>s+(m[p]||0),0)),
+      borderColor:'#9AADB5', backgroundColor:'transparent', borderWidth:2, borderDash:[4,3], tension:.3, pointRadius:2, pointHoverRadius:6
+    });
+  }
+  destroyChart('chart-invg-prov-evol');
+  charts['chart-invg-prov-evol']=new Chart($('chart-invg-prov-evol'),{
+    type:'line',
+    data:{labels:serie.map(s=>s.label),datasets:datasetsProvEvol},
+    options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt$(ctx.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt$(v)}}}}
   });
 
   // ── Análisis por proveedor del período seleccionado (📍) ──
@@ -1610,25 +1643,6 @@ function renderInventarioGlobal(f){
   window._invgTargetData=targetRegs;
   makeTableSortable('tbl-invg-prov',[1,2,3,4]);
   cerrarDetalleInvgProv();
-
-  const tbl=$('tbl-invg-meses');
-  tbl.querySelector('thead').innerHTML='<tr><th>Período</th><th># SKUs</th><th>Unidades</th><th>Valor (costo)</th><th>Var. $ vs mes anterior</th><th>Var. % vs mes anterior</th></tr>';
-  tbl.querySelector('tbody').innerHTML=serie.map((s,i)=>{
-    const prev=i>0?serie[i-1].valor:null;
-    const varAbs=prev!=null?s.valor-prev:null;
-    const varPct=(prev!=null&&prev)?((s.valor-prev)/prev*100):null;
-    const colAbs=varAbs==null?'inherit':(varAbs>=0?'var(--green)':'var(--red)');
-    const colPct=varPct==null?'inherit':(varPct>=0?'var(--green)':'var(--red)');
-    return `<tr style="${i===targetIdx?'background:var(--sky);font-weight:700':''}">
-      <td>${s.label}${i===targetIdx?' 📍':''}</td>
-      <td>${s.skus.toLocaleString('en-US')}</td>
-      <td>${fmtU(s.unidades)}</td>
-      <td style="font-weight:700">${fmt$(s.valor)}</td>
-      <td style="color:${colAbs}">${varAbs==null?'—':(varAbs>=0?'+':'')+fmt$(varAbs)}</td>
-      <td style="color:${colPct}">${varPct==null?'—':(varPct>=0?'+':'')+varPct.toFixed(1)+'%'}</td>
-    </tr>`;
-  }).join('');
-  makeTableSortable('tbl-invg-meses',[1,2,3,4,5],false);
 }
 function cerrarDetalleInvgProv(){ const w=$('invg-prod-detalle'); if(w) w.style.display='none'; }
 function mostrarDetalleInvgProv(prov){
