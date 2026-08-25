@@ -681,6 +681,7 @@
   <button class="tab-btn" onclick="switchTab(8)">👥 Talento Humano</button>
   <button class="tab-btn" onclick="switchTab(9)">💎 Rebate</button>
   <button class="tab-btn" onclick="switchTab(10)">📦 Inventario</button>
+  <button class="tab-btn" onclick="switchTab(11)">📈 Inventario Global</button>
 
 </div>
 
@@ -972,6 +973,30 @@
     </div>
   </div>
 
+  <!-- TAB 11: INVENTARIO GLOBAL (EVOLUCIÓN EN EL TIEMPO) -->
+  <div class="tab-panel" id="panel-11">
+    <div class="section-title">📈 Inventario Global — Evolución en el Tiempo</div>
+    <div class="kpi-grid" id="kpi-invg"></div>
+    <hr class="divider"/>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="filtro-group">
+        <label>Proveedor</label>
+        <select id="sel-invg-prov" onchange="renderInventarioGlobal()"><option value="TODOS">TODOS</option></select>
+      </div>
+      <div class="filtro-group">
+        <label>Categoría</label>
+        <select id="sel-invg-cat" onchange="renderInventarioGlobal()"><option value="TODAS">TODAS</option></select>
+      </div>
+    </div>
+    <div class="chart-grid" style="margin-bottom:18px">
+      <div class="chart-box"><h3>Evolución del valor de inventario (a costo)</h3><canvas id="chart-invg-valor"></canvas></div>
+      <div class="chart-box"><h3>Evolución de unidades totales</h3><canvas id="chart-invg-unidades"></canvas></div>
+    </div>
+    <hr class="divider"/>
+    <div class="section-title" style="font-size:13px">📋 Detalle Mensual <small style="color:var(--gray3);font-size:11px;font-weight:400">(Enero 2025 → Julio 2026)</small></div>
+    <div class="table-wrap"><table id="tbl-invg-meses"><thead></thead><tbody></tbody></table></div>
+  </div>
+
 </div><!-- /content -->
 
 <script>
@@ -1015,7 +1040,9 @@ function excelDateToJSDate(serial) {
 // ══════════════════════════════════════════════════
 const ARCHIVO_XLSX = 'TABLERO.xlsx';
 const ARCHIVO_TALENTO = 'TALENTO HUMANO.xlsx';
+const ARCHIVO_INVMESES = 'INVENTARIO POR MESES.xlsx';
 let WB_TALENTO = null;
+let WB_INVMESES = null;
 
 
 function notifyHostStatus(status, message){
@@ -1083,6 +1110,16 @@ async function cargarDesdeServidor(){
       procesarSheetsTalento();
       poblarFiltrosTalento();
       if(activeTab===8) renderTalento();
+    }).catch(()=>{});
+  // cargar también INVENTARIO POR MESES.xlsx en paralelo
+  fetch(ARCHIVO_INVMESES + '?t=' + Date.now())
+    .then(r=>r.ok?r.arrayBuffer():null)
+    .then(buf=>{
+      if(!buf) return;
+      WB_INVMESES = XLSX.read(buf, {type:'array', cellDates:false});
+      procesarSheetsInvMeses();
+      poblarFiltrosInvGlobal();
+      if(activeTab===11) renderInventarioGlobal();
     }).catch(()=>{});
   loading(true);
   try {
@@ -1556,6 +1593,114 @@ function mostrarDetalleInvProv(prov){
 }
 
 // ══════════════════════════════════════════════════
+// TAB 11 – INVENTARIO GLOBAL (EVOLUCIÓN EN EL TIEMPO)
+// ══════════════════════════════════════════════════
+const MESES_ABR = {ENERO:'Ene',FEBRERO:'Feb',MARZO:'Mar',ABRIL:'Abr',MAYO:'May',JUNIO:'Jun',JULIO:'Jul',AGOSTO:'Ago',SEPTIEMBRE:'Sep',OCTUBRE:'Oct',NOVIEMBRE:'Nov',DICIEMBRE:'Dic'};
+let invGlobalPeriodos = [];
+
+function procesarSheetsInvMeses(){
+  if(!WB_INVMESES) return;
+  const nk=k=>String(k).replace(/<br\s*\/?>/gi,' ').replace(/\s+/g,' ').trim().toUpperCase();
+  invGlobalPeriodos = WB_INVMESES.SheetNames.map(sheetName=>{
+    const m = sheetName.trim().toUpperCase().match(/^([A-ZÁÉÍÓÚÑ]+)\s+(\d{4})$/);
+    const mes = m ? m[1] : sheetName;
+    const año = m ? parseInt(m[2],10) : 0;
+    const raw = XLSX.utils.sheet_to_json(WB_INVMESES.Sheets[sheetName], {defval:''});
+    const registros = raw.map(r=>{
+      const obj={};
+      Object.keys(r).forEach(k=>{ obj[nk(k)]=r[k]; });
+      return {
+        PROV:  cleanStr(obj['PROVEEDOR']),
+        CAT:   cleanStr(obj['CATEGORIA']),
+        UNID:  cleanNum(obj['UNIDADES']),
+        COSTO: cleanNum(obj['COSTO TOTAL'])
+      };
+    }).filter(r=>r.PROV);
+    return { key:sheetName, mes, año, label:(MESES_ABR[mes]||mes.slice(0,3))+' '+String(año).slice(2), registros };
+  });
+}
+
+function poblarFiltrosInvGlobal(){
+  const sp=$('sel-invg-prov'), sc=$('sel-invg-cat');
+  if(!sp || !sc) return;
+  if(sp.options.length<=1){
+    const provs=new Set();
+    invGlobalPeriodos.forEach(p=>p.registros.forEach(r=>{ if(r.PROV) provs.add(r.PROV); }));
+    [...provs].sort().forEach(p=>{ sp.innerHTML+=`<option>${p}</option>`; });
+  }
+  if(sc.options.length<=1){
+    const cats=new Set();
+    invGlobalPeriodos.forEach(p=>p.registros.forEach(r=>{ if(r.CAT) cats.add(r.CAT); }));
+    [...cats].sort().forEach(c=>{ sc.innerHTML+=`<option>${c}</option>`; });
+  }
+}
+
+function renderInventarioGlobal(){
+  const cont=$('kpi-invg');
+  if(!invGlobalPeriodos.length){ if(cont) cont.innerHTML='<div class="kpi-card"><div class="kpi-label">Inventario Global</div><div class="kpi-value" style="font-size:1rem">Sin datos en "INVENTARIO POR MESES.xlsx"</div></div>'; return; }
+
+  const sp=$('sel-invg-prov'), sc=$('sel-invg-cat');
+  const provSel = sp ? sp.value : 'TODOS';
+  const catSel  = sc ? sc.value : 'TODAS';
+
+  const serie = invGlobalPeriodos.map(p=>{
+    let regs=p.registros;
+    if(provSel!=='TODOS') regs=regs.filter(r=>r.PROV===provSel);
+    if(catSel!=='TODAS')  regs=regs.filter(r=>r.CAT===catSel);
+    return {
+      label:p.label,
+      valor:regs.reduce((s,r)=>s+r.COSTO,0),
+      unidades:regs.reduce((s,r)=>s+r.UNID,0),
+      skus:regs.length
+    };
+  });
+
+  const primero=serie[0], ultimo=serie[serie.length-1];
+  const variacion=ultimo.valor-primero.valor;
+  const variacionPct=primero.valor?(variacion/primero.valor*100):0;
+
+  renderKPI('kpi-invg',[
+    {label:`📦 Valor actual (${ultimo.label})`, value:fmt$(ultimo.valor), cls:'green'},
+    {label:`🕐 Valor inicial (${primero.label})`, value:fmt$(primero.valor), cls:''},
+    {label:'📈 Variación total', value:(variacion>=0?'+':'')+fmt$(variacion), cls:variacion>=0?'green':'red'},
+    {label:'📊 % Variación', value:(variacionPct>=0?'+':'')+variacionPct.toFixed(1)+'%', cls:variacionPct>=0?'green':'red'},
+  ]);
+
+  destroyChart('chart-invg-valor');
+  charts['chart-invg-valor']=new Chart($('chart-invg-valor'),{
+    type:'line',
+    data:{labels:serie.map(s=>s.label),datasets:[{label:'Valor (costo)',data:serie.map(s=>s.valor),borderColor:'#1A7A8A',backgroundColor:'rgba(26,122,138,.12)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt$(ctx.raw)}}},scales:{y:{ticks:{callback:v=>fmt$(v)}}}}
+  });
+
+  destroyChart('chart-invg-unidades');
+  charts['chart-invg-unidades']=new Chart($('chart-invg-unidades'),{
+    type:'line',
+    data:{labels:serie.map(s=>s.label),datasets:[{label:'Unidades',data:serie.map(s=>s.unidades),borderColor:'#F0A500',backgroundColor:'rgba(240,165,0,.12)',fill:true,tension:.3,pointRadius:4,pointHoverRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmtU(ctx.raw)+' uds'}}},scales:{y:{ticks:{callback:v=>fmtU(v)}}}}
+  });
+
+  const tbl=$('tbl-invg-meses');
+  tbl.querySelector('thead').innerHTML='<tr><th>Período</th><th># SKUs</th><th>Unidades</th><th>Valor (costo)</th><th>Var. $ vs mes anterior</th><th>Var. % vs mes anterior</th></tr>';
+  tbl.querySelector('tbody').innerHTML=serie.map((s,i)=>{
+    const prev=i>0?serie[i-1].valor:null;
+    const varAbs=prev!=null?s.valor-prev:null;
+    const varPct=(prev!=null&&prev)?((s.valor-prev)/prev*100):null;
+    const colAbs=varAbs==null?'inherit':(varAbs>=0?'var(--green)':'var(--red)');
+    const colPct=varPct==null?'inherit':(varPct>=0?'var(--green)':'var(--red)');
+    return `<tr>
+      <td>${s.label}</td>
+      <td>${s.skus.toLocaleString('en-US')}</td>
+      <td>${fmtU(s.unidades)}</td>
+      <td style="font-weight:700">${fmt$(s.valor)}</td>
+      <td style="color:${colAbs}">${varAbs==null?'—':(varAbs>=0?'+':'')+fmt$(varAbs)}</td>
+      <td style="color:${colPct}">${varPct==null?'—':(varPct>=0?'+':'')+varPct.toFixed(1)+'%'}</td>
+    </tr>`;
+  }).join('');
+  makeTableSortable('tbl-invg-meses',[1,2,3,4,5],false);
+}
+
+// ══════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════
 function switchTab(idx){
@@ -1564,8 +1709,9 @@ function switchTab(idx){
   document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
   if(!WB) return;
   const f = getFiltros();
-  const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate,renderInventario];
+  const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate,renderInventario,renderInventarioGlobal];
   if(idx===10){ renders[10](f); return; }   // Inventario no depende del año
+  if(idx===11){ renders[11](); return; }    // Inventario Global no depende del año
   if(!f.año) return;
   renders[idx](f);
 }
