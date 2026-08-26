@@ -14,22 +14,38 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#F4F5F7;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);min-height:100vh}
-.header{background:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--gray2);box-shadow:0 1px 3px rgba(20,25,40,.04)}
-.header h1{font-size:1rem;font-weight:700;color:var(--navy)}
-.header h1 span{color:#7c3aed}
-.date-tag{font-size:10px;color:#6b7280;background:var(--gray1);border:1px solid var(--gray2);padding:4px 10px;border-radius:6px;white-space:nowrap;margin-left:auto}
-.date-tag.ok{color:#047857;background:#f7fffb;border-color:#bdebd8}
-.date-tag.err{color:#be123c;background:#fff8fa;border-color:#ffd3dc}
+
+/* ---- Hero: acreedor + avance del capital ---- */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#123f52 55%,var(--teal) 130%);color:#fff;padding:24px 20px 26px;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,rgba(43,175,202,.35),transparent 55%);pointer-events:none}
+.hero-inner{max-width:1180px;margin:0 auto;position:relative}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.hero-eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:#9fd6e0;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.hero-title{font-size:1.4rem;font-weight:700;letter-spacing:-.01em}
+.hero-title b{color:#7ee6c4}
+.hero-lender{font-size:1.05rem;font-weight:700;margin-top:2px;color:#eaf7f5}
+.date-tag{font-size:10px;color:#6b7280;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e6f3f3;padding:5px 11px;border-radius:20px;white-space:nowrap}
+.date-tag.ok{color:#baf3d6;background:rgba(29,184,122,.18);border-color:rgba(29,184,122,.4)}
+.date-tag.err{color:#ffd0d9;background:rgba(224,82,82,.2);border-color:rgba(224,82,82,.45)}
+
+.progress-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#cfe4e6;margin-bottom:7px;gap:10px;flex-wrap:wrap}
+.progress-row b{color:#fff;font-size:1rem;font-weight:700}
+.progress-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden}
+.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#2BAFCA,#7ee6c4);transition:width .5s ease}
+.hero-foot{margin-top:10px;font-size:11px;color:#bcdadd}
+.hero-foot b{color:#fff;font-weight:600}
 
 .wrap{padding:18px 20px;max-width:1180px;margin:0 auto}
 
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
-.kpi-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px 16px;border-top:3px solid var(--teal)}
-.kpi-card.green{border-top-color:var(--green)}
-.kpi-card.amber{border-top-color:var(--amber)}
-.kpi-card.red{border-top-color:var(--red)}
-.kpi-label{font-size:10.5px;color:var(--gray3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;font-weight:600}
-.kpi-value{font-size:1.15rem;font-weight:700;color:var(--navy)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.kpi-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--sky);color:var(--teal)}
+.kpi-card.green .kpi-ico{background:#e3fbef;color:var(--green)}
+.kpi-card.amber .kpi-ico{background:#fef3e0;color:var(--amber)}
+.kpi-card.muted .kpi-ico{background:var(--gray1);color:var(--gray3)}
+.kpi-body{min-width:0}
+.kpi-label{font-size:10.5px;color:var(--gray3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;font-weight:600}
+.kpi-value{font-size:1.1rem;font-weight:700;color:var(--navy)}
 .kpi-sub{font-size:10.5px;color:var(--gray3);margin-top:3px}
 
 .section-title{font-size:13px;font-weight:700;color:var(--navy);margin:22px 0 12px;display:flex;align-items:center;gap:8px}
@@ -75,9 +91,23 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 </head>
 <body>
 
-<div class="header">
-  <h1>Préstamo <span>Socios</span></h1>
-  <span class="date-tag" id="dateTag">Cargando…</span>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div>
+        <div class="hero-eyebrow">🏦 Préstamo a</div>
+        <div class="hero-lender">UPHOLDING CIA. LTDA.</div>
+      </div>
+      <span class="date-tag" id="dateTag">Cargando…</span>
+    </div>
+    <div class="progress-row">
+      <span>Capital abonado <b id="heroAbonado">$0.00</b></span>
+      <span id="heroPct">0%</span>
+      <span>Pendiente <b id="heroPendiente">$0.00</b></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="hero-foot">Capital inicial <b id="heroTotal">$0.00</b> · <b id="heroTasa">—</b> anual · <b id="heroCuotasTotal">—</b> cuotas mensuales</div>
+  </div>
 </div>
 
 <div class="wrap">
@@ -174,6 +204,11 @@ function calcularKPIs(){
   const cfg = DATA.config || {};
   const cuotas = DATA.cuotas || [];
   const capitalTotal = Number(cfg['Capital inicial (USD)']) || 0;
+  const tasaAnual = Number(cfg['Tasa de interés anual (nominal)']) || 0;
+  // Interes generado ANTES de la primera cuota (ej. Ene-Jun 2026): no es parte
+  // de la tabla de amortizacion, pero es interes real del prestamo.
+  const interesPrevioKey = Object.keys(cfg).find(k => /inter[eé]s/i.test(k) && /previo|antes|ene.*jun/i.test(k));
+  const interesPrevio = interesPrevioKey ? (Number(cfg[interesPrevioKey]) || 0) : 0;
 
   let capitalAbonado = 0, interesPagado = 0, cuotasPagadas = 0;
   cuotas.forEach(c=>{
@@ -191,42 +226,61 @@ function calcularKPIs(){
   const interesProgramado = cuotas.reduce((s,c)=>s+c.interes, 0);
   const proxima = cuotas.find(c=>c.estado !== 'Pagado');
 
-  return {capitalTotal, capitalAbonado, capitalPendiente, interesPagado, interesProgramado, cuotasPagadas, totalCuotas: cuotas.length, proxima};
+  return {capitalTotal, tasaAnual, capitalAbonado, capitalPendiente, interesPagado, interesPrevio, interesProgramado, cuotasPagadas, totalCuotas: cuotas.length, proxima};
 }
 
 function render(){
   const k = calcularKPIs();
+  const pctAvance = k.capitalTotal ? (k.capitalAbonado/k.capitalTotal*100) : 0;
+
+  // Hero: acreedor + avance del capital
+  $('heroAbonado').textContent = fmt$(k.capitalAbonado);
+  $('heroPendiente').textContent = fmt$(k.capitalPendiente);
+  $('heroPct').textContent = fmtPct(pctAvance) + ' abonado';
+  $('progressFill').style.width = Math.min(100, pctAvance) + '%';
+  $('heroTotal').textContent = fmt$(k.capitalTotal);
+  $('heroTasa').textContent = k.tasaAnual ? fmtPct(k.tasaAnual*100) : '—';
+  $('heroCuotasTotal').textContent = k.totalCuotas || '—';
+
   $('kpis').innerHTML = `
     <div class="kpi-card">
-      <div class="kpi-label">💰 Capital total</div>
-      <div class="kpi-value">${fmt$(k.capitalTotal)}</div>
+      <div class="kpi-ico">💵</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés pagado</div>
+        <div class="kpi-value">${fmt$(k.interesPagado)}</div>
+        <div class="kpi-sub">de las cuotas ya pagadas</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">🕐</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés previo (Ene–Jun 26)</div>
+        <div class="kpi-value">${fmt$(k.interesPrevio)}</div>
+        <div class="kpi-sub">generado antes de la 1ª cuota, no está en la tabla</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">📈</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés programado</div>
+        <div class="kpi-value">${fmt$(k.interesProgramado)}</div>
+        <div class="kpi-sub">total de las ${k.totalCuotas} cuotas</div>
+      </div>
     </div>
     <div class="kpi-card green">
-      <div class="kpi-label">📉 Capital abonado</div>
-      <div class="kpi-value">${fmt$(k.capitalAbonado)}</div>
-      <div class="kpi-sub">${k.capitalTotal ? fmtPct(k.capitalAbonado/k.capitalTotal*100) : '0%'} del total</div>
+      <div class="kpi-ico">✅</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Cuotas pagadas</div>
+        <div class="kpi-value">${k.cuotasPagadas} / ${k.totalCuotas}</div>
+      </div>
     </div>
     <div class="kpi-card amber">
-      <div class="kpi-label">📊 Capital pendiente</div>
-      <div class="kpi-value">${fmt$(k.capitalPendiente)}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">💵 Interés pagado</div>
-      <div class="kpi-value">${fmt$(k.interesPagado)}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">📈 Interés programado</div>
-      <div class="kpi-value">${fmt$(k.interesProgramado)}</div>
-      <div class="kpi-sub">total de las ${k.totalCuotas} cuotas</div>
-    </div>
-    <div class="kpi-card green">
-      <div class="kpi-label">✅ Cuotas pagadas</div>
-      <div class="kpi-value">${k.cuotasPagadas} / ${k.totalCuotas}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">📅 Próxima cuota</div>
-      <div class="kpi-value" style="font-size:.95rem">${k.proxima ? k.proxima.mes : '— al día —'}</div>
-      <div class="kpi-sub">${k.proxima ? fmt$(k.proxima.pagoTotal) + ' programado' : 'préstamo saldado'}</div>
+      <div class="kpi-ico">📅</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Próxima cuota</div>
+        <div class="kpi-value" style="font-size:.95rem">${k.proxima ? k.proxima.mes : '— al día —'}</div>
+        <div class="kpi-sub">${k.proxima ? fmt$(k.proxima.pagoTotal) + ' programado' : 'préstamo saldado'}</div>
+      </div>
     </div>
   `;
 
