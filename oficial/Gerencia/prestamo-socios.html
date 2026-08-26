@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B3C49">
+<title>Préstamos e Inversiones - Opaustro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --navy:#0B3C49; --teal:#1A7A8A; --teal2:#2BAFCA; --sky:#E3F5F8;
+  --gray1:#F4F7F9; --gray2:#E2E8EC; --gray3:#9AADB5; --text:#1C2E35;
+  --green:#1DB87A; --red:#E05252; --amber:#F0A500;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F4F5F7;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);min-height:100vh}
+
+/* ---- Barra superior: titulo + sub-pestañas ---- */
+.topbar{background:#fff;border-bottom:1px solid var(--gray2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(20,25,40,.04)}
+.topbar-title{font-size:1rem;font-weight:700;color:var(--navy)}
+.topbar-title span{color:#7c3aed}
+.subtabs{display:flex;gap:3px;background:var(--gray1);padding:4px;border-radius:10px}
+.subtab-btn{border:none;background:transparent;padding:7px 15px;border-radius:7px;font-size:12px;font-weight:600;color:var(--gray3);cursor:pointer;font-family:inherit;white-space:nowrap}
+.subtab-btn.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(20,25,40,.14)}
+
+.pane{display:none}
+.pane.active{display:block}
+
+/* ---- Hero: institucion + avance ---- */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#123f52 55%,var(--teal) 130%);color:#fff;padding:24px 20px 26px;position:relative;overflow:hidden}
+.hero.hero-inv{background:linear-gradient(135deg,var(--navy) 0%,#0f5c47 55%,var(--green) 130%)}
+.hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,rgba(43,175,202,.35),transparent 55%);pointer-events:none}
+.hero.hero-inv:before{background:radial-gradient(circle at 85% -10%,rgba(29,184,122,.35),transparent 55%)}
+.hero-inner{max-width:1180px;margin:0 auto;position:relative}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.hero-eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:#9fd6e0;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.hero-lender{font-size:1.05rem;font-weight:700;margin-top:2px;color:#eaf7f5}
+.date-tag{font-size:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e6f3f3;padding:5px 11px;border-radius:20px;white-space:nowrap}
+.date-tag.ok{color:#baf3d6;background:rgba(29,184,122,.18);border-color:rgba(29,184,122,.4)}
+.date-tag.err{color:#ffd0d9;background:rgba(224,82,82,.2);border-color:rgba(224,82,82,.45)}
+
+.progress-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#cfe4e6;margin-bottom:7px;gap:10px;flex-wrap:wrap}
+.progress-row b{color:#fff;font-size:1rem;font-weight:700}
+.progress-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden;display:flex}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2BAFCA,#7ee6c4);transition:width .5s ease}
+.progress-fill-2{height:100%;background:linear-gradient(90deg,#1DB87A,#c9f5df);transition:width .5s ease}
+.hero-foot{margin-top:10px;font-size:11px;color:#bcdadd}
+.hero-foot b{color:#fff;font-weight:600}
+
+.wrap{padding:18px 20px;max-width:1180px;margin:0 auto}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.kpi-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--sky);color:var(--teal)}
+.kpi-card.green .kpi-ico{background:#e3fbef;color:var(--green)}
+.kpi-card.amber .kpi-ico{background:#fef3e0;color:var(--amber)}
+.kpi-card.muted .kpi-ico{background:var(--gray1);color:var(--gray3)}
+.kpi-body{min-width:0}
+.kpi-label{font-size:10.5px;color:var(--gray3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;font-weight:600}
+.kpi-value{font-size:1.1rem;font-weight:700;color:var(--navy)}
+.kpi-sub{font-size:10.5px;color:var(--gray3);margin-top:3px}
+
+.section-title{font-size:13px;font-weight:700;color:var(--navy);margin:22px 0 12px;display:flex;align-items:center;gap:8px}
+.section-title small{font-weight:400;color:var(--gray3);font-size:11px}
+
+.table-wrap{background:#fff;border:1px solid var(--gray2);border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+thead th{background:var(--navy);color:#cfe0e4;font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:9px 12px;text-align:left;position:sticky;top:0}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--gray1)}
+tbody tr:hover td{background:var(--sky)}
+tbody tr.clickable{cursor:pointer}
+tbody tr.row-pagado td{color:#7a8a90}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
+.pill.pendiente{background:#F6E9D4;color:#B8843A}
+.pill.parcial{background:#DDEAF8;color:#2A6E9E}
+.pill.pagado{background:#DCFCE7;color:#15803D}
+.empty-cell{color:var(--gray3)}
+
+.loading, .error-box{padding:60px 20px;text-align:center;color:var(--gray3)}
+.error-box{color:#be123c}
+
+/* ---- Modal ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(11,60,73,.45);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:420px;box-shadow:0 30px 70px rgba(11,60,73,.3)}
+.modal h3{font-size:15px;color:var(--navy);margin-bottom:4px}
+.modal .modal-sub{font-size:11.5px;color:var(--gray3);margin-bottom:18px;line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--gray3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px}
+.field input{width:100%;border:1.5px solid var(--gray2);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none}
+.field input:focus{border-color:var(--teal)}
+.modal-err{display:none;font-size:11.5px;color:#be123c;background:#fff2f4;border:1px solid #ffd3dc;border-radius:7px;padding:8px 10px;margin-bottom:12px}
+.modal-err.show{display:block}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.btn{border:none;border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-ghost{background:var(--gray1);color:var(--text)}
+.btn-ghost:hover{background:var(--gray2)}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--navy)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">💼 Préstamos <span>e Inversiones</span></div>
+  <div class="subtabs">
+    <button class="subtab-btn active" data-pane="paneLoan" onclick="switchPane(this)">🏦 Préstamo Socios</button>
+    <button class="subtab-btn" data-pane="paneInv" onclick="switchPane(this)">📈 Inversión BG</button>
+  </div>
+</div>
+
+<!-- ===================== PANE: PRESTAMO SOCIOS ===================== -->
+<div class="pane active" id="paneLoan">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-eyebrow">🏦 Préstamo a</div>
+          <div class="hero-lender">UPHOLDING CIA. LTDA.</div>
+        </div>
+        <span class="date-tag" id="dateTag">Cargando…</span>
+      </div>
+      <div class="progress-row">
+        <span>Capital abonado <b id="heroAbonado">$0.00</b></span>
+        <span id="heroPct">0%</span>
+        <span>Pendiente <b id="heroPendiente">$0.00</b></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="hero-foot">Capital inicial <b id="heroTotal">$0.00</b> · <b id="heroTasa">—</b> anual · <b id="heroCuotasTotal">—</b> cuotas mensuales</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <div id="estadoCarga" class="loading">⏳ Cargando datos del préstamo…</div>
+
+    <div id="contenido" style="display:none">
+      <div class="section-title">📋 Tabla de Amortización <small>(clic en una cuota pendiente para registrar un abono)</small></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>N° Cuota</th><th>Mes</th><th>Saldo Inicial</th><th>Interés</th>
+              <th>Abono a Capital</th><th>Pago Total</th><th>Saldo Final</th>
+              <th>Estado</th><th>Fecha Pago Real</th><th>Monto Abonado</th>
+            </tr>
+          </thead>
+          <tbody id="tbCuotas"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANE: INVERSION BG ===================== -->
+<div class="pane" id="paneInv">
+  <div class="hero hero-inv">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-eyebrow">📈 Ahorro Inversión en</div>
+          <div class="hero-lender">BANCO GUAYAQUIL</div>
+        </div>
+        <span class="date-tag" id="invDateTag">Cargando…</span>
+      </div>
+      <div class="progress-row">
+        <span>Capital aportado <b id="invCapital">$0.00</b></span>
+        <span>Interés ganado <b id="invInteres">$0.00</b></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="invProgressCapital" style="width:0%"></div>
+        <div class="progress-fill-2" id="invProgressInteres" style="width:0%"></div>
+      </div>
+      <div class="hero-foot">Saldo actual <b id="invSaldo">$0.00</b> · tasa vigente <b id="invTasa">—</b> · corte al <b id="invFechaCorte">—</b></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="kpi-grid" id="kpisInv"></div>
+
+    <div id="estadoCargaInv" class="loading">⏳ Cargando movimientos de la inversión…</div>
+
+    <div id="contenidoInv" style="display:none">
+      <div class="section-title">📅 Rendimiento por Mes <small>(cómo ha venido pagando la inversión — se actualiza solo al pegar movimientos nuevos en el Sheet)</small></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Mes</th><th>Aportes</th><th>Interés ganado</th><th>Días con capitalización</th><th>Saldo fin de mes</th></tr>
+          </thead>
+          <tbody id="tbInversion"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: registrar abono (solo Prestamo Socios) -->
+<div class="modal-overlay" id="modalAbono">
+  <div class="modal">
+    <h3>Registrar abono — Cuota <span id="modalCuotaNum"></span></h3>
+    <div class="modal-sub" id="modalCuotaInfo"></div>
+    <div class="modal-err" id="modalErr"></div>
+    <div class="field">
+      <label>Fecha de pago</label>
+      <input type="date" id="inpFecha">
+    </div>
+    <div class="field">
+      <label>Monto abonado (USD)</label>
+      <input type="number" id="inpMonto" step="0.01" min="0.01">
+    </div>
+    <div class="field">
+      <label>Observaciones (opcional)</label>
+      <input type="text" id="inpObs" placeholder="ej. abono adelantado">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardar" onclick="guardarAbono()">Guardar abono</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Apps Script PROPIO y aislado (no toca Flujo de Caja ni ningun otro modulo):
+// PrestamoSocios/Code.gs (oficial), publicado como Web App. El mismo
+// script y el mismo Sheet sirven tanto Prestamo Socios (hojas
+// config/cuotas) como Inversion BG (hoja INVERSIONES).
+const SCRIPT_URL = '';
+
+const $ = id => document.getElementById(id);
+const fmt$ = v => v == null || isNaN(v) ? '$0.00' : `$${Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const fmtPct = v => `${Number(v||0).toFixed(1)}%`;
+
+// ══════════════════════════════════════════════════
+// SUB-PESTAÑAS
+// ══════════════════════════════════════════════════
+function switchPane(btn){
+  document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $(btn.dataset.pane).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════
+// PRESTAMO SOCIOS
+// ══════════════════════════════════════════════════
+let DATA = null; // {config, cuotas}
+let cuotaSeleccionada = null;
+
+function setEstado(status, msg){
+  const el = $('dateTag');
+  el.textContent = msg;
+  el.className = 'date-tag' + (status ? ' ' + status : '');
+}
+
+async function cargarPrestamo(){
+  setEstado('', 'Sincronizando…');
+  try{
+    if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL (la URL del Apps Script) en este archivo.');
+    if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
+    const resp = await fetch(SCRIPT_URL + '?action=getPrestamo&t=' + Date.now(), {cache:'no-store'});
+    const json = await resp.json();
+    if(!json.ok) throw new Error(json.error || 'Error desconocido del servidor.');
+    DATA = json.prestamo;
+    if(!DATA.cuotas || !DATA.cuotas.length){
+      throw new Error('La hoja "cuotas" no tiene filas de datos todavía.');
+    }
+    $('estadoCarga').style.display = 'none';
+    $('contenido').style.display = 'block';
+    setEstado('ok', 'Conectado · ' + new Date().toLocaleString('es-EC',{dateStyle:'medium',timeStyle:'short'}));
+    render();
+  }catch(err){
+    setEstado('err', 'Error');
+    $('estadoCarga').innerHTML = `<div style="color:#be123c;font-weight:700">✕ No se pudo cargar el préstamo</div>
+      <div style="font-size:11px;margin-top:6px">${err.message}</div>`;
+    $('estadoCarga').style.display = 'block';
+    $('contenido').style.display = 'none';
+  }
+}
+
+function calcularKPIs(){
+  const cfg = DATA.config || {};
+  const cuotas = DATA.cuotas || [];
+  const capitalTotal = Number(cfg['Capital inicial (USD)']) || 0;
+  const tasaAnual = Number(cfg['Tasa de interés anual (nominal)']) || 0;
+  // Interes generado ANTES de la primera cuota (ej. Ene-Jun 2026): no es parte
+  // de la tabla de amortizacion, pero es interes real del prestamo.
+  const interesPrevioKey = Object.keys(cfg).find(k => /inter[eé]s/i.test(k) && /previo|antes|ene.*jun/i.test(k));
+  const interesPrevio = interesPrevioKey ? (Number(cfg[interesPrevioKey]) || 0) : 0;
+
+  let capitalAbonado = 0, interesPagado = 0, cuotasPagadas = 0;
+  cuotas.forEach(c=>{
+    if(c.estado === 'Pagado'){
+      capitalAbonado += c.abonoCapital;
+      interesPagado += c.interes;
+      cuotasPagadas++;
+    } else if(c.estado === 'Parcial'){
+      interesPagado += Math.min(c.montoAbonadoReal, c.interes);
+      capitalAbonado += Math.max(0, c.montoAbonadoReal - c.interes);
+    }
+  });
+
+  const capitalPendiente = capitalTotal - capitalAbonado;
+  const interesProgramado = cuotas.reduce((s,c)=>s+c.interes, 0);
+  const proxima = cuotas.find(c=>c.estado !== 'Pagado');
+
+  return {capitalTotal, tasaAnual, capitalAbonado, capitalPendiente, interesPagado, interesPrevio, interesProgramado, cuotasPagadas, totalCuotas: cuotas.length, proxima};
+}
+
+function render(){
+  const k = calcularKPIs();
+  const pctAvance = k.capitalTotal ? (k.capitalAbonado/k.capitalTotal*100) : 0;
+
+  $('heroAbonado').textContent = fmt$(k.capitalAbonado);
+  $('heroPendiente').textContent = fmt$(k.capitalPendiente);
+  $('heroPct').textContent = fmtPct(pctAvance) + ' abonado';
+  $('progressFill').style.width = Math.min(100, pctAvance) + '%';
+  $('heroTotal').textContent = fmt$(k.capitalTotal);
+  $('heroTasa').textContent = k.tasaAnual ? fmtPct(k.tasaAnual*100) : '—';
+  $('heroCuotasTotal').textContent = k.totalCuotas || '—';
+
+  $('kpis').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-ico">💵</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés pagado</div>
+        <div class="kpi-value">${fmt$(k.interesPagado)}</div>
+        <div class="kpi-sub">de las cuotas ya pagadas</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">🕐</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés previo (Ene–Jun 26)</div>
+        <div class="kpi-value">${fmt$(k.interesPrevio)}</div>
+        <div class="kpi-sub">generado antes de la 1ª cuota, no está en la tabla</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">📈</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés programado</div>
+        <div class="kpi-value">${fmt$(k.interesProgramado)}</div>
+        <div class="kpi-sub">total de las ${k.totalCuotas} cuotas</div>
+      </div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-ico">✅</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Cuotas pagadas</div>
+        <div class="kpi-value">${k.cuotasPagadas} / ${k.totalCuotas}</div>
+      </div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-ico">📅</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Próxima cuota</div>
+        <div class="kpi-value" style="font-size:.95rem">${k.proxima ? k.proxima.mes : '— al día —'}</div>
+        <div class="kpi-sub">${k.proxima ? fmt$(k.proxima.pagoTotal) + ' programado' : 'préstamo saldado'}</div>
+      </div>
+    </div>
+  `;
+
+  const tb = $('tbCuotas');
+  tb.innerHTML = DATA.cuotas.map(c=>{
+    const clickable = c.estado !== 'Pagado';
+    const pillClass = c.estado === 'Pagado' ? 'pagado' : c.estado === 'Parcial' ? 'parcial' : 'pendiente';
+    return `<tr class="${clickable ? 'clickable' : ''} ${c.estado === 'Pagado' ? 'row-pagado' : ''}" ${clickable ? `onclick="abrirModal(${c.cuota})"` : ''}>
+      <td>${c.cuota}</td>
+      <td>${c.mes}</td>
+      <td class="num">${fmt$(c.saldoInicial)}</td>
+      <td class="num">${fmt$(c.interes)}</td>
+      <td class="num">${fmt$(c.abonoCapital)}</td>
+      <td class="num" style="font-weight:700">${fmt$(c.pagoTotal)}</td>
+      <td class="num">${fmt$(c.saldoFinal)}</td>
+      <td><span class="pill ${pillClass}">${c.estado}</span></td>
+      <td>${c.fechaPagoReal || '<span class="empty-cell">—</span>'}</td>
+      <td class="num">${c.montoAbonadoReal ? fmt$(c.montoAbonadoReal) : '<span class="empty-cell">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirModal(nCuota){
+  cuotaSeleccionada = DATA.cuotas.find(c=>c.cuota === nCuota);
+  if(!cuotaSeleccionada) return;
+  const pendiente = cuotaSeleccionada.pagoTotal - (cuotaSeleccionada.montoAbonadoReal || 0);
+  $('modalCuotaNum').textContent = nCuota;
+  $('modalCuotaInfo').textContent = `${cuotaSeleccionada.mes} · Pago total programado ${fmt$(cuotaSeleccionada.pagoTotal)}${cuotaSeleccionada.montoAbonadoReal ? ' · ya abonado ' + fmt$(cuotaSeleccionada.montoAbonadoReal) : ''}`;
+  $('inpFecha').value = new Date().toISOString().slice(0,10);
+  $('inpMonto').value = pendiente.toFixed(2);
+  $('inpObs').value = '';
+  $('modalErr').classList.remove('show');
+  $('modalAbono').classList.add('show');
+}
+
+function cerrarModal(){
+  $('modalAbono').classList.remove('show');
+  cuotaSeleccionada = null;
+}
+
+async function guardarAbono(){
+  if(!cuotaSeleccionada) return;
+  const monto = Number($('inpMonto').value);
+  const fecha = $('inpFecha').value;
+  const observaciones = $('inpObs').value.trim();
+  const errEl = $('modalErr');
+  errEl.classList.remove('show');
+
+  if(!fecha){ errEl.textContent = 'Ingresa la fecha de pago.'; errEl.classList.add('show'); return; }
+  if(!monto || monto <= 0){ errEl.textContent = 'Ingresa un monto mayor a 0.'; errEl.classList.add('show'); return; }
+
+  const btn = $('btnGuardar');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try{
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'abonarCuota', data:{ cuota: cuotaSeleccionada.cuota, fecha, monto, observaciones } })
+    });
+    const json = await resp.json();
+    if(!json.ok) throw new Error(json.error || 'No se pudo guardar el abono.');
+    DATA = json.prestamo;
+    cerrarModal();
+    render();
+  }catch(err){
+    errEl.textContent = err.message;
+    errEl.classList.add('show');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Guardar abono';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// INVERSION BG (solo lectura)
+// ══════════════════════════════════════════════════
+let DATA_INV = null; // {movimientos}
+
+function setEstadoInv(status, msg){
+  const el = $('invDateTag');
+  el.textContent = msg;
+  el.className = 'date-tag' + (status ? ' ' + status : '');
+}
+
+async function cargarInversion(){
+  setEstadoInv('', 'Sincronizando…');
+  try{
+    if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL en este archivo.');
+    if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
+    const resp = await fetch(SCRIPT_URL + '?action=getInversion&t=' + Date.now(), {cache:'no-store'});
+    const json = await resp.json();
+    if(!json.ok) throw new Error(json.error || 'Error desconocido del servidor.');
+    DATA_INV = json.inversion;
+    if(!DATA_INV.movimientos || !DATA_INV.movimientos.length){
+      throw new Error('La hoja "INVERSIONES" no tiene movimientos todavía.');
+    }
+    $('estadoCargaInv').style.display = 'none';
+    $('contenidoInv').style.display = 'block';
+    setEstadoInv('ok', 'Conectado · ' + new Date().toLocaleString('es-EC',{dateStyle:'medium',timeStyle:'short'}));
+    renderInversion();
+  }catch(err){
+    setEstadoInv('err', 'Error');
+    $('estadoCargaInv').innerHTML = `<div style="color:#be123c;font-weight:700">✕ No se pudo cargar la inversión</div>
+      <div style="font-size:11px;margin-top:6px">${err.message}</div>`;
+    $('estadoCargaInv').style.display = 'block';
+    $('contenidoInv').style.display = 'none';
+  }
+}
+
+function esInteres_(m){ return /inter[eé]s/i.test(m.concepto) || /inter[eé]s/i.test(m.tipo); }
+
+function calcularKPIsInversion(){
+  const movs = DATA_INV.movimientos || [];
+  let capitalAportado = 0, interesGanado = 0, numCapitalizaciones = 0;
+  movs.forEach(m=>{
+    if(esInteres_(m)){ interesGanado += m.monto; numCapitalizaciones++; }
+    else capitalAportado += m.monto;
+  });
+  const primero = movs[0];
+  const ultimo = movs[movs.length - 1];
+  const saldoActual = ultimo ? ultimo.saldo : 0;
+  const fechaCorte = ultimo ? ultimo.fecha : '—';
+  const tasaVigente = [...movs].reverse().find(m=>m.tasa)?.tasa || '—';
+  const diasInvertido = (primero && ultimo)
+    ? Math.max(1, Math.round((new Date(ultimo.fecha) - new Date(primero.fecha)) / 86400000) + 1)
+    : 0;
+  const interesPromedioDiario = numCapitalizaciones ? interesGanado / numCapitalizaciones : 0;
+  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, diasInvertido, interesPromedioDiario, numCapitalizaciones, totalMovs: movs.length};
+}
+
+function agruparInversionPorMes_(movs){
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = {};
+  movs.forEach(m=>{
+    const key = m.fecha.slice(0,7); // YYYY-MM
+    if(!meses[key]){
+      const [y,mm] = key.split('-');
+      meses[key] = {key, label: MESES[parseInt(mm,10)-1] + ' ' + y, aportes:0, interes:0, diasCapitalizados:0, saldoFin:0, ultimaFecha:''};
+    }
+    const g = meses[key];
+    if(esInteres_(m)){ g.interes += m.monto; g.diasCapitalizados++; }
+    else g.aportes += m.monto;
+    if(m.fecha >= g.ultimaFecha){ g.ultimaFecha = m.fecha; g.saldoFin = m.saldo; }
+  });
+  return Object.values(meses).sort((a,b)=> a.key.localeCompare(b.key));
+}
+
+function renderInversion(){
+  const k = calcularKPIsInversion();
+  const total = k.capitalAportado + k.interesGanado;
+  const pctCapital = total ? (k.capitalAportado/total*100) : 0;
+  const pctInteres = total ? (k.interesGanado/total*100) : 0;
+
+  $('invCapital').textContent = fmt$(k.capitalAportado);
+  $('invInteres').textContent = fmt$(k.interesGanado);
+  $('invProgressCapital').style.width = Math.max(0,Math.min(100,pctCapital)) + '%';
+  $('invProgressInteres').style.width = Math.max(0,Math.min(100,pctInteres)) + '%';
+  $('invSaldo').textContent = fmt$(k.saldoActual);
+  $('invTasa').textContent = k.tasaVigente;
+  $('invFechaCorte').textContent = k.fechaCorte;
+
+  $('kpisInv').innerHTML = `
+    <div class="kpi-card green">
+      <div class="kpi-ico">💰</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Capital aportado</div>
+        <div class="kpi-value">${fmt$(k.capitalAportado)}</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">💵</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés ganado</div>
+        <div class="kpi-value">${fmt$(k.interesGanado)}</div>
+        <div class="kpi-sub">acumulado a la fecha</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">📊</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Saldo actual</div>
+        <div class="kpi-value">${fmt$(k.saldoActual)}</div>
+      </div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-ico">📈</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Tasa nominal vigente</div>
+        <div class="kpi-value">${k.tasaVigente}</div>
+        <div class="kpi-sub">al corte ${k.fechaCorte}</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">📆</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Días invertido</div>
+        <div class="kpi-value">${k.diasInvertido}</div>
+        <div class="kpi-sub">${k.numCapitalizaciones} capitalizaciones de interés</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">⏱️</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés promedio diario</div>
+        <div class="kpi-value">${fmt$(k.interesPromedioDiario)}</div>
+      </div>
+    </div>
+  `;
+
+  const tb = $('tbInversion');
+  const meses = agruparInversionPorMes_(DATA_INV.movimientos);
+  tb.innerHTML = [...meses].reverse().map(g=>{
+    return `<tr>
+      <td style="font-weight:700">${g.label}</td>
+      <td class="num">${g.aportes ? fmt$(g.aportes) : '<span class="empty-cell">—</span>'}</td>
+      <td class="num" style="color:var(--green);font-weight:700">${fmt$(g.interes)}</td>
+      <td class="num">${g.diasCapitalizados}</td>
+      <td class="num" style="font-weight:700">${fmt$(g.saldoFin)}</td>
+    </tr>`;
+  }).join('');
+}
+
+cargarPrestamo();
+cargarInversion();
+</script>
+</body>
+</html>

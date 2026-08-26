@@ -174,6 +174,13 @@ const MODULE_DEFINITIONS = {
     path: "../Gerencia/flujo-caja-opaustro.html?embed=1",
     embed: true
   },
+  GerenciaPrestamos: {
+    label: "Préstamos e Inversiones",
+    symbol: "loan",
+    icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
+    path: "../Gerencia/prestamo-socios.html?embed=1",
+    embed: true
+  },
   ExhibidoresVendedor: {
     label: "Exhibidores Vendedor",
     symbol: "exhibidorPhoto",
@@ -217,7 +224,8 @@ const SYMBOLS = {
   seller: "&#128100;",
   exhibidorPhoto: "&#127980;",
   exhibidorAudit: "&#128221;",
-  exhibidorReport: "&#128202;"
+  exhibidorReport: "&#128202;",
+  loan: "&#127974;"
 };
 
 const VENTAS_MODULES = ["MapaVentas", "VentasOperativo", "BiVendedor", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"];
@@ -227,7 +235,7 @@ const CARTERA_MODULES = ["Cartera"];
 const LOGISTICA_MODULES = ["Logistica", "Retorno", "CabinetsBodega"];
 const ICE_ADMIN_MODULES = ["IceResumen", "IceInventario", "IceReportes"];
 const ICE_OPERATIVO_MODULES = ["IceEscaneo", "IceMisVisitas"];
-const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"];
+const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos"];
 const ACCESS_CONTROL_MODULES = ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"];
 const GERENCIA_CONTROL_MODULES = ["ControlAccesoInforme", "ControlModulos"];
 const ADMIN_APP_MODULES = [...ACCESS_CONTROL_MODULES];
@@ -261,7 +269,7 @@ const AREA_GROUPS = [
     label: "Gerencia",
     icon: "&#128188;",
     iconPath: "../Recuros_imagenes/reporte.png?v=1.0.0",
-    modules: ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo"]
+    modules: ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos"]
   },
   {
     id: "ICE",
