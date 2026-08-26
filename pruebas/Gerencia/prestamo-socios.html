@@ -71,14 +71,10 @@ tbody tr:hover td{background:var(--sky)}
 tbody tr.clickable{cursor:pointer}
 tbody tr.row-pagado td{color:#7a8a90}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
-td.neg{color:var(--red)}
 .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
 .pill.pendiente{background:#F6E9D4;color:#B8843A}
 .pill.parcial{background:#DDEAF8;color:#2A6E9E}
 .pill.pagado{background:#DCFCE7;color:#15803D}
-.pill.aporte{background:#DCFCE7;color:#15803D}
-.pill.interes{background:#E3F5F8;color:#1A7A8A}
-.pill.retiro{background:#FEE2E2;color:#B91C1C}
 .empty-cell{color:var(--gray3)}
 
 .loading, .error-box{padding:60px 20px;text-align:center;color:var(--gray3)}
@@ -188,11 +184,11 @@ td.neg{color:var(--red)}
     <div id="estadoCargaInv" class="loading">⏳ Cargando movimientos de la inversión…</div>
 
     <div id="contenidoInv" style="display:none">
-      <div class="section-title">📋 Movimientos <small>(pegados directo del extracto del banco — se actualizan solos al pegar filas nuevas en el Sheet)</small></div>
+      <div class="section-title">📅 Rendimiento por Mes <small>(cómo ha venido pagando la inversión — se actualiza solo al pegar movimientos nuevos en el Sheet)</small></div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Fecha</th><th>Concepto</th><th>Tasa</th><th>Monto</th><th>Saldo</th></tr>
+            <tr><th>Mes</th><th>Aportes</th><th>Interés ganado</th><th>Días con capitalización</th><th>Saldo fin de mes</th></tr>
           </thead>
           <tbody id="tbInversion"></tbody>
         </table>
@@ -472,20 +468,46 @@ async function cargarInversion(){
 }
 
 function esInteres_(m){ return /inter[eé]s/i.test(m.concepto) || /inter[eé]s/i.test(m.tipo); }
-function esRetiro_(m){ return m.monto < 0; }
 
 function calcularKPIsInversion(){
   const movs = DATA_INV.movimientos || [];
-  let capitalAportado = 0, interesGanado = 0;
+  let capitalAportado = 0, interesGanado = 0, numCapitalizaciones = 0;
   movs.forEach(m=>{
-    if(esInteres_(m)) interesGanado += m.monto;
+    if(esInteres_(m)){ interesGanado += m.monto; numCapitalizaciones++; }
     else capitalAportado += m.monto;
   });
+  const primero = movs[0];
   const ultimo = movs[movs.length - 1];
   const saldoActual = ultimo ? ultimo.saldo : 0;
   const fechaCorte = ultimo ? ultimo.fecha : '—';
   const tasaVigente = [...movs].reverse().find(m=>m.tasa)?.tasa || '—';
-  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, totalMovs: movs.length};
+  const diasInvertido = (primero && ultimo)
+    ? Math.max(1, Math.round((new Date(ultimo.fecha) - new Date(primero.fecha)) / 86400000) + 1)
+    : 0;
+  const interesPromedioDiario = numCapitalizaciones ? interesGanado / numCapitalizaciones : 0;
+  // Rendimiento real observado (no el nominal del banco): con lo efectivamente
+  // ganado hasta hoy, anualizado sobre el capital y los dias transcurridos.
+  const rendimientoAnualizado = (capitalAportado && diasInvertido)
+    ? (interesGanado / capitalAportado / diasInvertido) * 365 * 100
+    : 0;
+  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, diasInvertido, interesPromedioDiario, rendimientoAnualizado, numCapitalizaciones, totalMovs: movs.length};
+}
+
+function agruparInversionPorMes_(movs){
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = {};
+  movs.forEach(m=>{
+    const key = m.fecha.slice(0,7); // YYYY-MM
+    if(!meses[key]){
+      const [y,mm] = key.split('-');
+      meses[key] = {key, label: MESES[parseInt(mm,10)-1] + ' ' + y, aportes:0, interes:0, diasCapitalizados:0, saldoFin:0, ultimaFecha:''};
+    }
+    const g = meses[key];
+    if(esInteres_(m)){ g.interes += m.monto; g.diasCapitalizados++; }
+    else g.aportes += m.monto;
+    if(m.fecha >= g.ultimaFecha){ g.ultimaFecha = m.fecha; g.saldoFin = m.saldo; }
+  });
+  return Object.values(meses).sort((a,b)=> a.key.localeCompare(b.key));
 }
 
 function renderInversion(){
@@ -528,25 +550,45 @@ function renderInversion(){
     <div class="kpi-card amber">
       <div class="kpi-ico">📈</div>
       <div class="kpi-body">
-        <div class="kpi-label">Tasa vigente</div>
+        <div class="kpi-label">Tasa nominal vigente</div>
         <div class="kpi-value">${k.tasaVigente}</div>
         <div class="kpi-sub">al corte ${k.fechaCorte}</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">📆</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Días invertido</div>
+        <div class="kpi-value">${k.diasInvertido}</div>
+        <div class="kpi-sub">${k.numCapitalizaciones} capitalizaciones de interés</div>
+      </div>
+    </div>
+    <div class="kpi-card muted">
+      <div class="kpi-ico">⏱️</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés promedio diario</div>
+        <div class="kpi-value">${fmt$(k.interesPromedioDiario)}</div>
+      </div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-ico">🎯</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Rendimiento real anualizado</div>
+        <div class="kpi-value">${fmtPct(k.rendimientoAnualizado)}</div>
+        <div class="kpi-sub">ganado a la fecha, llevado a un año</div>
       </div>
     </div>
   `;
 
   const tb = $('tbInversion');
-  tb.innerHTML = [...DATA_INV.movimientos].reverse().map(m=>{
-    const esInt = esInteres_(m);
-    const esRet = esRetiro_(m);
-    const pillClass = esRet ? 'retiro' : esInt ? 'interes' : 'aporte';
-    const pillTxt = esRet ? 'Retiro' : esInt ? 'Interés' : 'Aporte';
+  const meses = agruparInversionPorMes_(DATA_INV.movimientos);
+  tb.innerHTML = [...meses].reverse().map(g=>{
     return `<tr>
-      <td>${m.fecha}</td>
-      <td><span class="pill ${pillClass}">${pillTxt}</span> ${m.concepto}</td>
-      <td>${m.tasa || '<span class="empty-cell">—</span>'}</td>
-      <td class="num ${m.monto<0?'neg':''}">${m.monto<0?'-':''}${fmt$(Math.abs(m.monto))}</td>
-      <td class="num" style="font-weight:700">${fmt$(m.saldo)}</td>
+      <td style="font-weight:700">${g.label}</td>
+      <td class="num">${g.aportes ? fmt$(g.aportes) : '<span class="empty-cell">—</span>'}</td>
+      <td class="num" style="color:var(--green);font-weight:700">${fmt$(g.interes)}</td>
+      <td class="num">${g.diasCapitalizados}</td>
+      <td class="num" style="font-weight:700">${fmt$(g.saldoFin)}</td>
     </tr>`;
   }).join('');
 }
