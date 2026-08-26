@@ -485,12 +485,7 @@ function calcularKPIsInversion(){
     ? Math.max(1, Math.round((new Date(ultimo.fecha) - new Date(primero.fecha)) / 86400000) + 1)
     : 0;
   const interesPromedioDiario = numCapitalizaciones ? interesGanado / numCapitalizaciones : 0;
-  // Rendimiento real observado (no el nominal del banco): con lo efectivamente
-  // ganado hasta hoy, anualizado sobre el capital y los dias transcurridos.
-  const rendimientoAnualizado = (capitalAportado && diasInvertido)
-    ? (interesGanado / capitalAportado / diasInvertido) * 365 * 100
-    : 0;
-  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, diasInvertido, interesPromedioDiario, rendimientoAnualizado, numCapitalizaciones, totalMovs: movs.length};
+  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, diasInvertido, interesPromedioDiario, numCapitalizaciones, totalMovs: movs.length};
 }
 
 function agruparInversionPorMes_(movs){
@@ -568,14 +563,6 @@ function renderInversion(){
       <div class="kpi-body">
         <div class="kpi-label">Interés promedio diario</div>
         <div class="kpi-value">${fmt$(k.interesPromedioDiario)}</div>
-      </div>
-    </div>
-    <div class="kpi-card green">
-      <div class="kpi-ico">🎯</div>
-      <div class="kpi-body">
-        <div class="kpi-label">Rendimiento real anualizado</div>
-        <div class="kpi-value">${fmtPct(k.rendimientoAnualizado)}</div>
-        <div class="kpi-sub">ganado a la fecha, llevado a un año</div>
       </div>
     </div>
   `;
