@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0B3C49">
-<title>Préstamo Socios - Opaustro</title>
+<title>Préstamos e Inversiones - Opaustro</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root{
@@ -15,23 +15,35 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#F4F5F7;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);min-height:100vh}
 
-/* ---- Hero: acreedor + avance del capital ---- */
+/* ---- Barra superior: titulo + sub-pestañas ---- */
+.topbar{background:#fff;border-bottom:1px solid var(--gray2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(20,25,40,.04)}
+.topbar-title{font-size:1rem;font-weight:700;color:var(--navy)}
+.topbar-title span{color:#7c3aed}
+.subtabs{display:flex;gap:3px;background:var(--gray1);padding:4px;border-radius:10px}
+.subtab-btn{border:none;background:transparent;padding:7px 15px;border-radius:7px;font-size:12px;font-weight:600;color:var(--gray3);cursor:pointer;font-family:inherit;white-space:nowrap}
+.subtab-btn.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(20,25,40,.14)}
+
+.pane{display:none}
+.pane.active{display:block}
+
+/* ---- Hero: institucion + avance ---- */
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#123f52 55%,var(--teal) 130%);color:#fff;padding:24px 20px 26px;position:relative;overflow:hidden}
+.hero.hero-inv{background:linear-gradient(135deg,var(--navy) 0%,#0f5c47 55%,var(--green) 130%)}
 .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,rgba(43,175,202,.35),transparent 55%);pointer-events:none}
+.hero.hero-inv:before{background:radial-gradient(circle at 85% -10%,rgba(29,184,122,.35),transparent 55%)}
 .hero-inner{max-width:1180px;margin:0 auto;position:relative}
 .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
 .hero-eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:#9fd6e0;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.hero-title{font-size:1.4rem;font-weight:700;letter-spacing:-.01em}
-.hero-title b{color:#7ee6c4}
 .hero-lender{font-size:1.05rem;font-weight:700;margin-top:2px;color:#eaf7f5}
-.date-tag{font-size:10px;color:#6b7280;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e6f3f3;padding:5px 11px;border-radius:20px;white-space:nowrap}
+.date-tag{font-size:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e6f3f3;padding:5px 11px;border-radius:20px;white-space:nowrap}
 .date-tag.ok{color:#baf3d6;background:rgba(29,184,122,.18);border-color:rgba(29,184,122,.4)}
 .date-tag.err{color:#ffd0d9;background:rgba(224,82,82,.2);border-color:rgba(224,82,82,.45)}
 
 .progress-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#cfe4e6;margin-bottom:7px;gap:10px;flex-wrap:wrap}
 .progress-row b{color:#fff;font-size:1rem;font-weight:700}
-.progress-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden}
-.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#2BAFCA,#7ee6c4);transition:width .5s ease}
+.progress-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden;display:flex}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2BAFCA,#7ee6c4);transition:width .5s ease}
+.progress-fill-2{height:100%;background:linear-gradient(90deg,#1DB87A,#c9f5df);transition:width .5s ease}
 .hero-foot{margin-top:10px;font-size:11px;color:#bcdadd}
 .hero-foot b{color:#fff;font-weight:600}
 
@@ -59,10 +71,14 @@ tbody tr:hover td{background:var(--sky)}
 tbody tr.clickable{cursor:pointer}
 tbody tr.row-pagado td{color:#7a8a90}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.neg{color:var(--red)}
 .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
 .pill.pendiente{background:#F6E9D4;color:#B8843A}
 .pill.parcial{background:#DDEAF8;color:#2A6E9E}
 .pill.pagado{background:#DCFCE7;color:#15803D}
+.pill.aporte{background:#DCFCE7;color:#15803D}
+.pill.interes{background:#E3F5F8;color:#1A7A8A}
+.pill.retiro{background:#FEE2E2;color:#B91C1C}
 .empty-cell{color:var(--gray3)}
 
 .loading, .error-box{padding:60px 20px;text-align:center;color:var(--gray3)}
@@ -91,48 +107,101 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 </head>
 <body>
 
-<div class="hero">
-  <div class="hero-inner">
-    <div class="hero-top">
-      <div>
-        <div class="hero-eyebrow">🏦 Préstamo a</div>
-        <div class="hero-lender">UPHOLDING CIA. LTDA.</div>
+<div class="topbar">
+  <div class="topbar-title">💼 Préstamos <span>e Inversiones</span></div>
+  <div class="subtabs">
+    <button class="subtab-btn active" data-pane="paneLoan" onclick="switchPane(this)">🏦 Préstamo Socios</button>
+    <button class="subtab-btn" data-pane="paneInv" onclick="switchPane(this)">📈 Inversión BG</button>
+  </div>
+</div>
+
+<!-- ===================== PANE: PRESTAMO SOCIOS ===================== -->
+<div class="pane active" id="paneLoan">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-eyebrow">🏦 Préstamo a</div>
+          <div class="hero-lender">UPHOLDING CIA. LTDA.</div>
+        </div>
+        <span class="date-tag" id="dateTag">Cargando…</span>
       </div>
-      <span class="date-tag" id="dateTag">Cargando…</span>
+      <div class="progress-row">
+        <span>Capital abonado <b id="heroAbonado">$0.00</b></span>
+        <span id="heroPct">0%</span>
+        <span>Pendiente <b id="heroPendiente">$0.00</b></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="hero-foot">Capital inicial <b id="heroTotal">$0.00</b> · <b id="heroTasa">—</b> anual · <b id="heroCuotasTotal">—</b> cuotas mensuales</div>
     </div>
-    <div class="progress-row">
-      <span>Capital abonado <b id="heroAbonado">$0.00</b></span>
-      <span id="heroPct">0%</span>
-      <span>Pendiente <b id="heroPendiente">$0.00</b></span>
+  </div>
+
+  <div class="wrap">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <div id="estadoCarga" class="loading">⏳ Cargando datos del préstamo…</div>
+
+    <div id="contenido" style="display:none">
+      <div class="section-title">📋 Tabla de Amortización <small>(clic en una cuota pendiente para registrar un abono)</small></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>N° Cuota</th><th>Mes</th><th>Saldo Inicial</th><th>Interés</th>
+              <th>Abono a Capital</th><th>Pago Total</th><th>Saldo Final</th>
+              <th>Estado</th><th>Fecha Pago Real</th><th>Monto Abonado</th>
+            </tr>
+          </thead>
+          <tbody id="tbCuotas"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    <div class="hero-foot">Capital inicial <b id="heroTotal">$0.00</b> · <b id="heroTasa">—</b> anual · <b id="heroCuotasTotal">—</b> cuotas mensuales</div>
   </div>
 </div>
 
-<div class="wrap">
-  <div class="kpi-grid" id="kpis"></div>
+<!-- ===================== PANE: INVERSION BG ===================== -->
+<div class="pane" id="paneInv">
+  <div class="hero hero-inv">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-eyebrow">📈 Ahorro Inversión en</div>
+          <div class="hero-lender">BANCO GUAYAQUIL</div>
+        </div>
+        <span class="date-tag" id="invDateTag">Cargando…</span>
+      </div>
+      <div class="progress-row">
+        <span>Capital aportado <b id="invCapital">$0.00</b></span>
+        <span>Interés ganado <b id="invInteres">$0.00</b></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="invProgressCapital" style="width:0%"></div>
+        <div class="progress-fill-2" id="invProgressInteres" style="width:0%"></div>
+      </div>
+      <div class="hero-foot">Saldo actual <b id="invSaldo">$0.00</b> · tasa vigente <b id="invTasa">—</b> · corte al <b id="invFechaCorte">—</b></div>
+    </div>
+  </div>
 
-  <div id="estadoCarga" class="loading">⏳ Cargando datos del préstamo…</div>
+  <div class="wrap">
+    <div class="kpi-grid" id="kpisInv"></div>
 
-  <div id="contenido" style="display:none">
-    <div class="section-title">📋 Tabla de Amortización <small>(clic en una cuota pendiente para registrar un abono)</small></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>N° Cuota</th><th>Mes</th><th>Saldo Inicial</th><th>Interés</th>
-            <th>Abono a Capital</th><th>Pago Total</th><th>Saldo Final</th>
-            <th>Estado</th><th>Fecha Pago Real</th><th>Monto Abonado</th>
-          </tr>
-        </thead>
-        <tbody id="tbCuotas"></tbody>
-      </table>
+    <div id="estadoCargaInv" class="loading">⏳ Cargando movimientos de la inversión…</div>
+
+    <div id="contenidoInv" style="display:none">
+      <div class="section-title">📋 Movimientos <small>(pegados directo del extracto del banco — se actualizan solos al pegar filas nuevas en el Sheet)</small></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Concepto</th><th>Tasa</th><th>Monto</th><th>Saldo</th></tr>
+          </thead>
+          <tbody id="tbInversion"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Modal: registrar abono -->
+<!-- Modal: registrar abono (solo Prestamo Socios) -->
 <div class="modal-overlay" id="modalAbono">
   <div class="modal">
     <h3>Registrar abono — Cuota <span id="modalCuotaNum"></span></h3>
@@ -159,13 +228,28 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
 <script>
 // Apps Script PROPIO y aislado (no toca Flujo de Caja ni ningun otro modulo):
-// AppsScript_PRUEBAS/PrestamoSocios/Code.gs, publicado como Web App.
+// AppsScript_PRUEBAS/PrestamoSocios/Code.gs, publicado como Web App. El
+// mismo script y el mismo Sheet sirven tanto Prestamo Socios (hojas
+// config/cuotas) como Inversion BG (hoja INVERSIONES).
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgK6ouXq15wAjkr4argfYVFsoPuYSLXatVjnt9EJ5qKMzf3qESOW5awvKL6X6luzSKug/exec';
 
 const $ = id => document.getElementById(id);
 const fmt$ = v => v == null || isNaN(v) ? '$0.00' : `$${Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const fmtPct = v => `${Number(v||0).toFixed(1)}%`;
 
+// ══════════════════════════════════════════════════
+// SUB-PESTAÑAS
+// ══════════════════════════════════════════════════
+function switchPane(btn){
+  document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $(btn.dataset.pane).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════
+// PRESTAMO SOCIOS
+// ══════════════════════════════════════════════════
 let DATA = null; // {config, cuotas}
 let cuotaSeleccionada = null;
 
@@ -175,10 +259,10 @@ function setEstado(status, msg){
   el.className = 'date-tag' + (status ? ' ' + status : '');
 }
 
-async function cargar(){
+async function cargarPrestamo(){
   setEstado('', 'Sincronizando…');
   try{
-    if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL (la URL del Apps Script de Prestamo Socios) en este archivo.');
+    if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL (la URL del Apps Script) en este archivo.');
     if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
     const resp = await fetch(SCRIPT_URL + '?action=getPrestamo&t=' + Date.now(), {cache:'no-store'});
     const json = await resp.json();
@@ -233,7 +317,6 @@ function render(){
   const k = calcularKPIs();
   const pctAvance = k.capitalTotal ? (k.capitalAbonado/k.capitalTotal*100) : 0;
 
-  // Hero: acreedor + avance del capital
   $('heroAbonado').textContent = fmt$(k.capitalAbonado);
   $('heroPendiente').textContent = fmt$(k.capitalPendiente);
   $('heroPct').textContent = fmtPct(pctAvance) + ' abonado';
@@ -352,7 +435,124 @@ async function guardarAbono(){
   }
 }
 
-cargar();
+// ══════════════════════════════════════════════════
+// INVERSION BG (solo lectura)
+// ══════════════════════════════════════════════════
+let DATA_INV = null; // {movimientos}
+
+function setEstadoInv(status, msg){
+  const el = $('invDateTag');
+  el.textContent = msg;
+  el.className = 'date-tag' + (status ? ' ' + status : '');
+}
+
+async function cargarInversion(){
+  setEstadoInv('', 'Sincronizando…');
+  try{
+    if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL en este archivo.');
+    if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
+    const resp = await fetch(SCRIPT_URL + '?action=getInversion&t=' + Date.now(), {cache:'no-store'});
+    const json = await resp.json();
+    if(!json.ok) throw new Error(json.error || 'Error desconocido del servidor.');
+    DATA_INV = json.inversion;
+    if(!DATA_INV.movimientos || !DATA_INV.movimientos.length){
+      throw new Error('La hoja "INVERSIONES" no tiene movimientos todavía.');
+    }
+    $('estadoCargaInv').style.display = 'none';
+    $('contenidoInv').style.display = 'block';
+    setEstadoInv('ok', 'Conectado · ' + new Date().toLocaleString('es-EC',{dateStyle:'medium',timeStyle:'short'}));
+    renderInversion();
+  }catch(err){
+    setEstadoInv('err', 'Error');
+    $('estadoCargaInv').innerHTML = `<div style="color:#be123c;font-weight:700">✕ No se pudo cargar la inversión</div>
+      <div style="font-size:11px;margin-top:6px">${err.message}</div>`;
+    $('estadoCargaInv').style.display = 'block';
+    $('contenidoInv').style.display = 'none';
+  }
+}
+
+function esInteres_(m){ return /inter[eé]s/i.test(m.concepto) || /inter[eé]s/i.test(m.tipo); }
+function esRetiro_(m){ return m.monto < 0; }
+
+function calcularKPIsInversion(){
+  const movs = DATA_INV.movimientos || [];
+  let capitalAportado = 0, interesGanado = 0;
+  movs.forEach(m=>{
+    if(esInteres_(m)) interesGanado += m.monto;
+    else capitalAportado += m.monto;
+  });
+  const ultimo = movs[movs.length - 1];
+  const saldoActual = ultimo ? ultimo.saldo : 0;
+  const fechaCorte = ultimo ? ultimo.fecha : '—';
+  const tasaVigente = [...movs].reverse().find(m=>m.tasa)?.tasa || '—';
+  return {capitalAportado, interesGanado, saldoActual, fechaCorte, tasaVigente, totalMovs: movs.length};
+}
+
+function renderInversion(){
+  const k = calcularKPIsInversion();
+  const total = k.capitalAportado + k.interesGanado;
+  const pctCapital = total ? (k.capitalAportado/total*100) : 0;
+  const pctInteres = total ? (k.interesGanado/total*100) : 0;
+
+  $('invCapital').textContent = fmt$(k.capitalAportado);
+  $('invInteres').textContent = fmt$(k.interesGanado);
+  $('invProgressCapital').style.width = Math.max(0,Math.min(100,pctCapital)) + '%';
+  $('invProgressInteres').style.width = Math.max(0,Math.min(100,pctInteres)) + '%';
+  $('invSaldo').textContent = fmt$(k.saldoActual);
+  $('invTasa').textContent = k.tasaVigente;
+  $('invFechaCorte').textContent = k.fechaCorte;
+
+  $('kpisInv').innerHTML = `
+    <div class="kpi-card green">
+      <div class="kpi-ico">💰</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Capital aportado</div>
+        <div class="kpi-value">${fmt$(k.capitalAportado)}</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">💵</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Interés ganado</div>
+        <div class="kpi-value">${fmt$(k.interesGanado)}</div>
+        <div class="kpi-sub">acumulado a la fecha</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ico">📊</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Saldo actual</div>
+        <div class="kpi-value">${fmt$(k.saldoActual)}</div>
+      </div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-ico">📈</div>
+      <div class="kpi-body">
+        <div class="kpi-label">Tasa vigente</div>
+        <div class="kpi-value">${k.tasaVigente}</div>
+        <div class="kpi-sub">al corte ${k.fechaCorte}</div>
+      </div>
+    </div>
+  `;
+
+  const tb = $('tbInversion');
+  tb.innerHTML = [...DATA_INV.movimientos].reverse().map(m=>{
+    const esInt = esInteres_(m);
+    const esRet = esRetiro_(m);
+    const pillClass = esRet ? 'retiro' : esInt ? 'interes' : 'aporte';
+    const pillTxt = esRet ? 'Retiro' : esInt ? 'Interés' : 'Aporte';
+    return `<tr>
+      <td>${m.fecha}</td>
+      <td><span class="pill ${pillClass}">${pillTxt}</span> ${m.concepto}</td>
+      <td>${m.tasa || '<span class="empty-cell">—</span>'}</td>
+      <td class="num ${m.monto<0?'neg':''}">${m.monto<0?'-':''}${fmt$(Math.abs(m.monto))}</td>
+      <td class="num" style="font-weight:700">${fmt$(m.saldo)}</td>
+    </tr>`;
+  }).join('');
+}
+
+cargarPrestamo();
+cargarInversion();
 </script>
 </body>
 </html>
