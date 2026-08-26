@@ -129,10 +129,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
 <script>
 // Apps Script PROPIO y aislado (no toca Flujo de Caja ni ningun otro modulo):
-// AppsScript_PRUEBAS/PrestamoSocios/Code.gs, creado DENTRO del Sheet de
-// Prestamo Socios (Extensiones > Apps Script del propio Sheet) y publicado
-// como Web App. Pegar aqui la URL /exec que entrega ese despliegue.
-const SCRIPT_URL = '';
+// AppsScript_PRUEBAS/PrestamoSocios/Code.gs, publicado como Web App.
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgK6ouXq15wAjkr4argfYVFsoPuYSLXatVjnt9EJ5qKMzf3qESOW5awvKL6X6luzSKug/exec';
 
 const $ = id => document.getElementById(id);
 const fmt$ = v => v == null || isNaN(v) ? '$0.00' : `$${Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
