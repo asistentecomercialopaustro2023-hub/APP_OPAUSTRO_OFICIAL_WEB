@@ -177,7 +177,6 @@ const MODULE_DEFINITIONS = {
   GerenciaPrestamos: {
     label: "Préstamos e Inversiones",
     symbol: "loan",
-    icon: "../Recuros_imagenes/resumen.png?v=1.0.0",
     path: "../Gerencia/prestamo-socios.html?embed=1",
     embed: true
   },
