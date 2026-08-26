@@ -227,7 +227,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 // PrestamoSocios/Code.gs (oficial), publicado como Web App. El mismo
 // script y el mismo Sheet sirven tanto Prestamo Socios (hojas
 // config/cuotas) como Inversion BG (hoja INVERSIONES).
-const SCRIPT_URL = '';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk8jKDDCs_K2HL-dK17oOV-wsCtq8ZY8MrWcgTVjcFlUMkg7J-g7wpe4C5ScHcpRw/exec';
 
 const $ = id => document.getElementById(id);
 const fmt$ = v => v == null || isNaN(v) ? '$0.00' : `$${Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
