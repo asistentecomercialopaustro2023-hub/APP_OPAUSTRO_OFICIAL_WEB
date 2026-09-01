@@ -606,8 +606,13 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   </div>
 
   <div class="pane" id="pSin">
-    <div class="note">Códigos vendidos que no tienen ningún equivalente razonable en el inventario. Casi siempre son
-      combos y promociones que se facturan como un código propio pero descargan stock de otro artículo.</div>
+    <div class="note">Códigos vendidos sin equivalente razonable en el inventario — posible mercadería
+      desabastecida (ya no está en el inventario, pero se sigue vendiendo). Ordenado por lo que vendió en $.</div>
+    <div class="filters">
+      <label class="chk" style="margin:0"><input type="checkbox" id="fSinRepr" checked>
+        <span>Solo representativos (vendió $250 o más)</span></label>
+      <span class="small" id="fSinN"></span>
+    </div>
     <div class="tblwrap"><table id="tSin"></table></div>
   </div>
 
@@ -1858,19 +1863,25 @@ window.reactivar=function(k){
   saveMem(); run(true);
 };
 
+const SIN_UMBRAL = 250;
 function renderSin(){
   const R=S.res;
-  const f=[...R.sin].sort((a,b)=>Math.abs(b.v.neto)-Math.abs(a.v.neto));
-  S.sinOrden=f;   // el boton Reactivar indexa sobre ESTE orden, no sobre R.sin
+  const soloRepr = $('fSinRepr').checked;
+  const todo=[...R.sin].sort((a,b)=>(b.v.usd||0)-(a.v.usd||0));
+  S.sinOrden=todo;   // el boton Reactivar indexa sobre TODO, no sobre lo filtrado
+  const f = soloRepr ? todo.filter(x=>(x.v.usd||0)>=SIN_UMBRAL) : todo;
+  $('fSinN').textContent = fmt(f.length)+' de '+fmt(todo.length)
+    +(soloRepr && todo.length>f.length ? ' — el resto vendió menos de $'+SIN_UMBRAL : '');
   $('tSin').innerHTML='<thead><tr><th>Código venta</th><th>Nombre en ventas</th><th class="n">Unidades</th>'
-    +'<th class="n">P. unit.</th><th>Candidato más cercano</th><th class="n">Parecido</th><th>Motivo</th></tr></thead><tbody>'
-    + f.map((x,k)=>'<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
-      +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">$'+fmt(x.v.pu,2)+'</td>'
+    +'<th class="n">Vendió $</th><th>Candidato más cercano</th><th class="n">Parecido</th><th>Motivo</th></tr></thead><tbody>'
+    + f.map((x)=>{ const k=todo.indexOf(x); return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
+      +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">'+((x.v.usd||0)>=SIN_UMBRAL?'<b>$'+fmt(x.v.usd)+'</b>':'$'+fmt(x.v.usd))+'</td>'
       +'<td class="small">'+esc(x.best>=0?R.inv[x.best].art:'—')+'</td>'
       +'<td class="n">'+(x.bs*100).toFixed(0)+'%</td>'
       +'<td>'+(x.ignorado
           ? '<span class="tag t-mut">descartado a mano</span> <button class="sm" onclick="reactivar('+k+')">Reactivar</button>'
-          : '<span class="tag t-mut">sin candidato</span>')+'</td></tr>').join('')+'</tbody>';
+          : '<span class="tag t-mut">sin candidato</span>')+'</td></tr>'; }).join('')+'</tbody>';
+  if(!f.length) $('tSin').innerHTML='<tbody><tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted)">Nada que mostrar.</td></tr></tbody>';
 }
 function renderExc(){
   const R=S.res;
@@ -1904,6 +1915,7 @@ function run(silent){
 }
 $('btnRun').addEventListener('click',()=>run(false));
 $('fRevQ').addEventListener('input',renderRev);
+$('fSinRepr').addEventListener('change',renderSin);
 $('tabs').addEventListener('click',e=>{
   const b=e.target.closest('.tab'); if(!b) return;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t===b));
