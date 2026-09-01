@@ -338,6 +338,16 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
     </label>
   </div>
   <div class="note">Todo se procesa <b>dentro de tu navegador</b>. Los archivos nunca se suben a internet.</div>
+
+  <div class="note warn" style="margin-top:12px">
+    <b>Preparar el archivo de ventas para publicar.</b> El Excel de ventas trae 57 columnas y pesa
+    decenas de MB; la app solo usa 8. Este botón genera <b>VENTAS.csv</b> recortado —
+    es el archivo que hay que subir al repositorio, no el Excel.
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="btnCsv" disabled>⬇ Generar VENTAS.csv recortado</button>
+      <span class="status" id="csvStatus">Cargá primero el archivo de ventas.</span>
+    </div>
+  </div>
 </div>
 
 <!-- PASO 2 -->
@@ -771,7 +781,7 @@ function readSheet(file, cb){
       const data = sheetRows(ws);
       if(!data.length) throw new Error('La hoja está vacía o no se pudo leer.');
       const headers = (data[0]||[]).map(c => c && c.v!=null ? String(c.v).replace(/<br>/gi,' ').trim() : '');
-      cb(null, {headers, data, sheetName: wb.SheetNames[0], rows: data.length-1});
+      cb(null, {headers, data, sheetName: wb.SheetNames[0], rows: data.length-1, nombre: file.name});
     }catch(err){ cb(err); }
   };
   rd.onerror = () => cb(new Error('No se pudo leer el archivo.'));
@@ -879,6 +889,14 @@ function buildMapping(){
   $('mInvProv').addEventListener('change',()=>{ S.provExcl=null; buildProveedores(); });
   $('mVtaProv').addEventListener('change',()=>buildProveedores());
   loadMem();
+  // el CSV recortado solo tiene sentido cuando la fuente es el Excel completo
+  if(S.vta){
+    const yaCsv = /\.csv$/i.test(S.vta.nombre||'');
+    $('btnCsv').disabled = yaCsv;
+    $('csvStatus').textContent = yaCsv
+      ? 'El archivo cargado ya es un CSV recortado.'
+      : 'Listo para generar el CSV a partir de ' + (S.vta.nombre || 'el Excel cargado') + '.';
+  }
   $('cardOpt').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -2092,14 +2110,14 @@ async function rptLeerPrimero(rutas){
   }
   throw ultimo || new Error('No se encontro el archivo.');
 }
-function rptBufferAHoja(buf){
+function rptBufferAHoja(buf, nombre){
   const wb = XLSX.read(buf, {dense:true, cellDates:true, cellStyles:false,
                 cellHTML:false, cellText:false, cellFormula:false, bookVBA:false, bookProps:false});
   const ws = wb.Sheets[wb.SheetNames[0]];
   const data = sheetRows(ws);
   if(!data.length) throw new Error('La hoja está vacía o no se pudo leer.');
   const headers = (data[0]||[]).map(c => c && c.v!=null ? String(c.v).replace(/<br>/gi,' ').trim() : '');
-  return {headers, data, sheetName: wb.SheetNames[0], rows: data.length-1};
+  return {headers, data, sheetName: wb.SheetNames[0], rows: data.length-1, nombre: nombre||''};
 }
 async function autoCarga(){
   const marca=(dropId,descId,r,nombre)=>{
@@ -2108,11 +2126,11 @@ async function autoCarga(){
   };
   try{
     const [inv, vta] = await Promise.all([rptLeerPrimero(AUTO_FILES.inv), rptLeerPrimero(AUTO_FILES.vta)]);
-    S.inv = rptBufferAHoja(inv.buf); marca('dropInv','dInv',S.inv,inv.url);
-    S.vta = rptBufferAHoja(vta.buf); marca('dropVta','dVta',S.vta,vta.url);
+    S.inv = rptBufferAHoja(inv.buf, inv.url); marca('dropInv','dInv',S.inv,inv.url);
+    S.vta = rptBufferAHoja(vta.buf, vta.url); marca('dropVta','dVta',S.vta,vta.url);
     try{
       const comBuf = await rptLeerBuffer(AUTO_FILES.com);
-      S.com = rptBufferAHoja(comBuf); marca('dropCom','dCom',S.com,AUTO_FILES.com);
+      S.com = rptBufferAHoja(comBuf, AUTO_FILES.com); marca('dropCom','dCom',S.com,AUTO_FILES.com);
     }catch(e){ /* compras es opcional */ }
 
     // memoria compartida vía repo: se aplica encima de la memoria local del navegador
@@ -2136,6 +2154,65 @@ async function autoCarga(){
     $('detHerramienta').classList.remove('hide');
   }
 }
+/* ═════════════ generar VENTAS.csv recortado ═════════════
+   El Excel de ventas trae 57 columnas y decenas de MB; la app usa 8.
+   Este boton deja el CSV listo para subir al repositorio, para no depender
+   de que alguien mas lo recorte por fuera. */
+const CSV_COLS = [
+  {sel:'mVtaTip',  out:'Tipo'},
+  {sel:'mVtaFec',  out:'Fecha',   fecha:true},
+  {sel:'mVtaProv', out:'proveedor'},
+  {sel:'sVtaCol',  out:'Agencia'},
+  {sel:'mVtaCod',  out:'CodArticulo'},
+  {sel:'mVtaArt',  out:'NombreArt'},
+  {sel:'mVtaCan',  out:'Cantidad'},
+  {sel:'mVtaVal',  out:'VtaBruta'},
+];
+function csvEscapa(v){
+  const s = v==null ? '' : String(v);
+  return /[",\n;]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function generarCsvVentas(){
+  if(!S.vta) throw new Error('No hay archivo de ventas cargado.');
+  const d2 = n => String(n).padStart(2,'0');
+  const cols = CSV_COLS.map(c=>({...c, i:+$(c.sel).value}));
+  const faltan = cols.filter(c=>!(c.i>=0)).map(c=>c.out);
+  if(faltan.length) throw new Error('Sin columna asignada para: '+faltan.join(', ')+'. Revisá el paso 2.');
+  const d = S.vta.data;
+  const out = [cols.map(c=>c.out).join(',')];
+  for(let r=1;r<d.length;r++){
+    if(!d[r]) continue;
+    out.push(cols.map(c=>{
+      let v = col(d,r,c.i);
+      if(c.fecha){
+        const f = aFecha(v);
+        if(f) return f.getFullYear()+'-'+d2(f.getMonth()+1)+'-'+d2(f.getDate());
+      }
+      return csvEscapa(v);
+    }).join(','));
+  }
+  return out.join('\n');
+}
+$('btnCsv').addEventListener('click',()=>{
+  const st=$('csvStatus');
+  st.innerHTML='<span class="sp"></span> Generando…';
+  setTimeout(()=>{
+    try{
+      const csv = generarCsvVentas();
+      const mb = (new Blob([csv]).size/1048576).toFixed(1);
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+      a.download='VENTAS.csv'; a.click(); URL.revokeObjectURL(a.href);
+      st.innerHTML='Listo: <b>VENTAS.csv</b> ('+mb+' MB). Subí ese archivo a <b>Gerencia/</b> en el repositorio.';
+    }catch(err){ st.textContent='⚠ '+err.message; console.error(err); }
+  },30);
+});
+
+/* La herramienta esta oculta para Gerencia; se abre con ?herramienta=1 en la URL. */
+if(new URLSearchParams(location.search).has('herramienta')){
+  $('detHerramienta').classList.remove('hide');
+}
+
 autoCarga();
 </script>
 </body>
