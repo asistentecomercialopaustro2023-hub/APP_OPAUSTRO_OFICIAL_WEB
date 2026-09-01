@@ -590,18 +590,21 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   </div>
 
   <div class="pane" id="pRev">
-    <div class="note warn"><b>Estos son los casos dudosos.</b> El nombre se parece pero hay diferencias que suelen indicar
-      otro sabor, otra talla u otra presentación. Confirma o descarta cada uno: lo que decidas queda guardado y se
-      aplicará solo el próximo mes.</div>
+    <div class="note warn"><b>Casos dudosos con venta representativa.</b> El nombre se parece a un artículo del
+      inventario, pero hay diferencias que suelen indicar otro sabor, otra talla u otra presentación. Confirmá o
+      descartá cada uno: lo que decidas queda guardado para el próximo mes. Los de venta menor no se muestran.</div>
     <div class="filters">
       <input type="text" id="fRevQ" placeholder="Buscar…">
+      <span class="small" id="fRevN"></span>
+      <span class="small hide" id="memInfo"></span>
+    </div>
+    <div class="tblwrap"><table id="tRev"></table></div>
+    <div class="hide">
       <button class="sm" id="btnMemExp">Exportar memoria</button>
       <button class="sm" id="btnMemImp">Importar memoria</button>
       <button class="sm no" id="btnMemClr">Borrar memoria</button>
-      <input type="file" id="fileMem" accept=".json" class="hide">
-      <span class="small" id="memInfo"></span>
+      <input type="file" id="fileMem" accept=".json">
     </div>
-    <div class="tblwrap"><table id="tRev"></table></div>
   </div>
 
   <div class="pane" id="pSin">
@@ -1530,7 +1533,7 @@ function render(){
       + (R.ratiosN>=20 ? ' (Como referencia: lo facturado equivale al <b>'+(R.K*100).toFixed(0)+'%</b> del precio del inventario.)' : '')
       + '</div>';
 
-  $('cRev').textContent='('+R.rev.length+')';
+  $('cRev').textContent='('+R.rev.filter(x=>(x.v.usd||0)>=SIN_UMBRAL).length+')';
   $('cSin').textContent='('+R.sin.filter(x=>(x.v.usd||0)>=SIN_UMBRAL).length+')';
   $('cExc').textContent='('+R.excl.length+')'; $('cAuto').textContent='('+R.auto.length+')';
 
@@ -1826,21 +1829,24 @@ function renderDias(){
 
 function renderRev(){
   const R=S.res, q=norm($('fRevQ').value);
-  const f=R.rev.filter(x=>!q||x.v.nrm.includes(q));
+  const repr=R.rev.filter(x=>(x.v.usd||0)>=SIN_UMBRAL);
+  const f=repr.filter(x=>!q||x.v.nrm.includes(q));
+  $('fRevN').textContent = fmt(repr.length)+' de '+fmt(R.rev.length)
+    +(R.rev.length>repr.length ? ' — '+fmt(R.rev.length-repr.length)+' más vendieron menos de $'+SIN_UMBRAL+' (no se muestran)' : '');
   $('tRev').innerHTML='<thead><tr><th>Código venta</th><th>Nombre en ventas</th><th class="n">Unid.</th>'
-    +'<th class="n">P. unit.</th><th>Vincular con…</th><th>Motivo de la duda</th><th>Acción</th></tr></thead><tbody>'
+    +'<th class="n">Vendió $</th><th>Vincular con…</th><th>Motivo de la duda</th><th>Acción</th></tr></thead><tbody>'
     + f.map((x,k)=>{
       const gi=R.rev.indexOf(x);
       const opts=x.cands.map(c=>'<option value="'+c.i+'">'+esc(R.inv[c.i].art)+' · $'
         +fmt(R.inv[c.i].precio,2)+' ('+(c.s*100).toFixed(0)+'%)</option>').join('');
       return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
-        +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">$'+fmt(x.v.pu,2)+'</td>'
+        +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">$'+fmt(x.v.usd)+'</td>'
         +'<td><select class="cand" id="cd'+gi+'">'+opts+'</select></td>'
         +'<td><span class="tag t-warn">'+esc(x.motivo)+'</span></td>'
         +'<td><button class="sm ok" onclick="aceptar('+gi+')">Vincular</button> '
         +'<button class="sm" onclick="ignorar('+gi+')">Ignorar</button></td></tr>';
     }).join('')+'</tbody>';
-  if(!f.length) $('tRev').innerHTML='<tbody><tr><td style="padding:20px;text-align:center;color:var(--muted)">Nada pendiente de revisar.</td></tr></tbody>';
+  if(!f.length) $('tRev').innerHTML='<tbody><tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted)">Nada pendiente de revisar.</td></tr></tbody>';
 }
 
 window.aceptar=function(gi){
