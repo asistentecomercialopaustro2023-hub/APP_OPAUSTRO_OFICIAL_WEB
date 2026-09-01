@@ -1191,7 +1191,7 @@ function extractInv(){
       cat:m.cat>=0?String(col(d,r,m.cat)??''):'',
       div:m.div>=0?String(col(d,r,m.div)??''):'',
       alts:alts.map(i=>{const v=col(d,r,i); return v==null?'':String(v).trim();}).filter(Boolean),
-      vend:0, dev:0, bruto:0, usd:0, links:[], via:'', primeraVenta:null,
+      vend:0, dev:0, bruto:0, usd:0, links:[], via:'', primeraVenta:null, diasVenta:new Set(),
     };
     o.tok=toks(o.art); o.nrm=norm(o.art);
     out.push(o);
@@ -1292,10 +1292,13 @@ function extractVtas(){
     const cant=num(col(d,r,m.can));
     const val=m.val>=0?num(col(d,r,m.val)):0;
     let a=agg.get(cod);
-    if(!a){ a={cod,art,neto:0,dev:0,bruto:0,abs:0,valor:0,usd:0,n:0,primera:null}; agg.set(cod,a); }
+    if(!a){ a={cod,art,neto:0,dev:0,bruto:0,abs:0,valor:0,usd:0,n:0,primera:null,dias:new Set()}; agg.set(cod,a); }
     if(m.fec>=0){                       // primera venta: señal de que ya existía
       const fv=aFecha(col(d,r,m.fec));
       if(fv && (!a.primera || fv<a.primera)) a.primera=fv;
+      // dias distintos con venta real: sirve para ver si roto parejo o a tirones.
+      // las devoluciones no cuentan como dia de venta.
+      if(fv && !esDevolucion && cant>0) a.dias.add(diaNum(fv));
     }
     if(esDevolucion){
       a.dev += cant;
@@ -1433,6 +1436,8 @@ function conciliar(){
     inv[i].usd   += a.usd||0;      // lo que facturó en el período
     if(a.primera && (!inv[i].primeraVenta || a.primera<inv[i].primeraVenta))
       inv[i].primeraVenta=a.primera;
+    // union de los dias con venta de todos los codigos vinculados a este articulo
+    if(a.dias) for(const dn of a.dias) inv[i].diasVenta.add(dn);
     inv[i].links.push({cod:a.cod,art:a.art,via,score,neto:a.neto});
     if(!inv[i].via) inv[i].via=via;
   }
@@ -1488,6 +1493,7 @@ function conciliar(){
     else                  est='SIN STOCK';
     filas.push({...it, pd, dias:d, est, disp, ingreso, comprado, inicial, pctNuevo,
                 movsCompra: cmp ? cmp.movs : [],
+                nDiasVenta: it.diasVenta ? it.diasVenta.size : 0,
                 valor:it.stock*it.costo});
   }
 
@@ -1635,6 +1641,7 @@ function abreDetalle(x){
     [x.comprado>0?fmt(x.comprado):'—','Comprado'],
     [x.inicial==null?'—':fmt(x.inicial),'Stock inicial'],
     [rptMoney(x.valor),'Valor a costo'],
+    [fmt(x.nDiasVenta||0)+'<span style="font-size:12px;color:var(--muted)"> / '+fmt(S.res.dias)+'</span>','Días con venta'],
   ].map(([v,l])=>'<div class="cif"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>').join('');
 
   const diasPeriodo = S.res.dias;
@@ -1650,6 +1657,15 @@ function abreDetalle(x){
   const nota = x.disp < diasPeriodo
     ? '<br><span style="color:var(--muted)">Entró el '+(x.ingreso?rptFFecha(x.ingreso):'—')+': solo estuvo disponible '
       +fmt(x.disp)+' de los '+diasPeriodo+' días, por eso el promedio va sobre esos días.</span>'
+    : '';
+  /* El promedio se reparte sobre todos los dias del periodo, no solo sobre los que
+     tuvieron venta: asi mide el ritmo real al que se consume el stock. Se muestra
+     la frecuencia para que se vea si el articulo rota parejo o a tirones. */
+  const nDV = x.nDiasVenta||0;
+  const frecuencia = (nDV>0 && x.vend>0)
+    ? '<br><span style="color:var(--muted)">Tuvo venta en <b>'+fmt(nDV)+'</b> de '+fmt(x.disp)+' días'
+      + (nDV < x.disp ? ' (los días sin venta también entran en el promedio: miden el ritmo real de consumo).' : ' — vendió todos los días.')
+      + '</span>'
     : '';
 
   const movs = x.movsCompra||[];
@@ -1682,7 +1698,7 @@ function abreDetalle(x){
   $('rPnlBody').innerHTML =
     fus+'<div class="cifras">'+cif+'</div>'
     +'<h4>Cómo se calcula</h4>'
-    +'<div class="formula">'+neteo+base+'<br>'+cierre+nota+'</div>'
+    +'<div class="formula">'+neteo+base+'<br>'+cierre+nota+frecuencia+'</div>'
     +'<h4>Compras del período</h4>'+compras
     +'<h4>Ventas vinculadas</h4>'+ventas;
 
