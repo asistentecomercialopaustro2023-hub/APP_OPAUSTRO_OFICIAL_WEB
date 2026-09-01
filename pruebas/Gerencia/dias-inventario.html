@@ -505,12 +505,11 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
 <!-- RESULTADOS -->
 <div class="card hide" id="cardRes">
-  <details class="card-toggle" style="box-shadow:none;border-style:dashed">
-    <summary>🔍 Diagnóstico del cruce (KPIs técnicos, compras, calibración)</summary>
+  <div class="hide">
     <div class="cards" id="kpis"></div>
     <div id="avisoCompras"></div>
     <div id="calibNote"></div>
-  </details>
+  </div>
 
   <div class="tabs" id="tabs">
     <button class="tab on" data-p="pDias">📊 Reporte</button>
@@ -537,7 +536,6 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
     <section class="sec" style="margin-top:20px">
       <h3>Salud del inventario</h3>
-      <p class="sec-lead">Qué proporción del valor total está en cada estado.</p>
       <div class="panel" style="padding:16px 20px">
         <div class="salud" id="rSalud"></div>
         <div class="salud-leg" id="rSaludLeg"></div>
@@ -546,8 +544,6 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
     <section class="sec">
       <h3>Dónde está parada la plata</h3>
-      <p class="sec-lead">Cada barra es un tramo del eje de días. La altura es el dinero —
-        no la cantidad de artículos — porque un artículo caro pesa distinto que uno barato.</p>
       <div class="panel">
         <div class="chart" id="rChart"></div>
         <div class="axis" id="rAxis"></div>
@@ -563,15 +559,11 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
     <section class="sec">
       <h3>Por proveedor</h3>
-      <p class="sec-lead">La cobertura de cada línea y cuánto de su inventario está en riesgo.</p>
       <div class="tw"><table id="rTP"></table></div>
     </section>
 
     <section class="sec">
-      <h3>Todos los artículos</h3>
-      <p class="sec-lead">Los <b id="rNTot">—</b> artículos del inventario con su cobertura.
-        Haz clic en un estado para filtrar, en un encabezado para ordenar,
-        y en cualquier artículo para ver sus compras y de dónde sale su número.</p>
+      <h3>Todos los artículos<span id="rNTot" class="hide"></span></h3>
       <div class="tiles kpi-filtro" id="rTiles" role="group" aria-label="Filtrar por estado"></div>
       <div class="ctl">
         <input type="search" id="rQ" placeholder="Buscar artículo, código o proveedor…" aria-label="Buscar">
