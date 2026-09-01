@@ -2074,9 +2074,23 @@ loadMem();
    (igual que TABLERO.xlsx) y se cargan solos. El paso 1 de arriba sigue
    funcionando igual, para cuando haya que procesar un mes con archivos
    que todavía no se subieron al repo. */
-const AUTO_FILES = { inv:'INVENTARIO.xlsx', vta:'VENTAS.xlsx', com:'COMPRAS.xlsx' };
+/* Ventas se publica como CSV recortado (solo las columnas que se usan): el Excel
+   completo pesa ~80 MB y cada apertura de la pestana lo descargaba entero. El CSV
+   ocupa la cuarta parte en el repo y GitHub Pages lo entrega comprimido (~3 MB).
+   Se deja el .xlsx como respaldo por si el CSV todavia no se genero. */
+const AUTO_FILES = { inv:'INVENTARIO.xlsx', vta:['VENTAS.csv','VENTAS.xlsx'], com:'COMPRAS.xlsx' };
 function rptLeerBuffer(url){
   return fetch(url).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status+' en '+url); return r.arrayBuffer(); });
+}
+/* Prueba varias rutas en orden y devuelve la primera que exista. */
+async function rptLeerPrimero(rutas){
+  const lista = Array.isArray(rutas) ? rutas : [rutas];
+  let ultimo=null;
+  for(const url of lista){
+    try{ return {buf: await rptLeerBuffer(url), url}; }
+    catch(e){ ultimo=e; }
+  }
+  throw ultimo || new Error('No se encontro el archivo.');
 }
 function rptBufferAHoja(buf){
   const wb = XLSX.read(buf, {dense:true, cellDates:true, cellStyles:false,
@@ -2093,9 +2107,9 @@ async function autoCarga(){
     $(dropId).classList.add('done');
   };
   try{
-    const [invBuf, vtaBuf] = await Promise.all([rptLeerBuffer(AUTO_FILES.inv), rptLeerBuffer(AUTO_FILES.vta)]);
-    S.inv = rptBufferAHoja(invBuf); marca('dropInv','dInv',S.inv,AUTO_FILES.inv);
-    S.vta = rptBufferAHoja(vtaBuf); marca('dropVta','dVta',S.vta,AUTO_FILES.vta);
+    const [inv, vta] = await Promise.all([rptLeerPrimero(AUTO_FILES.inv), rptLeerPrimero(AUTO_FILES.vta)]);
+    S.inv = rptBufferAHoja(inv.buf); marca('dropInv','dInv',S.inv,inv.url);
+    S.vta = rptBufferAHoja(vta.buf); marca('dropVta','dVta',S.vta,vta.url);
     try{
       const comBuf = await rptLeerBuffer(AUTO_FILES.com);
       S.com = rptBufferAHoja(comBuf); marca('dropCom','dCom',S.com,AUTO_FILES.com);
