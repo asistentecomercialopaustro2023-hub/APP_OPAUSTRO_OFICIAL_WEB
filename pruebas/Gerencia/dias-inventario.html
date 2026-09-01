@@ -314,8 +314,7 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   <span class="sp"></span> Cargando el inventario y las ventas del período — el archivo de ventas es grande, puede tardar unos segundos…
 </div>
 
-<details id="detHerramienta" class="card-toggle">
-  <summary>⚙ Herramienta de conciliación — subir datos a mano o procesar un mes nuevo</summary>
+<div id="detHerramienta" class="hide">
 
 <!-- PASO 1 -->
 <div class="card">
@@ -501,7 +500,7 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   </div>
 </div>
 
-</details>
+</div>
 
 <!-- RESULTADOS -->
 <div class="card hide" id="cardRes">
@@ -527,8 +526,8 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
       <div class="hero-num">
         <div><span class="v" id="kGlobal">—</span><span class="u">días</span></div>
         <div class="l">Cobertura global del inventario</div>
-        <div class="d">Lo que vale el inventario dividido para lo que sale por día, a costo.
-          Es el número que resume todo el reporte.</div>
+        <div class="d">Valor del inventario a costo, dividido para el costo de venta diario
+          promedio. Es el indicador que resume la cobertura general.</div>
         <div class="hero-foot" id="heroFoot"></div>
       </div>
       <div class="tiles" id="resumen"></div>
@@ -543,7 +542,7 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
     </section>
 
     <section class="sec">
-      <h3>Dónde está parada la plata</h3>
+      <h3>Distribución del inventario por días de cobertura</h3>
       <div class="panel">
         <div class="chart" id="rChart"></div>
         <div class="axis" id="rAxis"></div>
@@ -551,8 +550,8 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
           <span><i class="sw" style="background:var(--crit)"></i> Riesgo de quiebre</span>
           <span><i class="sw" style="background:var(--ok)"></i> Normal</span>
           <span><i class="sw" style="background:var(--warn)"></i> Sobrestock</span>
-          <span><i class="sw" style="background:var(--inert)"></i> No rota · stock viejo sin vender</span>
-          <span><i class="sw" style="background:var(--accent)"></i> Recién ingresado · sin historia todavía</span>
+          <span><i class="sw" style="background:var(--inert)"></i> No rota · sin rotación en el período</span>
+          <span><i class="sw" style="background:var(--accent)"></i> Recién ingresado · sin historial de ventas suficiente</span>
         </div>
       </div>
     </section>
@@ -1644,29 +1643,28 @@ function abreDetalle(x){
 
   const links = x.links||[];
   const ventas = links.length
-    ? '<table class="mini2"><thead><tr><th>Código en ventas</th><th>Se ató por</th><th style="text-align:right">Unidades</th></tr></thead><tbody>'
+    ? '<table class="mini2"><thead><tr><th>Código en ventas</th><th>Vía de vinculación</th><th style="text-align:right">Unidades</th></tr></thead><tbody>'
       + links.map(v=>'<tr><td class="num">'+esc(v.cod)+(v.art&&v.art!==x.art?'<br><span style="color:var(--muted);font-size:11px">'+esc(v.art)+'</span>':'')+'</td>'
         +'<td style="color:var(--muted);font-size:12px">'+esc(v.via)+'</td>'
         +'<td class="num" style="text-align:right">'+fmt(v.neto)+'</td></tr>').join('')
       + '</tbody></table>'
-    : '<div class="vacio">Ninguna venta se ató a este artículo en el período.</div>';
+    : '<div class="vacio">Ninguna venta se vinculó a este artículo en el período.</div>';
 
   const fus = x.fusion && x.fusion.length>1
     ? '<div class="note" style="margin-bottom:18px;font-size:13px">'
       +'<b>Este artículo estaba '+x.fusion.length+' veces en el inventario</b>, con los códigos '
-      + x.fusion.map(c=>'<b>'+esc(c)+'</b>').join(' y ') + ' — mismo nombre, código viejo y código nuevo. '
-      +'Se unieron en una sola línea: el stock está sumado y las ventas de todos los códigos entran aquí. '
-      +'Se conserva el <b>'+esc(x.fusion[0])+'</b>'+(x.fusionUlt?', que es el que se compró más recientemente ('+rptFFecha(x.fusionUlt)+')':', el de mayor stock, porque ninguno registra compras')+'.'
-      +' Separados daban números falsos: uno aparecía en quiebre y el otro muerto.</div>'
+      + x.fusion.map(c=>'<b>'+esc(c)+'</b>').join(' y ') + ' — mismo nombre, código anterior y código actual. '
+      +'Se unificaron en una sola línea: el stock está sumado y las ventas de todos los códigos se consolidan aquí. '
+      +'Se conserva el código <b>'+esc(x.fusion[0])+'</b>'+(x.fusionUlt?', que es el que se compró más recientemente ('+rptFFecha(x.fusionUlt)+')':', el de mayor stock, porque ninguno registra compras')+'.'
+      +' Separados, generaban datos incorrectos: uno figuraba en riesgo de quiebre y el otro sin rotación.</div>'
     : '';
 
   $('rPnlBody').innerHTML =
     fus+'<div class="cifras">'+cif+'</div>'
-    +'<h4>Cómo sale el número</h4>'
-    +'<div class="formula">'+neteo+base+'<br>'+cierre+nota
-    +'<br><span style="color:var(--muted);font-size:11.5px">Las unidades salen de la columna <b>Cantidad</b> del archivo de ventas, sumando todas las líneas de los códigos atados.</span></div>'
+    +'<h4>Cómo se calcula</h4>'
+    +'<div class="formula">'+neteo+base+'<br>'+cierre+nota+'</div>'
     +'<h4>Compras del período</h4>'+compras
-    +'<h4>Códigos de venta atados</h4>'+ventas;
+    +'<h4>Ventas vinculadas</h4>'+ventas;
 
   $('rVelo').classList.add('on');
   document.body.style.overflow='hidden';
@@ -1751,8 +1749,8 @@ function renderDias(){
     ['c','RIESGO DE QUIEBRE','Riesgo de quiebre','menos de '+R.uQ+' días'],
     ['o','NORMAL','Cobertura normal','entre '+R.uQ+' y '+R.uS+' días'],
     ['w','SOBRESTOCK','Sobrestock','más de '+R.uS+' días'],
-    ['i','SIN VENTAS','No rota','stock viejo sin vender'],
-    ['n','RECIÉN INGRESADO','Recién ingresado','entró hace poco'],
+    ['i','SIN VENTAS','No rota','sin rotación en el período'],
+    ['n','RECIÉN INGRESADO','Recién ingresado','ingreso reciente'],
   ];
   function pintaTiles(){
     $('rTiles').innerHTML=
@@ -2115,11 +2113,12 @@ async function autoCarga(){
     $('rptCargando').style.display='none';
   }catch(err){
     console.warn('No se pudo autocargar desde el repositorio:', err.message);
-    // no se pudo traer el reporte solo: se abre la herramienta para cargar a mano
+    // no se pudo traer el reporte solo: se muestra la herramienta como respaldo
+    // (normalmente queda oculta, esto no es para el uso diario de Gerencia)
     $('rptCargando').innerHTML =
       '⚠ No se pudo cargar el reporte automáticamente ('+esc(err.message)+'). '
-      +'Usá la herramienta de abajo para cargar los archivos a mano.';
-    $('detHerramienta').open = true;
+      +'Avisale al administrador — mientras tanto, podés cargar los archivos a mano abajo.';
+    $('detHerramienta').classList.remove('hide');
   }
 }
 autoCarga();
