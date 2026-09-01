@@ -180,6 +180,12 @@ const MODULE_DEFINITIONS = {
     path: "../Gerencia/prestamo-socios.html?embed=1",
     embed: true
   },
+  GerenciaDiasInventario: {
+    label: "Días de Inventario",
+    symbol: "days",
+    path: "../Gerencia/dias-inventario.html?embed=1",
+    embed: true
+  },
   ExhibidoresVendedor: {
     label: "Exhibidores Vendedor",
     symbol: "exhibidorPhoto",
@@ -224,7 +230,8 @@ const SYMBOLS = {
   exhibidorPhoto: "&#127980;",
   exhibidorAudit: "&#128221;",
   exhibidorReport: "&#128202;",
-  loan: "&#127974;"
+  loan: "&#127974;",
+  days: "&#128230;"
 };
 
 const VENTAS_MODULES = ["MapaVentas", "VentasOperativo", "BiVendedor", "Cartera", "VentasGerencial", "Retorno", "NuevoDia"];
@@ -234,7 +241,7 @@ const CARTERA_MODULES = ["Cartera"];
 const LOGISTICA_MODULES = ["Logistica", "Retorno", "CabinetsBodega"];
 const ICE_ADMIN_MODULES = ["IceResumen", "IceInventario", "IceReportes"];
 const ICE_OPERATIVO_MODULES = ["IceEscaneo", "IceMisVisitas"];
-const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos"];
+const GERENCIA_MODULES = ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos", "GerenciaDiasInventario"];
 const ACCESS_CONTROL_MODULES = ["ControlAccesoInforme", "ControlAccesoAdmin", "ControlUsuarios", "ControlModulos"];
 const GERENCIA_CONTROL_MODULES = ["ControlAccesoInforme", "ControlModulos"];
 const ADMIN_APP_MODULES = [...ACCESS_CONTROL_MODULES];
@@ -268,7 +275,7 @@ const AREA_GROUPS = [
     label: "Gerencia",
     icon: "&#128188;",
     iconPath: "../Recuros_imagenes/reporte.png?v=1.0.0",
-    modules: ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos"]
+    modules: ["GerenciaTablero", "GerenciaRevision", "GerenciaFlujo", "GerenciaPrestamos", "GerenciaDiasInventario"]
   },
   {
     id: "ICE",
