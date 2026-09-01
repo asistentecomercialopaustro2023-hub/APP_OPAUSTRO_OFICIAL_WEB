@@ -274,8 +274,15 @@ details[open] summary{margin-bottom:8px}
 <body>
 <div class="wrap">
 
-<h1>Conciliador de Inventario</h1>
-<p class="sub">Cruza tu inventario con tus ventas y calcula los <b>días de inventario</b> reales, resolviendo los códigos que cambiaron entre un archivo y otro.</p>
+<h1>📦 Días de Inventario</h1>
+<p class="sub">Inventario y ventas cruzados automáticamente: cuántos días de cobertura tiene cada artículo.</p>
+
+<div id="rptCargando" class="card" style="display:flex;align-items:center;gap:10px">
+  <span class="sp"></span> Cargando el inventario y las ventas del período — el archivo de ventas es grande, puede tardar unos segundos…
+</div>
+
+<details id="detHerramienta">
+  <summary>⚙ Herramienta de conciliación — subir datos a mano o procesar un mes nuevo</summary>
 
 <!-- PASO 1 -->
 <div class="card">
@@ -461,12 +468,16 @@ details[open] summary{margin-bottom:8px}
   </div>
 </div>
 
+</details>
+
 <!-- RESULTADOS -->
 <div class="card hide" id="cardRes">
-  <h2><span class="step-n">5</span> Resultados</h2>
-  <div class="cards" id="kpis"></div>
-  <div id="avisoCompras"></div>
-  <div id="calibNote"></div>
+  <details style="margin-bottom:6px">
+    <summary>🔍 Diagnóstico del cruce (KPIs técnicos, compras, calibración)</summary>
+    <div class="cards" id="kpis"></div>
+    <div id="avisoCompras"></div>
+    <div id="calibNote"></div>
+  </details>
 
   <div class="tabs" id="tabs">
     <button class="tab on" data-p="pDias">📊 Reporte</button>
@@ -2038,10 +2049,15 @@ async function autoCarga(){
     buildMapping();
     // usa exactamente lo que el detector de columnas adivinó, igual que si
     // alguien hubiera revisado el paso 2 y dado clic en "Conciliar y calcular"
-    run(false);
+    run(true);
+    $('rptCargando').style.display='none';
   }catch(err){
     console.warn('No se pudo autocargar desde el repositorio:', err.message);
-    // se queda como herramienta suelta: el paso 1 sigue disponible para arrastrar archivos a mano
+    // no se pudo traer el reporte solo: se abre la herramienta para cargar a mano
+    $('rptCargando').innerHTML =
+      '⚠ No se pudo cargar el reporte automáticamente ('+esc(err.message)+'). '
+      +'Usá la herramienta de abajo para cargar los archivos a mano.';
+    $('detHerramienta').open = true;
   }
 }
 autoCarga();
