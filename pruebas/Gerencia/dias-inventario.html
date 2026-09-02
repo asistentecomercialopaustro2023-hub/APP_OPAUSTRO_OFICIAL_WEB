@@ -540,8 +540,7 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
       <div class="hero-num">
         <div><span class="v" id="kGlobal">—</span><span class="u">días</span></div>
         <div class="l">Cobertura global del inventario</div>
-        <div class="d">Valor del inventario a costo, dividido para el costo de venta diario
-          promedio. Es el indicador que resume la cobertura general.</div>
+        <div class="d" id="kGlobalCalc"></div>
         <div class="hero-foot" id="heroFoot"></div>
       </div>
       <div class="tiles" id="resumen"></div>
@@ -1777,6 +1776,13 @@ function renderDias(){
     +' &nbsp;·&nbsp; Artículos <b>'+fmt(filas.length)+'</b> &nbsp;·&nbsp; Cruce conciliado <b>'+concPct.toFixed(1)+'%</b>';
 
   $('kGlobal').textContent = global!=null ? fmt(global,1) : '—';
+  // se muestra la cuenta con los numeros puestos, en vez de describirla con palabras
+  $('kGlobalCalc').innerHTML = global!=null
+    ? '<span style="font-family:var(--f-mono);font-size:12.5px;line-height:1.9">'
+      + rptMoney(valorTot)+' de inventario<br>'
+      + '÷ '+rptMoney(costoDia)+' que sale por día<br>'
+      + '= <b style="color:#fff">'+fmt(global,1)+' días</b></span>'
+    : '';
   $('heroFoot').innerHTML =
     '<span><b>'+fmt(filas.length)+'</b>artículos</span>'
     +'<span><b>'+concPct.toFixed(1)+'%</b>ventas conciliadas</span>'
