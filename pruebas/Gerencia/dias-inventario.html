@@ -1077,7 +1077,7 @@ function detectPeriodo(){
   const dias=Math.round((mx-mn)/86400000)+1;
   $('oDias').value=dias;
   S.periodo={mn,mx,dias};
-  info.innerHTML='Detectado: <b>'+mn.toISOString().slice(0,10)+'</b> a <b>'+mx.toISOString().slice(0,10)+'</b>';
+  info.innerHTML='Detectado: <b>'+isoFecha(mn)+'</b> a <b>'+isoFecha(mx)+'</b>';
 }
 
 /* ═════════════ memoria de vinculaciones ═════════════ */
@@ -1129,13 +1129,27 @@ function aFecha(v){
   const d=new Date(v);
   return isNaN(d)?null:d;
 }
+/* Que dia calendario representa un Date, sin que el huso lo corra.
+   El lector de CSV entrega '2026-08-03' como medianoche UTC, que en Ecuador
+   (GMT-5) se ve como el 2 de agosto a las 19:00; el de Excel, en cambio, arma
+   medianoche local. Se distingue por la hora UTC: si es exactamente 00:00 el
+   dato vino en UTC y hay que leerlo en UTC. */
+function partesFecha(d){
+  const enUTC = d.getUTCHours()===0 && d.getUTCMinutes()===0 && d.getUTCSeconds()===0;
+  return enUTC
+    ? {y:d.getUTCFullYear(), m:d.getUTCMonth(), dd:d.getUTCDate(), w:d.getUTCDay()}
+    : {y:d.getFullYear(),    m:d.getMonth(),    dd:d.getDate(),    w:d.getDay()};
+}
+function isoFecha(d){ const p=partesFecha(d); return p.y+'-'+String(p.m+1).padStart(2,'0')+'-'+String(p.dd).padStart(2,'0'); }
 /* Lunes a viernes: son los dias que se despacha. */
-function esHabil(d){ const w=d.getDay(); return w>=1 && w<=5; }
+function esHabil(d){ const w=partesFecha(d).w; return w>=1 && w<=5; }
 /* Número de día calendario. Comparar Date directamente mezcla husos horarios:
    '2026-08-26' se lee como UTC y en Ecuador (GMT-5) cae el día anterior, lo que
    dejaba fuera todo un día de compras. Comparando días esto no puede pasar. */
 function diaNum(d){
-  return d ? Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000) : null;
+  if(!d) return null;
+  const p=partesFecha(d);
+  return Math.floor(Date.UTC(p.y,p.m,p.dd)/86400000);
 }
 
 /* ═════════════ compras / ingresos ═════════════
@@ -1272,11 +1286,11 @@ function fusionaPorNombre(items){
     for(const x of arr.slice(1)) extra.push(x.codigo, ...x.alts);
     base.alts = [...new Set([...base.alts, ...extra])].filter(Boolean);
     base.fusion = arr.map(x=>x.codigo);
-    base.fusionUlt = base._ult ? base._ult.toISOString().slice(0,10) : null;
+    base.fusionUlt = base._ult ? isoFecha(base._ult) : null;
     S.fusiones.push({art:base.art, cods:base.fusion, stock, elegido:base.codigo,
                      ultimaCompra:base.fusionUlt,
                      detalle:arr.map(x=>({cod:x.codigo, stock:x.stock,
-                       ult:x._ult?x._ult.toISOString().slice(0,10):null}))});
+                       ult:x._ult?isoFecha(x._ult):null}))});
     out.push(base);
   }
   return out;
@@ -1662,7 +1676,11 @@ function tablaOrdenable(id, cols, filasFn, ini, tope, clicable){
 }
 
 const RPT_MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const rptFFecha = s => { if(!s) return '—'; const t=(s instanceof Date)?s.toISOString().slice(0,10):String(s); const p=t.split('-'); return p[2]+' '+RPT_MESES[+p[1]-1]; };
+const rptFFecha = s => {
+  if(!s) return '—';
+  if(s instanceof Date){ const p=partesFecha(s); return String(p.dd).padStart(2,'0')+' '+RPT_MESES[p.m]; }
+  const p=String(s).split('-'); return p[2]+' '+RPT_MESES[+p[1]-1];
+};
 let rptUltimoFoco=null;
 function abreDetalle(x){
   if(!x) return;
@@ -1795,7 +1813,7 @@ function renderDias(){
   const capt = filas.reduce((s,x)=>s+x.vend,0);
   const concPct = R.totalVend ? 100*capt/R.totalVend : 0;
 
-  const per = S.periodo ? (S.periodo.mn.toISOString().slice(0,10)+' – '+S.periodo.mx.toISOString().slice(0,10)) : '—';
+  const per = S.periodo ? (isoFecha(S.periodo.mn)+' – '+isoFecha(S.periodo.mx)) : '—';
   $('rptMeta').innerHTML = 'Ventas <b>'+per+'</b> &nbsp;·&nbsp; Período <b>'+R.dias+' días hábiles</b>'
     +' &nbsp;·&nbsp; Artículos <b>'+fmt(filas.length)+'</b> &nbsp;·&nbsp; Cruce conciliado <b>'+concPct.toFixed(1)+'%</b>';
 
@@ -2063,7 +2081,7 @@ $('btnMemClr').addEventListener('click',()=>{
 /* ═════════════ exportar Excel ═════════════ */
 function construirWorkbook(){
       const R=S.res, wb=XLSX.utils.book_new();
-      const per=S.periodo?(S.periodo.mn.toISOString().slice(0,10)+' a '+S.periodo.mx.toISOString().slice(0,10)):'—';
+      const per=S.periodo?(isoFecha(S.periodo.mn)+' a '+isoFecha(S.periodo.mx)):'—';
       const capt=R.filas.reduce((s,f)=>s+f.vend,0);
       const cnt=e=>R.filas.filter(f=>f.est===e).length;
 
