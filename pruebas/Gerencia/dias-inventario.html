@@ -1698,6 +1698,16 @@ function tablaOrdenable(id, cols, filasFn, ini, tope, clicable){
 }
 
 const RPT_MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const RPT_MESES_L=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+/* "julio–agosto 2026" / "agosto 2026": nombrar el período evita el "en el período"
+   suelto, que obliga a subir a buscar de qué fechas se está hablando. */
+function periodoTexto(){
+  if(!S.periodo) return 'el período';
+  const a=partesFecha(S.periodo.mn), b=partesFecha(S.periodo.mx);
+  if(a.y===b.y && a.m===b.m) return RPT_MESES_L[b.m]+' '+b.y;
+  if(a.y===b.y) return RPT_MESES_L[a.m]+'–'+RPT_MESES_L[b.m]+' '+b.y;
+  return RPT_MESES_L[a.m]+' '+a.y+'–'+RPT_MESES_L[b.m]+' '+b.y;
+}
 const rptFFecha = s => {
   if(!s) return '—';
   if(s instanceof Date){ const p=partesFecha(s); return String(p.dd).padStart(2,'0')+' '+RPT_MESES[p.m]; }
@@ -1754,7 +1764,7 @@ function abreDetalle(x){
         +'<td class="num" style="text-align:right"><span class="'+(c.und<0?'sal':'ent')+'">'+(c.und<0?'':'+')+fmt(c.und)+'</span></td>'
         +'<td style="color:var(--muted);font-size:12px">'+(c.und<0?'devolución al proveedor':'ingreso por compra')+'</td></tr>').join('')
       + '</tbody></table>'
-    : '<div class="vacio">No se compró nada de este artículo en el período.</div>';
+    : '<div class="vacio">Sin compras de este artículo en '+periodoTexto()+'.</div>';
 
   const links = x.links||[];
   const ventas = links.length
@@ -1763,7 +1773,7 @@ function abreDetalle(x){
         +'<td style="color:var(--muted);font-size:12px">'+esc(v.via)+'</td>'
         +'<td class="num" style="text-align:right">'+fmt(v.neto)+'</td></tr>').join('')
       + '</tbody></table>'
-    : '<div class="vacio">Ninguna venta se vinculó a este artículo en el período.</div>';
+    : '<div class="vacio">Sin ventas vinculadas a este artículo en '+periodoTexto()+'.</div>';
 
   const fus = x.fusion && x.fusion.length>1
     ? '<div class="note" style="margin-bottom:18px;font-size:13px">'
@@ -1778,8 +1788,8 @@ function abreDetalle(x){
     fus+'<div class="cifras">'+cif+'</div>'
     +'<h4>Cómo se calcula</h4>'
     +'<div class="formula">'+neteo+base+'<br>'+cierre+nota+frecuencia+'</div>'
-    +'<h4>Compras del período</h4>'+compras
-    +'<h4>Ventas vinculadas</h4>'+ventas;
+    +'<h4>Compras de '+periodoTexto()+'</h4>'+compras
+    +'<h4>Ventas vinculadas de '+periodoTexto()+'</h4>'+ventas;
 
   $('rVelo').classList.add('on');
   document.body.style.overflow='hidden';
