@@ -419,20 +419,25 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
       Cuando bajo un mismo nombre hay dos negocios distintos — por ejemplo Unilever helados
       y el resto de Unilever — se separan por el valor de una columna. Los archivos usan
       columnas distintas para decir lo mismo, por eso se configura una para cada uno.</p>
-    <label class="chk"><input type="checkbox" id="oSplit">
-      <span><b>Separar</b> los artículos que cumplan la condición, como si fueran otro proveedor.</span></label>
+    <label class="chk"><input type="checkbox" id="oSplit" checked>
+      <span><b>Separar</b> los artículos que cumplan la condición, como si fueran otro proveedor.
+      Viene activado para <b>ICE</b>: los artículos de UNILEVER cuya división es FOODS &amp; REFRESHMENT
+      son los helados, y se agrupan aparte del resto de UNILEVER.</span></label>
     <div class="grid" style="margin-top:10px">
       <div><label class="f">Proveedor a separar (contiene)</label>
         <input type="text" id="sBase" value="UNILEVER"></div>
       <div><label class="f">Nombre del proveedor separado</label>
-        <input type="text" id="sNombre" value="UNILEVER ICE"></div>
+        <input type="text" id="sNombre" value="ICE"></div>
     </div>
     <div class="grid" style="margin-top:10px">
       <div><label class="f">En inventario, la columna…</label><select id="sInvCol"></select></div>
-      <div><label class="f">…contiene</label><input type="text" id="sInvTxt" value="ICE CREAM"></div>
+      <div><label class="f">…contiene</label><input type="text" id="sInvTxt" value="FOODS"></div>
       <div><label class="f">En ventas, la columna…</label><select id="sVtaCol"></select></div>
-      <div><label class="f">…contiene</label><input type="text" id="sVtaTxt" value="ICE"></div>
+      <div><label class="f">…contiene</label><input type="text" id="sVtaTxt" value=""></div>
     </div>
+    <p class="small" style="margin:10px 0 0">La condición se evalúa sobre el inventario, que es donde está
+      la división. En ventas se deja vacío a propósito: cada venta se ata a su artículo por código, y el
+      artículo ya trae el proveedor separado, así que no hace falta repetir la regla ahí.</p>
   </details>
 
   <div class="tblwrap" style="max-height:340px"><table id="tProv"></table></div>
@@ -899,7 +904,9 @@ function buildMapping(){
   $('mVtaFec').addEventListener('change',detectPeriodo);
   mapearCompras();
   // columnas para separar un proveedor en dos
-  fillSel($('sInvCol'),IH,guess(IH,['subdivision','division','categoria']),true);
+  // 'division' primero: la coincidencia exacta la distingue de 'SubDivision',
+  // y es la columna que separa los helados (FOODS & REFRESHMENT) del resto
+  fillSel($('sInvCol'),IH,guess(IH,['division','subdivision','categoria']),true);
   fillSel($('sVtaCol'),VH,guess(VH,['agencia','sucursal','bodega','linea']),true);
   ['oSplit','sBase','sNombre','sInvCol','sInvTxt','sVtaCol','sVtaTxt'].forEach(id=>
     $(id).addEventListener('input',()=>{ S.provExcl=null; buildProveedores(); }));
