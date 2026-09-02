@@ -709,10 +709,39 @@ function jac(a,b){ if(!a.size||!b.size) return 0; let i=0; for(const t of a) if(
 /* Medidas y presentación: todo término que lleve un número.
    Ej. 12X510ML, 48X190G, 24X9X24G, 100X156, 2EN1, 3X5KG.
    Dos artículos solo pueden ser el mismo si TODAS estas coinciden. */
+/* Un mismo empaque se escribe de formas distintas: 24X3X110G y 72X110G son la
+   misma cantidad (24 x 3 = 72 unidades de 110G). Se multiplican los factores y
+   queda "cantidad total X tamanio unitario", asi las dos formas coinciden.
+   Si el token no tiene esa estructura se devuelve igual, sin inventar nada. */
+function canonMedida(t){
+  const partes=String(t).split('X');
+  if(partes.length<2) return t;
+  const mu=/^([0-9]+)([A-Z]*)$/.exec(partes[partes.length-1]);
+  if(!mu) return t;
+  const factores=partes.slice(0,-1);
+  if(!factores.length || factores.some(f=>!/^[0-9]+$/.test(f))) return t;
+  const total=factores.reduce((a,f)=>a*Number(f),1);
+  return total+'X'+mu[1]+mu[2];
+}
 function medidas(tokSet){
   const m=new Set();
-  for(const t of tokSet) if(/[0-9]/.test(t)) m.add(t);
+  for(const t of tokSet) if(/[0-9]/.test(t)) m.add(canonMedida(t));
   return m;
+}
+/* Nombre abreviado: BUBBA es el comienzo de BUBBALOO, asi que describen el mismo
+   articulo. Se exige un minimo de 4 letras para que no encadene por dos o tres
+   caracteres sueltos, y quien lo usa ademas obliga a que TODAS las medidas
+   coincidan: sin esa condicion podria unir dos marcas que arrancan igual. */
+function esAbreviacion(a,b){
+  if(a===b) return true;
+  const c = a.length<=b.length ? a : b;
+  const l = a.length<=b.length ? b : a;
+  return c.length>=4 && /^[A-Z]+$/.test(c) && l.startsWith(c);
+}
+/* Terminos de un nombre que el otro no tiene, admitiendo abreviaciones. */
+function exclusivos(A,B){
+  const otros=[...B];
+  return [...A].filter(t=>!B.has(t) && !otros.some(u=>esAbreviacion(t,u)));
 }
 function mismasMedidas(a,b){
   if(a.size!==b.size) return false;
@@ -1430,17 +1459,25 @@ function conciliar(){
 
     // ¿hay palabras en conflicto? (cada nombre con términos exclusivos ⇒ variante distinta)
     const A=a.tok,B=inv[best].tok;
-    const soloA=[...A].filter(t=>!B.has(t)), soloB=[...B].filter(t=>!A.has(t));
-    const compatible = soloA.length===0 || soloB.length===0;
-    const pOk=precioOk(a.pu,inv[best].precio);
     // las medidas (ml, gramos, cuántas unidades vienen) deben coincidir TODAS
     const medA=medidas(A), medB=medidas(B);
     const medOk = !estricto || mismasMedidas(medA,medB);
+    const soloA=[...A].filter(t=>!B.has(t)), soloB=[...B].filter(t=>!A.has(t));
+    const compatible = soloA.length===0 || soloB.length===0;
+    /* Nombre abreviado (BUBBA / BUBBALOO): se admite solo si las medidas
+       coinciden exactamente. Ese requisito es el que lo hace seguro — sin el,
+       podria unir dos marcas distintas que empiezan igual. */
+    const abrevA=exclusivos(A,B), abrevB=exclusivos(B,A);
+    const porAbreviacion = medOk && mismasMedidas(medA,medB)
+      && (abrevA.length===0 || abrevB.length===0)
+      && !(soloA.length===0 || soloB.length===0);   // solo si no calzaba ya
+    const pOk=precioOk(a.pu,inv[best].precio);
 
-    const aceptar = !soloIdentico && compatible && medOk && bs>=0.6 && pOk!==false;
+    const aceptar = !soloIdentico && (compatible || porAbreviacion) && medOk && bs>=0.6 && pOk!==false;
     if(aceptar){
-      link(best,a,'nombre compatible',bs);
-      auto.push({v:a,i:best,via:'nombre compatible',score:bs});
+      const via = porAbreviacion ? 'nombre abreviado' : 'nombre compatible';
+      link(best,a,via,bs);
+      auto.push({v:a,i:best,via,score:bs});
     }else{
       // candidatos alternativos para el desplegable de revisión
       const cands=inv.map((it,i)=>({i,s:jac(a.tok,it.tok)}))
