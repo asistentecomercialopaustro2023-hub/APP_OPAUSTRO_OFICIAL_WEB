@@ -655,30 +655,6 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   </div>
 </div>
 
-<details class="card">
-  <summary>Cómo decide el conciliador (y por qué no confía solo en el costo)</summary>
-  <div style="font-size:13px;line-height:1.65">
-    <p><b>Orden de confianza:</b></p>
-    <ol style="margin:0 0 12px 18px;padding:0">
-      <li><b>Código</b> — prueba el código principal y todos los códigos alternos que marcaste. Es el cruce más seguro.</li>
-      <li><b>Memoria</b> — las vinculaciones que tú confirmaste antes.</li>
-      <li><b>Nombre idéntico</b> — resuelve el caso clásico de "al artículo le cambiaron el código".</li>
-      <li><b>Nombre compatible</b> — un nombre contiene al otro y lo único que sobra son descriptores
-          (STICKER, SENSOR, PROMO).</li>
-      <li><b>Sugerido</b> — todo lo demás va a revisión manual.</li>
-    </ol>
-    <p><b>La regla que evita los falsos positivos</b> es la de <i>palabras en conflicto</i>: si cada nombre tiene
-    términos que el otro no tiene, no se cruza automáticamente. Eso es lo que impide confundir TANG LIMÓN con
-    TANG PIÑA, ESFERO FINA con ESFERO GRUESA, o un jabón de 72×110G con uno de 24×3×110G. Un nombre solo puede
-    absorber al otro añadiendo descriptores, nunca cambiándolos.</p>
-    <p><b>Por qué el costo no sirve de llave:</b> dentro de una misma línea los productos comparten costo idéntico.
-    En este inventario los 10 sabores de HALLS 9S cuestan lo mismo, y las 5 tallas de GUANTE BIC ESTRELLA también:
-    531 de 761 artículos comparten precio con otro distinto. Cruzar por costo confundiría sabores y tallas.
-    Por eso el precio queda como filtro opcional, y está apagado: al medirlo sobre datos reales no rechazó ni un
-    solo cruce que la regla de palabras en conflicto ya hubiera aceptado.</p>
-  </div>
-</details>
-
 </div>
 
 <script>/*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
@@ -883,7 +859,8 @@ function buildMapping(){
   fillSel($('mVtaCod'),VH,guess(VH,['codarticulo','codigo articulo','codigo','cod','sku']));
   fillSel($('mVtaArt'),VH,guess(VH,['nombreart','nombre articulo','articulo','descripcion','nombre','producto']));
   fillSel($('mVtaCan'),VH,guess(VH,['cantidad','unidades','qty']));
-  fillSel($('mVtaVal'),VH,guess(VH,['vtabruta','venta bruta','ventabruta','ventaneta','venta','importe','total']),true);
+  // la venta neta es la que cuadra con el TABLERO: la bruta va antes de descuentos
+  fillSel($('mVtaVal'),VH,guess(VH,['ventaneta','venta neta','vtaneta','vtabruta','venta bruta','ventabruta','venta','importe','total']),true);
   fillSel($('mVtaFec'),VH,guess(VH,['fecha','date']),true);
   fillSel($('mVtaTip'),VH,guess(VH,['tipo','documento','tipodoc']),true);
   fillSel($('mVtaProv'),VH,guess(VH,['proveedor','provedor','supplier']),true);
@@ -2286,7 +2263,7 @@ const CSV_COLS = [
   {sel:'mVtaCod',  out:'CodArticulo'},
   {sel:'mVtaArt',  out:'NombreArt'},
   {sel:'mVtaCan',  out:'Cantidad'},
-  {sel:'mVtaVal',  out:'VtaBruta'},
+  {sel:'mVtaVal',  out:'VentaNeta'},
 ];
 function csvEscapa(v){
   const s = v==null ? '' : String(v);
