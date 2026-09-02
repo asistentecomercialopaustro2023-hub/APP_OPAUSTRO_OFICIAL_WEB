@@ -164,12 +164,16 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 .rpt .hero-foot{display:flex;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.16);
   font-family:var(--f-mono);font-size:12px;color:rgba(255,255,255,.85);flex-wrap:wrap}
 .rpt .hero-foot b{display:block;font-family:var(--f-disp);font-size:16px;font-weight:600;color:#fff}
+.rpt .umbrales{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13.5px;
+  color:var(--ink2);padding-bottom:14px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.rpt .umbrales input{width:66px;padding:5px 8px;text-align:center;font-family:var(--f-mono);
+  font-size:13px;border:1px solid var(--line2);border-radius:6px;background:var(--surf);color:var(--ink)}
 .rpt .salud{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:14px 0 8px;
   box-shadow:inset 0 0 0 1px var(--line)}
 .rpt .salud i{display:block;height:100%;min-width:2px}
 .rpt .salud-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink2)}
 .rpt .salud-leg span{display:inline-flex;align-items:center;gap:6px}
-.rpt .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.rpt .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-content:start}
 @media(max-width:560px){.rpt .tiles{grid-template-columns:1fr}}
 .rpt .tile{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);
   padding:15px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
@@ -546,6 +550,14 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
     <section class="sec" style="margin-top:20px">
       <h3>Salud del inventario</h3>
       <div class="panel" style="padding:16px 20px">
+        <div class="umbrales">
+          <span>Se considera <b style="color:var(--crit)">riesgo de quiebre</b> bajo</span>
+          <input type="number" id="uQin" min="1" max="365" step="1" aria-label="Días de riesgo de quiebre">
+          <span>días, y <b style="color:var(--warn)">sobrestock</b> sobre</span>
+          <input type="number" id="uSin" min="2" max="999" step="1" aria-label="Días de sobrestock">
+          <span>días.</span>
+          <button class="lnk" id="uReset" type="button">Restablecer (15 / 60)</button>
+        </div>
         <div class="salud" id="rSalud"></div>
         <div class="salud-leg" id="rSaludLeg"></div>
       </div>
@@ -698,6 +710,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
 /* ═════════════ utilidades ═════════════ */
 const $ = id => document.getElementById(id);
+/* Modo herramienta: ?herramienta=1 en la URL, o el archivo suelto CONCILIADOR.html
+   (ahi el bloque no nace oculto). Fuera de ese modo la vista es solo el reporte. */
+const HERRAMIENTA = new URLSearchParams(location.search).has('herramienta')
+  || !(document.getElementById('detHerramienta')||{classList:{contains:()=>false}}).classList.contains('hide');
 const MEM_KEY = 'conciliador_memoria_v1';
 const PROV_KEY = 'conciliador_proveedores_excluidos_v1';
 /* Líneas que ya no se compran: vienen desmarcadas la primera vez.
@@ -1715,6 +1731,35 @@ $('rCerrar').addEventListener('click',cierraDetalle);
 $('rVelo').addEventListener('click',e=>{ if(e.target===$('rVelo')) cierraDetalle(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && $('rVelo').classList.contains('on')) cierraDetalle(); });
 
+/* ═════════════ umbrales ajustables desde el reporte ═════════════
+   Cambiar los dias de quiebre/sobrestock solo reetiqueta: no rehace el cruce,
+   que es la parte lenta. Se reclasifican unicamente los articulos que tienen
+   dias calculados; "sin ventas", "recien ingresado" y "sin stock" no dependen
+   del umbral y se dejan como estan. */
+function aplicaUmbrales(uQ,uS){
+  const R=S.res; if(!R) return;
+  R.uQ=uQ; R.uS=uS;
+  const RECLAS=new Set(['RIESGO DE QUIEBRE','NORMAL','SOBRESTOCK']);
+  for(const x of R.filas){
+    if(x.dias==null || !RECLAS.has(x.est)) continue;
+    x.est = x.dias<uQ ? 'RIESGO DE QUIEBRE' : (x.dias<=uS ? 'NORMAL' : 'SOBRESTOCK');
+  }
+  renderDias();
+}
+function sincronizaUmbrales(){
+  const R=S.res; if(!R) return;
+  const q=$('uQin'), s=$('uSin');
+  if(document.activeElement!==q) q.value=R.uQ;
+  if(document.activeElement!==s) s.value=R.uS;
+  q.onchange = s.onchange = ()=>{
+    let uQ=Math.max(1, Math.round(+q.value)||R.uQ);
+    let uS=Math.max(uQ+1, Math.round(+s.value)||R.uS);   // sobrestock siempre por encima del quiebre
+    q.value=uQ; s.value=uS;
+    aplicaUmbrales(uQ,uS);
+  };
+  $('uReset').onclick = ()=>{ q.value=15; s.value=60; aplicaUmbrales(15,60); };
+}
+
 function renderDias(){
   const R=S.res;
   if(!R) return;
@@ -1736,9 +1781,15 @@ function renderDias(){
     '<span><b>'+fmt(filas.length)+'</b>artículos</span>'
     +'<span><b>'+concPct.toFixed(1)+'%</b>ventas conciliadas</span>'
     +'<span><b>'+R.dias+'</b>días de período</span>';
+  /* Lo excluido (lineas que ya no se manejan y promociones sin valor) se informa
+     para que el valor del reporte cuadre contra el total del archivo de inventario. */
+  const valorExcl = (R.excl||[]).reduce((s,x)=>s+(x.valor||0),0)
+                  + (R.provFuera||[]).reduce((s,p)=>s+(p.valor||0),0);
+  const detExcl = valorExcl>0
+    ? 'a costo · '+rptMoney(valorTot+valorExcl)+' menos '+rptMoney(valorExcl)+' excluido'
+    : 'a costo, '+fmt(filas.length)+' artículos';
   $('resumen').innerHTML=[
-    ['', '💰', rptMoney(valorTot), 'Valor del inventario', 'a costo, '+fmt(filas.length)+' artículos'],
-    ['', '📉', rptMoney(costoDia), 'Sale por día', 'costo de venta diario promedio'],
+    ['', '💰', rptMoney(valorTot), 'Valor del inventario', detExcl],
     ['c', '🔻', fmt(cuenta('RIESGO DE QUIEBRE')), 'En riesgo de quiebre', 'menos de '+R.uQ+' días de cobertura'],
     ['w', '📦', fmt(cuenta('SOBRESTOCK')), 'En sobrestock', 'más de '+R.uS+' días de cobertura'],
   ].map(([c,ico,v,l,s])=>'<div class="tile '+c+'"><span class="ico">'+ico+'</span><div class="v">'+v+'</div>'
@@ -1859,6 +1910,7 @@ function renderDias(){
   $('rQ').oninput=()=>{ rptLim=60; refrescaTabla(); };
   selFp.onchange=()=>{ rptLim=60; refrescaTabla(); };
   $('rMore').onclick=()=>{ rptLim+=120; refrescaTabla(); };
+  sincronizaUmbrales();
 }
 
 function renderRev(){
@@ -1910,11 +1962,15 @@ function renderSin(){
     +(todo.length>f.length ? ' — '+fmt(todo.length-f.length)+' más vendieron menos de $'+SIN_UMBRAL : '');
   $('tSin').innerHTML='<thead><tr><th>Código</th><th>Artículo</th><th class="n">Unidades</th>'
     +'<th class="n">Vendió $</th><th>Estado</th></tr></thead><tbody>'
+    /* Para Gerencia todos son lo mismo: se vendio y no hay articulo en inventario.
+       El origen (descartado a mano vs sin candidato) y el boton para revertirlo
+       son de la herramienta, y solo aparecen cuando esta abierta. */
     + f.map((x)=>{ const k=todo.indexOf(x); return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
       +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n"><b>$'+fmt(x.v.usd)+'</b></td>'
-      +'<td>'+(x.ignorado
-          ? '<span class="tag t-mut">descartado a mano</span> <button class="sm" onclick="reactivar('+k+')">Reactivar</button>'
-          : '<span class="tag t-warn">sin artículo en inventario</span>')+'</td></tr>'; }).join('')+'</tbody>';
+      +'<td><span class="tag t-warn">sin artículo en inventario</span>'
+      +(x.ignorado && HERRAMIENTA
+          ? ' <span class="tag t-mut">descartado a mano</span> <button class="sm" onclick="reactivar('+k+')">Reactivar</button>'
+          : '')+'</td></tr>'; }).join('')+'</tbody>';
   if(!f.length) $('tSin').innerHTML='<tbody><tr><td colspan="5" style="padding:20px;text-align:center;color:var(--muted)">Nada que mostrar.</td></tr></tbody>';
 }
 function renderExc(){
@@ -2225,9 +2281,7 @@ $('btnCsv').addEventListener('click',()=>{
 });
 
 /* La herramienta esta oculta para Gerencia; se abre con ?herramienta=1 en la URL. */
-if(new URLSearchParams(location.search).has('herramienta')){
-  $('detHerramienta').classList.remove('hide');
-}
+if(HERRAMIENTA) $('detHerramienta').classList.remove('hide');
 
 autoCarga();
 </script>
