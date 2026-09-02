@@ -1462,12 +1462,17 @@ function conciliar(){
     // las medidas (ml, gramos, cuántas unidades vienen) deben coincidir TODAS
     const medA=medidas(A), medB=medidas(B);
     const medOk = !estricto || mismasMedidas(medA,medB);
-    const soloA=[...A].filter(t=>!B.has(t)), soloB=[...B].filter(t=>!A.has(t));
+    /* Se comparan los nombres con las medidas ya canonizadas: si no, 72X110G y
+       12X6X110G — que son el mismo empaque — contarian como palabras distintas
+       y el cruce se rechazaria igual por "palabras en conflicto". */
+    const canon=S=>new Set([...S].map(t=>/[0-9]/.test(t)?canonMedida(t):t));
+    const Ac=canon(A), Bc=canon(B);
+    const soloA=[...Ac].filter(t=>!Bc.has(t)), soloB=[...Bc].filter(t=>!Ac.has(t));
     const compatible = soloA.length===0 || soloB.length===0;
     /* Nombre abreviado (BUBBA / BUBBALOO): se admite solo si las medidas
        coinciden exactamente. Ese requisito es el que lo hace seguro — sin el,
        podria unir dos marcas distintas que empiezan igual. */
-    const abrevA=exclusivos(A,B), abrevB=exclusivos(B,A);
+    const abrevA=exclusivos(Ac,Bc), abrevB=exclusivos(Bc,Ac);
     const porAbreviacion = medOk && mismasMedidas(medA,medB)
       && (abrevA.length===0 || abrevB.length===0)
       && !(soloA.length===0 || soloB.length===0);   // solo si no calzaba ya
