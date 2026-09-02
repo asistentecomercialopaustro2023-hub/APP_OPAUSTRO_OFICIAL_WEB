@@ -1118,8 +1118,6 @@ function partesFecha(d){
     : {y:d.getFullYear(),    m:d.getMonth(),    dd:d.getDate(),    w:d.getDay()};
 }
 function isoFecha(d){ const p=partesFecha(d); return p.y+'-'+String(p.m+1).padStart(2,'0')+'-'+String(p.dd).padStart(2,'0'); }
-/* Lunes a viernes: son los dias que se despacha. */
-function esHabil(d){ const w=partesFecha(d).w; return w>=1 && w<=5; }
 /* Número de día calendario. Comparar Date directamente mezcla husos horarios:
    '2026-08-26' se lee como UTC y en Ecuador (GMT-5) cae el día anterior, lo que
    dejaba fuera todo un día de compras. Comparando días esto no puede pasar. */
@@ -1311,12 +1309,11 @@ function extractVtas(){
     if(m.fec>=0){                       // primera venta: señal de que ya existía
       const fv=aFecha(col(d,r,m.fec));
       if(fv && (!a.primera || fv<a.primera)) a.primera=fv;
-      // dias distintos con venta real: sirve para ver si roto parejo o a tirones.
-      // las devoluciones no cuentan como dia de venta.
-      // dias habiles del periodo: fechas L-V con facturacion real. Se deducen del
-      // archivo, no de un calendario fijo, asi los feriados quedan fuera solos.
-      // El conteo por articulo usa la misma base, para que "47 de 44" no exista.
-      if(fv && !esDevolucion && cant>0 && esHabil(fv)){
+      /* Dias del periodo: fechas distintas con facturacion real, sabados incluidos.
+         Se deducen del archivo, no de un calendario fijo, asi los domingos y los
+         feriados quedan fuera solos. Las devoluciones no cuentan como dia de venta.
+         El conteo por articulo usa la misma base, para que "47 de 44" no exista. */
+      if(fv && !esDevolucion && cant>0){
         a.dias.add(diaNum(fv));
         S._habiles.add(diaNum(fv));
       }
@@ -1344,9 +1341,9 @@ function conciliar(){
   S._compras = extractCompras();
   const inv=extractInv();
   const agg=extractVtas();
-  /* El promedio diario se reparte sobre los dias que se despacha (L-V con
-     facturacion), no sobre el calendario: incluir sabados, domingos y feriados
-     diluia el promedio y hacia ver mas cobertura de la real. */
+  /* El promedio diario se reparte sobre los dias en que realmente hubo
+     facturacion, no sobre el calendario: incluir domingos y feriados sin
+     despacho diluia el promedio y hacia ver mas cobertura de la real. */
   const habiles=[...(S._habiles||new Set())].sort((a,b)=>a-b);
   const dias = habiles.length ? habiles.length : Math.max(1,+$('oDias').value||30);
   const diasCalendario = Math.max(1,+$('oDias').value||30);
@@ -1684,13 +1681,13 @@ function abreDetalle(x){
     : fmt(x.bruto)+' facturadas, sin devoluciones<br>';
   const base = x.disp < diasPeriodo
     ? fmt(x.vend)+' netas ÷ <b>'+fmt(x.disp)+' días en piso</b> = <b>'+fmt(x.pd,1)+'</b> por día'
-    : fmt(x.vend)+' netas ÷ '+diasPeriodo+' días hábiles = <b>'+fmt(x.pd,1)+'</b> por día';
+    : fmt(x.vend)+' netas ÷ '+diasPeriodo+' días con facturación = <b>'+fmt(x.pd,1)+'</b> por día';
   const cierre = x.dias==null
     ? 'Sin ventas en el período, así que no hay días de inventario que calcular.'
     : fmt(x.stock)+' en stock ÷ '+fmt(x.pd,1)+' por día = <b>'+fmt(x.dias,1)+' días</b>';
   const nota = x.disp < diasPeriodo
     ? '<br><span style="color:var(--muted)">Entró el '+(x.ingreso?rptFFecha(x.ingreso):'—')+': solo estuvo disponible '
-      +fmt(x.disp)+' de los '+diasPeriodo+' días hábiles, por eso el promedio va sobre esos días.</span>'
+      +fmt(x.disp)+' de los '+diasPeriodo+' días con facturación, por eso el promedio va sobre esos días.</span>'
     : '';
   /* El promedio se reparte sobre todos los dias del periodo, no solo sobre los que
      tuvieron venta: asi mide el ritmo real al que se consume el stock. Se muestra
@@ -1791,7 +1788,7 @@ function renderDias(){
   const concPct = R.totalVend ? 100*capt/R.totalVend : 0;
 
   const per = S.periodo ? (isoFecha(S.periodo.mn)+' – '+isoFecha(S.periodo.mx)) : '—';
-  $('rptMeta').innerHTML = 'Ventas <b>'+per+'</b> &nbsp;·&nbsp; Período <b>'+R.dias+' días hábiles</b>'
+  $('rptMeta').innerHTML = 'Ventas <b>'+per+'</b> &nbsp;·&nbsp; Período <b>'+R.dias+' días con facturación</b>'
     +' &nbsp;·&nbsp; Artículos <b>'+fmt(filas.length)+'</b> &nbsp;·&nbsp; Cruce conciliado <b>'+concPct.toFixed(1)+'%</b>';
 
   $('kGlobal').textContent = global!=null ? fmt(global,1) : '—';
@@ -1805,7 +1802,7 @@ function renderDias(){
   $('heroFoot').innerHTML =
     '<span><b>'+fmt(filas.length)+'</b>artículos</span>'
     +'<span><b>'+concPct.toFixed(1)+'%</b>ventas conciliadas</span>'
-    +'<span><b>'+R.dias+'</b>días hábiles (L-V)</span>';
+    +'<span><b>'+R.dias+'</b>días con facturación</span>';
   /* Lo excluido (lineas que ya no se manejan y promociones sin valor) se informa
      para que el valor del reporte cuadre contra el total del archivo de inventario. */
   const valorExcl = (R.excl||[]).reduce((s,x)=>s+(x.valor||0),0)
