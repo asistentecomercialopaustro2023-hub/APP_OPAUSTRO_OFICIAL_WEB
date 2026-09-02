@@ -505,8 +505,10 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
       Las <b>notas financieras se excluyen siempre</b> y no son configurables: no mueven mercadería, así que no son
       ni venta ni devolución.
     </div>
-    <label class="chk"><input type="checkbox" id="oMemoria" checked>
-      <span><b>Usar la memoria de vinculaciones</b> — aplica automáticamente los cruces que ya confirmaste en meses anteriores.</span></label>
+    <label class="chk"><input type="checkbox" id="oMemoria">
+      <span><b>Usar la memoria de vinculaciones</b> — aplica los cruces que ya confirmaste o descartaste en «Por revisar».
+      Viene desactivada: esas decisiones se guardan en cada navegador, así que aplicarlas haría que el mismo reporte
+      diera cifras distintas según quién lo abra. Con esto apagado el cálculo sale siempre de los archivos, tal cual.</span></label>
   </div>
   <div class="row" style="margin-top:16px">
     <button class="primary" id="btnRun">Conciliar y calcular días de inventario</button>
@@ -612,8 +614,8 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
   <div class="pane" id="pRev">
     <div class="note warn"><b>Casos dudosos con venta representativa.</b> El nombre se parece a un artículo del
-      inventario, pero hay diferencias que suelen indicar otro sabor, otra talla u otra presentación. Confirmá o
-      descartá cada uno: lo que decidas queda guardado para el próximo mes. Los de venta menor no se muestran.</div>
+      inventario, pero hay diferencias que suelen indicar otro sabor, otra talla u otra presentación, así que
+      no se cruzan solos: esas ventas quedan fuera del cálculo. Los de venta menor a $250 no se muestran.</div>
     <div class="filters">
       <input type="text" id="fRevQ" placeholder="Buscar…">
       <span class="small" id="fRevN"></span>
@@ -1941,20 +1943,31 @@ function renderRev(){
   const f=repr.filter(x=>!q||x.v.nrm.includes(q));
   $('fRevN').textContent = fmt(repr.length)+' de '+fmt(R.rev.length)
     +(R.rev.length>repr.length ? ' — '+fmt(R.rev.length-repr.length)+' más vendieron menos de $'+SIN_UMBRAL+' (no se muestran)' : '');
+  /* Vincular/Ignorar solo sirven si la memoria esta activa: si no, la decision
+     se guardaria y no cambiaria nada. Con memoria apagada la pestana informa. */
+  const editable = $('oMemoria').checked;
+  const nCols = editable ? 7 : 6;
   $('tRev').innerHTML='<thead><tr><th>Código venta</th><th>Nombre en ventas</th><th class="n">Unid.</th>'
-    +'<th class="n">Vendió $</th><th>Vincular con…</th><th>Motivo de la duda</th><th>Acción</th></tr></thead><tbody>'
+    +'<th class="n">Vendió $</th><th>Se parece a…</th><th>Motivo de la duda</th>'
+    +(editable?'<th>Acción</th>':'')+'</tr></thead><tbody>'
     + f.map((x,k)=>{
       const gi=R.rev.indexOf(x);
       const opts=x.cands.map(c=>'<option value="'+c.i+'">'+esc(R.inv[c.i].art)+' · $'
         +fmt(R.inv[c.i].precio,2)+' ('+(c.s*100).toFixed(0)+'%)</option>').join('');
+      const cand = editable
+        ? '<select class="cand" id="cd'+gi+'">'+opts+'</select>'
+        : (x.cands[0] ? '<span class="small">'+esc(R.inv[x.cands[0].i].art)+'</span>' : '—');
       return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
         +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">$'+fmt(x.v.usd)+'</td>'
-        +'<td><select class="cand" id="cd'+gi+'">'+opts+'</select></td>'
+        +'<td>'+cand+'</td>'
         +'<td><span class="tag t-warn">'+esc(x.motivo)+'</span></td>'
-        +'<td><button class="sm ok" onclick="aceptar('+gi+')">Vincular</button> '
-        +'<button class="sm" onclick="ignorar('+gi+')">Ignorar</button></td></tr>';
+        +(editable
+          ? '<td><button class="sm ok" onclick="aceptar('+gi+')">Vincular</button> '
+            +'<button class="sm" onclick="ignorar('+gi+')">Ignorar</button></td>'
+          : '')
+        +'</tr>';
     }).join('')+'</tbody>';
-  if(!f.length) $('tRev').innerHTML='<tbody><tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted)">Nada pendiente de revisar.</td></tr></tbody>';
+  if(!f.length) $('tRev').innerHTML='<tbody><tr><td colspan="'+nCols+'" style="padding:20px;text-align:center;color:var(--muted)">Nada pendiente de revisar.</td></tr></tbody>';
 }
 
 window.aceptar=function(gi){
