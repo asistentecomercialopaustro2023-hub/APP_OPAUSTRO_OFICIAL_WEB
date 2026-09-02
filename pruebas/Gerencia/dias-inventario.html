@@ -528,8 +528,7 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 
   <div class="tabs" id="tabs">
     <button class="tab on" data-p="pDias">📊 Reporte</button>
-    <button class="tab" data-p="pRev">Por revisar <span id="cRev"></span></button>
-    <button class="tab" data-p="pSin">Faltantes en inventario <span id="cSin"></span></button>
+    <button class="tab" data-p="pFalt">Ventas sin artículo en inventario <span id="cFalt"></span></button>
     <span id="cExc" class="hide"></span>
     <button class="tab" data-p="pAuto">Cruces automáticos <span id="cAuto"></span></button>
   </div>
@@ -612,31 +611,29 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
   </div>
   </div>
 
-  <div class="pane" id="pRev">
-    <div class="note warn"><b>Casos dudosos con venta representativa.</b> El nombre se parece a un artículo del
-      inventario, pero hay diferencias que suelen indicar otro sabor, otra talla u otra presentación, así que
-      no se cruzan solos: esas ventas quedan fuera del cálculo. Los de venta menor a $250 no se muestran.</div>
+  <div class="pane" id="pFalt">
+    <div class="note">Artículos que se vendieron pero <b>no están en el inventario</b> — posible mercadería
+      desabastecida. Esas ventas no se suman a ningún artículo, así que no alteran los días de los demás.
+      Cuando hay un producto parecido en el inventario se muestra al lado, con el motivo por el que no se
+      consideró el mismo. Los importes son <b>promedio por mes</b>, para poder compararlos contra un corte mensual.</div>
     <div class="filters">
-      <input type="text" id="fRevQ" placeholder="Buscar…">
-      <span class="small" id="fRevN"></span>
-      <span class="small hide" id="memInfo"></span>
+      <input type="text" id="fFaltQ" placeholder="Buscar…">
+      <label class="small" style="display:flex;align-items:center;gap:6px;margin:0">
+        Desde
+        <input type="number" id="uMesIn" value="300" min="0" step="50"
+               style="width:84px;text-align:center" aria-label="Venta mensual mínima">
+        $/mes
+      </label>
+      <span class="small" id="fFaltN"></span>
     </div>
-    <div class="tblwrap"><table id="tRev"></table></div>
+    <div class="tblwrap"><table id="tFalt"></table></div>
     <div class="hide">
+      <span id="memInfo"></span>
       <button class="sm" id="btnMemExp">Exportar memoria</button>
       <button class="sm" id="btnMemImp">Importar memoria</button>
       <button class="sm no" id="btnMemClr">Borrar memoria</button>
       <input type="file" id="fileMem" accept=".json">
     </div>
-  </div>
-
-  <div class="pane" id="pSin">
-    <div class="note">Artículos que se vendieron pero no están en el inventario — posible mercadería
-      desabastecida. Solo los que vendieron $250 o más en el período.</div>
-    <div class="filters">
-      <span class="small" id="fSinN"></span>
-    </div>
-    <div class="tblwrap"><table id="tSin"></table></div>
   </div>
 
   <div class="pane" id="pExc">
@@ -1312,6 +1309,7 @@ function extractVtas(){
   const mapProv=S.provMapVentas||new Map();   // nombre en ventas -> nombre canónico del inventario
   const d=S.vta.data, agg=new Map();
   S._habiles=new Set();
+  S._meses=new Set();   // meses distintos con facturacion: para promediar por mes
   S.vtaFueraProv=0;
   for(let r=1;r<d.length;r++){
     if(!d[r]) continue;
@@ -1347,6 +1345,7 @@ function extractVtas(){
       if(fv && !esDevolucion && cant>0){
         a.dias.add(diaNum(fv));
         S._habiles.add(diaNum(fv));
+        const pf=partesFecha(fv); S._meses.add(pf.y+'-'+pf.m);
       }
     }
     if(esDevolucion){
@@ -1571,7 +1570,9 @@ function conciliar(){
   // los descartados a mano se listan como "sin vincular", marcados para que quede rastro
   for(const a of ignorados) sin.push({v:a,best:-1,bs:0,ignorado:true});
 
-  return {inv,filas,auto,rev,sin,excl,agg,dias,diasCalendario,K,ratiosN:centrados.length,uQ,uS,ignorados,usarPrecio,
+  return {inv,filas,auto,rev,sin,excl,agg,dias,diasCalendario,
+          meses:Math.max(1,(S._meses||new Set()).size),
+          K,ratiosN:centrados.length,uQ,uS,ignorados,usarPrecio,
           restarNotas:$('oNotas').checked, estricto, soloIdentico, compras, uRecien,
           fusiones:S.fusiones||[],
           provFuera:[...(S.provs||[])].filter(p=>(S.provExcl||new Set()).has(p.clave)),
@@ -1628,11 +1629,10 @@ function render(){
       + (R.ratiosN>=20 ? ' (Como referencia: lo facturado equivale al <b>'+(R.K*100).toFixed(0)+'%</b> del precio del inventario.)' : '')
       + '</div>';
 
-  $('cRev').textContent='('+R.rev.filter(x=>(x.v.usd||0)>=SIN_UMBRAL).length+')';
-  $('cSin').textContent='('+R.sin.filter(x=>(x.v.usd||0)>=SIN_UMBRAL).length+')';
+  $('cFalt').textContent='('+faltantesCuenta()+')';
   $('cExc').textContent='('+R.excl.length+')'; $('cAuto').textContent='('+R.auto.length+')';
 
-  renderDias(); renderRev(); renderSin(); renderExc(); renderAuto();
+  renderDias(); renderFaltantes(); renderExc(); renderAuto();
   $('cardRes').classList.remove('hide');
 }
 
@@ -1712,7 +1712,7 @@ function abreDetalle(x){
     [fmt(x.bruto),'Facturado'],
     [x.dev>0?fmt(x.dev):'—','Devuelto'],
     [fmt(x.vend),'Vendido neto'],
-    [rptMoney(x.usd),'Vendió en $'],
+    [rptMoney(x.usd/(S.res.meses||1)),'Vendió $/mes'],
     [x.comprado>0?fmt(x.comprado):'—','Comprado'],
     [x.inicial==null?'—':fmt(x.inicial),'Stock inicial'],
     [rptMoney(x.valor),'Valor a costo'],
@@ -1960,7 +1960,9 @@ function renderDias(){
     {k:'dias',t:'Días',n:true,val:x=>x.dias,dirIni:'asc',
       cell:x=>'<span class="dias" style="color:var(--'+RPT_COL[x.est]+')">'+(x.dias==null?'—':fmt(x.dias,1))+'</span>'},
     {k:'est',t:'Estado',val:x=>x.est,dirIni:'asc',cell:x=>'<span class="pill p-'+RPT_CLS[x.est]+'">'+(RPT_CORTO[x.est]||x.est)+'</span>'},
-    {k:'usd',t:'Vendió $',n:true,cls:'num',val:x=>x.usd,cell:x=>rptMoney(x.usd)},
+    /* por mes: el archivo trae varios meses y el total acumulado no se podia
+       comparar contra un corte mensual */
+    {k:'usd',t:'Vendió $/mes',n:true,cls:'num',val:x=>x.usd,cell:x=>rptMoney(x.usd/(R.meses||1))},
     {k:'valor',t:'Inventario $',n:true,cls:'num',val:x=>x.valor,cell:x=>rptMoney(x.valor)},
   ], filtradas, {k:'dias',dir:'asc'}, ()=>rptLim, true);
 
@@ -1979,37 +1981,70 @@ function renderDias(){
   sincronizaUmbrales();
 }
 
-function renderRev(){
-  const R=S.res, q=norm($('fRevQ').value);
-  const repr=R.rev.filter(x=>(x.v.usd||0)>=SIN_UMBRAL);
-  const f=repr.filter(x=>!q||x.v.nrm.includes(q));
-  $('fRevN').textContent = fmt(repr.length)+' de '+fmt(R.rev.length)
-    +(R.rev.length>repr.length ? ' — '+fmt(R.rev.length-repr.length)+' más vendieron menos de $'+SIN_UMBRAL+' (no se muestran)' : '');
-  /* Vincular/Ignorar solo sirven si la memoria esta activa: si no, la decision
-     se guardaria y no cambiaria nada. Con memoria apagada la pestana informa. */
-  const editable = $('oMemoria').checked;
-  const nCols = editable ? 7 : 6;
-  $('tRev').innerHTML='<thead><tr><th>Código venta</th><th>Nombre en ventas</th><th class="n">Unid.</th>'
-    +'<th class="n">Vendió $</th><th>Se parece a…</th><th>Motivo de la duda</th>'
+/* ═════════════ ventas sin articulo en inventario ═════════════
+   Junta los dos casos en una sola lista, porque para leer el reporte son lo
+   mismo: se vendio algo que no esta en el inventario y esa venta no se suma a
+   ningun articulo. Que exista o no un producto parecido pasa a ser una columna,
+   no una pestana aparte.
+   Los importes van por mes: sumar dos meses inflaba las cifras y no se podian
+   comparar contra un corte mensual. */
+function umbralMes(){ const v=+$('uMesIn').value; return isFinite(v)&&v>=0 ? v : 0; }
+function faltantesLista(){
+  const R=S.res, m=R.meses||1;
+  const conParecido=R.rev.map((x,i)=>({v:x.v, parecido:(x.best>=0?R.inv[x.best].art:''),
+                                       motivo:x.motivo, gi:i, tipo:'rev'}));
+  const sinParecido=R.sin.map((x,i)=>({v:x.v, parecido:'',
+                                       motivo:x.ignorado?'descartado a mano':'sin producto parecido',
+                                       gi:i, tipo:'sin', ignorado:x.ignorado}));
+  return [...conParecido,...sinParecido]
+    .map(o=>({...o, usdMes:(o.v.usd||0)/m, unidMes:Math.abs(o.v.neto||0)/m}))
+    .sort((a,b)=>b.usdMes-a.usdMes);
+}
+function faltantesCuenta(){
+  const R=S.res; if(!R) return 0;
+  const u=umbralMes(), m=R.meses||1;
+  return [...R.rev,...R.sin].filter(x=>(x.v.usd||0)/m>=u).length;
+}
+function renderFaltantes(){
+  const R=S.res; if(!R) return;
+  const q=norm($('fFaltQ').value), u=umbralMes();
+  const todo=faltantesLista();
+  const repr=todo.filter(o=>o.usdMes>=u);
+  const f=repr.filter(o=>!q||o.v.nrm.includes(q)||norm(o.v.cod).includes(q));
+  $('fFaltN').innerHTML=fmt(f.length)+' artículo(s)'
+    +(todo.length>repr.length ? ' &nbsp;·&nbsp; '+fmt(todo.length-repr.length)+' por debajo del corte' : '')
+    +' &nbsp;·&nbsp; <b>$'+fmt(f.reduce((s,o)=>s+o.usdMes,0))+'/mes</b> sin vincular';
+  /* Vincular/Ignorar solo sirven con la memoria activa: si no, la decision se
+     guardaria y no cambiaria nada. Con memoria apagada la pestana informa. */
+  const editable=$('oMemoria').checked;
+  const nCols=editable?7:6;
+  $('tFalt').innerHTML='<thead><tr><th>Código</th><th>Artículo vendido</th><th class="n">Unid./mes</th>'
+    +'<th class="n">Vendió $/mes</th><th>Producto parecido en inventario</th><th>Por qué no se cruzó</th>'
     +(editable?'<th>Acción</th>':'')+'</tr></thead><tbody>'
-    + f.map((x,k)=>{
-      const gi=R.rev.indexOf(x);
-      const opts=x.cands.map(c=>'<option value="'+c.i+'">'+esc(R.inv[c.i].art)+' · $'
-        +fmt(R.inv[c.i].precio,2)+' ('+(c.s*100).toFixed(0)+'%)</option>').join('');
-      const cand = editable
-        ? '<select class="cand" id="cd'+gi+'">'+opts+'</select>'
-        : (x.cands[0] ? '<span class="small">'+esc(R.inv[x.cands[0].i].art)+'</span>' : '—');
-      return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
-        +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n">$'+fmt(x.v.usd)+'</td>'
-        +'<td>'+cand+'</td>'
-        +'<td><span class="tag t-warn">'+esc(x.motivo)+'</span></td>'
-        +(editable
-          ? '<td><button class="sm ok" onclick="aceptar('+gi+')">Vincular</button> '
-            +'<button class="sm" onclick="ignorar('+gi+')">Ignorar</button></td>'
-          : '')
-        +'</tr>';
-    }).join('')+'</tbody>';
-  if(!f.length) $('tRev').innerHTML='<tbody><tr><td colspan="'+nCols+'" style="padding:20px;text-align:center;color:var(--muted)">Nada pendiente de revisar.</td></tr></tbody>';
+    + f.map(o=>{
+        let cand;
+        if(editable && o.tipo==='rev'){
+          const cs=R.rev[o.gi].cands||[];
+          cand='<select class="cand" id="cd'+o.gi+'">'
+            + cs.map(c=>'<option value="'+c.i+'">'+esc(R.inv[c.i].art)+' &middot; '
+                +'$'+fmt(R.inv[c.i].precio,2)+' ('+(c.s*100).toFixed(0)+'%)</option>').join('')
+            + '</select>';
+        }else{
+          cand = o.parecido ? esc(o.parecido) : '<span class="tag t-mut">no hay</span>';
+        }
+        let acc='';
+        if(editable) acc = o.tipo==='rev'
+          ? '<td><button class="sm ok" onclick="aceptar('+o.gi+')">Vincular</button> '
+            +'<button class="sm" onclick="ignorar('+o.gi+')">Ignorar</button></td>'
+          : '<td>'+(o.ignorado?'<button class="sm" onclick="reactivar('+o.gi+')">Reactivar</button>':'')+'</td>';
+        return '<tr><td class="mono">'+esc(o.v.cod)+'</td><td>'+esc(o.v.art)+'</td>'
+          +'<td class="n">'+fmt(o.unidMes)+'</td>'
+          +'<td class="n"><b>$'+fmt(o.usdMes)+'</b></td>'
+          +'<td class="small">'+cand+'</td>'
+          +'<td><span class="tag t-warn">'+esc(o.motivo)+'</span></td>'
+          + acc + '</tr>';
+      }).join('')+'</tbody>';
+  if(!f.length) $('tFalt').innerHTML='<tbody><tr><td colspan="'+nCols+'" style="padding:20px;text-align:center;color:var(--muted)">Nada que mostrar.</td></tr></tbody>';
 }
 
 window.aceptar=function(gi){
@@ -2023,33 +2058,12 @@ window.ignorar=function(gi){
   S.mem[x.v.nrm]={ignorar:true, cuando:new Date().toISOString().slice(0,10)};
   saveMem(); run(true);
 };
-window.reactivar=function(k){
-  const x=S.sinOrden&&S.sinOrden[k]; if(!x) return;
+window.reactivar=function(gi){
+  const x=S.res.sin[gi]; if(!x) return;   // indexa sobre R.sin, igual que la tabla
   delete S.mem[x.v.nrm];
   saveMem(); run(true);
 };
 
-const SIN_UMBRAL = 250;
-function renderSin(){
-  const R=S.res;
-  const todo=[...R.sin].sort((a,b)=>(b.v.usd||0)-(a.v.usd||0));
-  S.sinOrden=todo;   // el boton Reactivar indexa sobre TODO, no sobre lo filtrado
-  const f = todo.filter(x=>(x.v.usd||0)>=SIN_UMBRAL);
-  $('fSinN').textContent = fmt(f.length)+' artículo(s)'
-    +(todo.length>f.length ? ' — '+fmt(todo.length-f.length)+' más vendieron menos de $'+SIN_UMBRAL : '');
-  $('tSin').innerHTML='<thead><tr><th>Código</th><th>Artículo</th><th class="n">Unidades</th>'
-    +'<th class="n">Vendió $</th><th>Estado</th></tr></thead><tbody>'
-    /* Para Gerencia todos son lo mismo: se vendio y no hay articulo en inventario.
-       El origen (descartado a mano vs sin candidato) y el boton para revertirlo
-       son de la herramienta, y solo aparecen cuando esta abierta. */
-    + f.map((x)=>{ const k=todo.indexOf(x); return '<tr><td class="mono">'+esc(x.v.cod)+'</td><td>'+esc(x.v.art)+'</td>'
-      +'<td class="n">'+fmt(x.v.neto)+'</td><td class="n"><b>$'+fmt(x.v.usd)+'</b></td>'
-      +'<td><span class="tag t-warn">sin artículo en inventario</span>'
-      +(x.ignorado && HERRAMIENTA
-          ? ' <span class="tag t-mut">descartado a mano</span> <button class="sm" onclick="reactivar('+k+')">Reactivar</button>'
-          : '')+'</td></tr>'; }).join('')+'</tbody>';
-  if(!f.length) $('tSin').innerHTML='<tbody><tr><td colspan="5" style="padding:20px;text-align:center;color:var(--muted)">Nada que mostrar.</td></tr></tbody>';
-}
 function renderExc(){
   const R=S.res;
   $('tExc').innerHTML='<thead><tr><th>Origen</th><th>Código</th><th>Artículo</th><th class="n">Unidades</th><th>Motivo</th></tr></thead><tbody>'
@@ -2081,7 +2095,11 @@ function run(silent){
   },silent?0:30);
 }
 $('btnRun').addEventListener('click',()=>run(false));
-$('fRevQ').addEventListener('input',renderRev);
+$('fFaltQ').addEventListener('input',renderFaltantes);
+$('uMesIn').addEventListener('change',()=>{
+  renderFaltantes();
+  if(S.res) $('cFalt').textContent='('+faltantesCuenta()+')';
+});
 $('tabs').addEventListener('click',e=>{
   const b=e.target.closest('.tab'); if(!b) return;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t===b));
