@@ -28,8 +28,6 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
 .wrap{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
-.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent);margin:0 0 6px;font-weight:500}
 h1{font-family:var(--font-disp);font-weight:700;font-size:28px;letter-spacing:-.015em;margin:0 0 4px}
 h2{font-family:var(--font-disp);font-weight:600;font-size:17px;letter-spacing:-.01em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
 h3{font-size:13px;margin:18px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
@@ -310,7 +308,6 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
 <body>
 <div class="wrap">
 
-<div class="eyebrow">Gerencia · Inventario</div>
 <h1>📦 Días de Inventario</h1>
 <p class="sub">Inventario y ventas cruzados automáticamente: cuántos días de cobertura tiene cada artículo.</p>
 
@@ -1839,7 +1836,11 @@ function renderDias(){
   const concPct = R.totalVend ? 100*capt/R.totalVend : 0;
 
   const per = S.periodo ? (isoFecha(S.periodo.mn)+' – '+isoFecha(S.periodo.mx)) : '—';
-  $('rptMeta').innerHTML = 'Ventas <b>'+per+'</b> &nbsp;·&nbsp; Período <b>'+R.dias+' días con facturación</b>'
+  /* El corte del inventario es la foto del stock, y coincide con el cierre del
+     periodo de ventas. Se muestra arriba para que nadie tenga que preguntarlo. */
+  const corte = S.periodo ? rptFFecha(S.periodo.mx)+' '+partesFecha(S.periodo.mx).y : '—';
+  $('rptMeta').innerHTML = 'Inventario al <b>'+corte+'</b> &nbsp;·&nbsp; Ventas <b>'+per+'</b>'
+    +' &nbsp;·&nbsp; Período <b>'+R.dias+' días con facturación</b>'
     +' &nbsp;·&nbsp; Artículos <b>'+fmt(filas.length)+'</b> &nbsp;·&nbsp; Cruce conciliado <b>'+concPct.toFixed(1)+'%</b>';
 
   $('kGlobal').textContent = global!=null ? fmt(global,1) : '—';
