@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Permissions-Policy" content="camera=(self), geolocation=(self), microphone=(), payment=(), usb=(), bluetooth=()">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; connect-src 'self' https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://server.arcgisonline.com; connect-src 'self' https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://server.arcgisonline.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
 <meta name="theme-color" content="#0f1729"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ventas"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest">
 <title>Opaustro - Mapa de Ventas</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -328,12 +328,12 @@ html.embed-mode .main {
     <div class="h-divider"></div>
     <div class="h-titles">
       <div class="h-title">Mapa Territorial de Ventas Opaustro</div>
-      <div class="h-sub">Junio 2026 &nbsp;|&nbsp; vs Promedio Ene-May 2026</div>
+      <div class="h-sub">Julio 2026 &nbsp;|&nbsp; vs Promedio Ene-Jun 2026</div>
     </div>
   </div>
   <div class="h-kpis">
     <div class="hkpi accent"><div class="hkpi-v" id="kClientes">9,740</div><div class="hkpi-l">Clientes</div></div>
-    <div class="hkpi"><div class="hkpi-v" id="kVenta">$1,519K</div><div class="hkpi-l">Venta Junio</div></div>
+    <div class="hkpi"><div class="hkpi-v" id="kVenta">$1,519K</div><div class="hkpi-l">Venta Julio</div></div>
     <div class="hkpi green"><div class="hkpi-v" id="kCrec">10,823</div><div class="hkpi-l">Crecieron</div></div>
     <div class="hkpi red"><div class="hkpi-v" id="kBaj">8,153</div><div class="hkpi-l">Bajaron</div></div>
     <div class="hkpi accent"><div class="hkpi-v" id="kPct">111.1%</div><div class="hkpi-l">% Crecim.</div></div>
@@ -351,7 +351,7 @@ html.embed-mode .main {
   <button class="filt-toggle" id="filtToggle" onclick="toggleSidebar()">☰ Filtros</button>
   <div class="sidebar" id="sidebar">
     <div class="sec">
-      <div class="sec-label">Resumen Junio 2026</div>
+      <div class="sec-label">Resumen Julio 2026</div>
       <div class="stats">
         <div class="scard" id="sc-V" onclick="toggleSem('V')">
           <div class="sn cv">10823</div><div class="sl">Crecieron</div>
@@ -546,14 +546,14 @@ html.embed-mode .main {
           <span class="vend-v" id="ccVend"></span>
         </div>
         <div class="row3">
-          <div class="kpi"><div class="kpi-l">Venta Junio 2026</div><div class="kpi-v" id="ccAbril"></div></div>
-          <div class="kpi"><div class="kpi-l">Prom. Ene-May 2026</div><div class="kpi-v" id="cc2025"></div></div>
+          <div class="kpi"><div class="kpi-l">Venta Julio 2026</div><div class="kpi-v" id="ccAbril"></div></div>
+          <div class="kpi"><div class="kpi-l">Prom. Ene-Jun 2026</div><div class="kpi-v" id="cc2025"></div></div>
         </div>
         <div class="row3">
           <div class="kpi"><div class="kpi-l">Variación</div><div class="kpi-v" id="ccVarSmall"></div></div>
         </div>
         <div class="var-big">
-          <span class="vl">Junio vs Prom. Ene-May</span>
+          <span class="vl">Julio vs Prom. Ene-Jun</span>
           <span class="vv" id="ccVar"></span>
         </div>
         <div class="bar"><div class="barf" id="ccBar"></div></div>
@@ -567,10 +567,10 @@ html.embed-mode .main {
   <div id="zonaView"><div class="zona-grid" id="zonaGrid"></div></div>
 </div>
 
-<script src="./ventas_data.js?v=2026-06"></script>
+<script src="./ventas_data.js?v=2026-07"></script>
 <script>
-const MES_ACTUAL = 6;
-const MESES_BASE = [1,2,3,4,5];
+const MES_ACTUAL = 7;
+const MESES_BASE = [1,2,3,4,5,6];
 function buildData(){
   return (typeof DATA_RAW!=="undefined"?DATA_RAW:[]).map(function(d){
     var lat=Number(d.lat), lng=Number(d.lng);
@@ -695,8 +695,10 @@ let activeSem = null;
 let estadoCliente = {};  // cod -> estado total del cliente
 
 const map = L.map('map').setView([-1.66, -78.65], 10);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  {attribution:'&copy; OpenStreetMap &amp; CartoDB', subdomains:'abcd', maxZoom:19}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  {attribution:'&copy; Esri, DeLorme, NAVTEQ', maxZoom:19, maxNativeZoom:16}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+  {attribution:'', maxZoom:19, maxNativeZoom:16}).addTo(map);
 
 function clusterIcon(clusterObj){
   const markers = clusterObj.getAllChildMarkers();
@@ -762,7 +764,7 @@ function renderMap(){
     const m = L.marker([d.lat, d.lng], {icon: mkIcon(est), sem: est});
     const sg = d.var >= 0 ? '+' : '';
     m.bindTooltip(
-      `<div class="tt"><b>${d.n}</b>${d.c} · ${d.can}<br>Junio: ${fmt(d.abril)} | Prom.Ene-May: ${fmt(d.prom_trim)}<br>Variación: ${sg}${d.var}%</div>`,
+      `<div class="tt"><b>${d.n}</b>${d.c} · ${d.can}<br>Julio: ${fmt(d.abril)} | Prom.Ene-Jun: ${fmt(d.prom_trim)}<br>Variación: ${sg}${d.var}%</div>`,
       {permanent:false, direction:'top', offset:[0,-4]}
     );
     m.on('click', () => showCard(d));
@@ -1005,7 +1007,7 @@ function renderZonas(){
     el.innerHTML =
       '<div class="zname">' + z.name + '</div>' +
       '<div class="zrow"><span class="zkey">Clientes</span><span class="zval">' + z.tot + '</span></div>' +
-      '<div class="zrow"><span class="zkey">Venta Junio</span><span class="zval">' + fmt(z.abril) + '</span></div>' +
+      '<div class="zrow"><span class="zkey">Venta Julio</span><span class="zval">' + fmt(z.abril) + '</span></div>' +
       '<div class="zrow"><span class="zkey">Prom. Trimestre</span><span class="zval">' + fmt(z.prom_trim) + '</span></div>' +
       '<div class="zrow"><span class="zkey">Variación</span><span class="zval" style="color:'+col+'">' + sg + z.var_z + '%</span></div>' +
       '<div class="zrow"><span class="zkey" style="color:var(--V)">&#9679; Crecieron</span><span class="zval cv">' + z.V + '</span></div>' +
