@@ -328,12 +328,12 @@ html.embed-mode .main {
     <div class="h-divider"></div>
     <div class="h-titles">
       <div class="h-title">Mapa Territorial de Ventas Opaustro</div>
-      <div class="h-sub">Julio 2026 &nbsp;|&nbsp; vs Promedio Ene-Jun 2026</div>
+      <div class="h-sub">Agosto 2026 &nbsp;|&nbsp; vs Promedio Ene-Jul 2026</div>
     </div>
   </div>
   <div class="h-kpis">
     <div class="hkpi accent"><div class="hkpi-v" id="kClientes">9,740</div><div class="hkpi-l">Clientes</div></div>
-    <div class="hkpi"><div class="hkpi-v" id="kVenta">$1,519K</div><div class="hkpi-l">Venta Julio</div></div>
+    <div class="hkpi"><div class="hkpi-v" id="kVenta">$1,519K</div><div class="hkpi-l">Venta Agosto</div></div>
     <div class="hkpi green"><div class="hkpi-v" id="kCrec">10,823</div><div class="hkpi-l">Crecieron</div></div>
     <div class="hkpi red"><div class="hkpi-v" id="kBaj">8,153</div><div class="hkpi-l">Bajaron</div></div>
     <div class="hkpi accent"><div class="hkpi-v" id="kPct">111.1%</div><div class="hkpi-l">% Crecim.</div></div>
@@ -351,7 +351,7 @@ html.embed-mode .main {
   <button class="filt-toggle" id="filtToggle" onclick="toggleSidebar()">☰ Filtros</button>
   <div class="sidebar" id="sidebar">
     <div class="sec">
-      <div class="sec-label">Resumen Julio 2026</div>
+      <div class="sec-label">Resumen Agosto 2026</div>
       <div class="stats">
         <div class="scard" id="sc-V" onclick="toggleSem('V')">
           <div class="sn cv">10823</div><div class="sl">Crecieron</div>
@@ -546,14 +546,14 @@ html.embed-mode .main {
           <span class="vend-v" id="ccVend"></span>
         </div>
         <div class="row3">
-          <div class="kpi"><div class="kpi-l">Venta Julio 2026</div><div class="kpi-v" id="ccAbril"></div></div>
-          <div class="kpi"><div class="kpi-l">Prom. Ene-Jun 2026</div><div class="kpi-v" id="cc2025"></div></div>
+          <div class="kpi"><div class="kpi-l">Venta Agosto 2026</div><div class="kpi-v" id="ccAbril"></div></div>
+          <div class="kpi"><div class="kpi-l">Prom. Ene-Jul 2026</div><div class="kpi-v" id="cc2025"></div></div>
         </div>
         <div class="row3">
           <div class="kpi"><div class="kpi-l">Variación</div><div class="kpi-v" id="ccVarSmall"></div></div>
         </div>
         <div class="var-big">
-          <span class="vl">Julio vs Prom. Ene-Jun</span>
+          <span class="vl">Agosto vs Prom. Ene-Jul</span>
           <span class="vv" id="ccVar"></span>
         </div>
         <div class="bar"><div class="barf" id="ccBar"></div></div>
@@ -567,10 +567,10 @@ html.embed-mode .main {
   <div id="zonaView"><div class="zona-grid" id="zonaGrid"></div></div>
 </div>
 
-<script src="./ventas_data.js?v=2026-07"></script>
+<script src="./ventas_data.js?v=2026-08"></script>
 <script>
-const MES_ACTUAL = 7;
-const MESES_BASE = [1,2,3,4,5,6];
+const MES_ACTUAL = 8;
+const MESES_BASE = [1,2,3,4,5,6,7];
 function buildData(){
   return (typeof DATA_RAW!=="undefined"?DATA_RAW:[]).map(function(d){
     var lat=Number(d.lat), lng=Number(d.lng);
@@ -764,7 +764,7 @@ function renderMap(){
     const m = L.marker([d.lat, d.lng], {icon: mkIcon(est), sem: est});
     const sg = d.var >= 0 ? '+' : '';
     m.bindTooltip(
-      `<div class="tt"><b>${d.n}</b>${d.c} · ${d.can}<br>Julio: ${fmt(d.abril)} | Prom.Ene-Jun: ${fmt(d.prom_trim)}<br>Variación: ${sg}${d.var}%</div>`,
+      `<div class="tt"><b>${d.n}</b>${d.c} · ${d.can}<br>Agosto: ${fmt(d.abril)} | Prom.Ene-Jul: ${fmt(d.prom_trim)}<br>Variación: ${sg}${d.var}%</div>`,
       {permanent:false, direction:'top', offset:[0,-4]}
     );
     m.on('click', () => showCard(d));
@@ -1007,7 +1007,7 @@ function renderZonas(){
     el.innerHTML =
       '<div class="zname">' + z.name + '</div>' +
       '<div class="zrow"><span class="zkey">Clientes</span><span class="zval">' + z.tot + '</span></div>' +
-      '<div class="zrow"><span class="zkey">Venta Julio</span><span class="zval">' + fmt(z.abril) + '</span></div>' +
+      '<div class="zrow"><span class="zkey">Venta Agosto</span><span class="zval">' + fmt(z.abril) + '</span></div>' +
       '<div class="zrow"><span class="zkey">Prom. Trimestre</span><span class="zval">' + fmt(z.prom_trim) + '</span></div>' +
       '<div class="zrow"><span class="zkey">Variación</span><span class="zval" style="color:'+col+'">' + sg + z.var_z + '%</span></div>' +
       '<div class="zrow"><span class="zkey" style="color:var(--V)">&#9679; Crecieron</span><span class="zval cv">' + z.V + '</span></div>' +
