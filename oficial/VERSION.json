@@ -1,22 +1,18 @@
 {
     "app": "OPAUSTRO",
-    "version": "1.0.15",
-    "label": "OPAUSTRO v1.0.15 - Gerencia: nueva pestana Dias de Inventario",
+    "version": "1.0.16",
+    "label": "OPAUSTRO v1.0.16 - Exhibidores: formula sin contrato, historial mensual, validaciones + Login adaptable",
     "channel": "oficial",
-    "publishedAt": "2026-09-02",
+    "publishedAt": "2026-09-08",
     "notes": [
-        "Gerencia -- nueva pestana 'Dias de Inventario': cruza el inventario con las ventas del periodo y muestra cuantos dias de cobertura tiene cada articulo, con la plata parada en sobrestock y los articulos en riesgo de quiebre. Se abre y calcula sola, sin cargar archivos.",
-        "El promedio de venta diaria se reparte sobre los dias en que realmente hubo facturacion (sabados incluidos); los domingos y feriados quedan fuera solos. Repartirlo sobre el calendario completo diluia el promedio y mostraba mas cobertura de la real.",
-        "Los importes se muestran como promedio mensual y no acumulados, para poder compararlos contra un corte de un mes.",
-        "Las ventas se toman de la venta neta (despues de descuentos): julio cierra en 1.653.634 contra 1.653.637 del TABLERO.",
-        "ICE queda separado de UNILEVER: los articulos con division FOODS & REFRESHMENT son los helados y se agrupan como proveedor propio.",
-        "Los umbrales de riesgo de quiebre y sobrestock (15 y 60 dias) se pueden cambiar desde el reporte, y el reporte se reetiqueta al instante.",
-        "Pestana 'Ventas sin articulo en inventario': lista la mercaderia que se vendio y no esta en el inventario -- posible desabastecimiento -- con el corte de venta mensual editable.",
-        "El valor del inventario informa lo que queda excluido, para que cuadre contra el total del archivo sin tener que explicarlo aparte.",
-        "Se corrige un desfase de un dia en las fechas: se leian como medianoche UTC y en Ecuador (GMT-5) retrocedian un dia, lo que descolocaba el conteo de dias y las fechas de ingreso.",
-        "Se fuerza la recarga del catalogo de modulos: el parametro de version estaba fijo desde agosto y la app podia seguir mostrando el menu anterior aunque el modulo nuevo ya estuviera publicado."
+        "Exhibidores -- puntaje de visita: desde Septiembre 2026 el contrato deja de sumar puntaje (queda solo como evidencia, se sigue subiendo y guardando). Se redistribuye a % Llenado 45 (antes 35) + Antes/Despues 20 (antes 10), el total sigue siendo /65. Agosto 2026 y anteriores conservan la formula vieja (35+20+10) tal cual -- no se recalculan, se decide por la fecha de cada visita.",
+        "Exhibidores -- historial mensual: cada fin de mes (trigger diario automatico, ~23:00 hora Ecuador) se archivan las visitas/censo del mes cerrado a un JSON en Drive/Historial y se limpian esas filas del Sheet en curso, para que el Sheet siempre trabaje sobre un puñado de filas (solo el mes actual) en vez de todo el historico acumulado. Los reportes siguen mostrando el historico completo (Sheet + Historial combinados).",
+        "Exhibidores -- consulta de contrato mas rapida: indice JSON en Drive (_indice_contratos.json) en vez de recorrer carpetas de Drive en cada verificacion de codigo de cliente.",
+        "Exhibidores Reporte: las tarjetas de 'Avance por vendedor' ahora muestran siempre a todos los vendedores asignados (submodulo ExhibidoresVendedor + Rol Vendedor), aunque no tengan datos aun. Auto-refresco bajado de 8s a 2s, con una cache corta de 3s en el backend para que varias pestañas/celulares refrescando a la vez no multipliquen las lecturas del Sheet.",
+        "Exhibidores Vendedor/Supervisor -- bug corregido: la carpeta del cliente en Drive se creaba vacia en dos casos que no debian crearla -- (1) al escribir el codigo de cliente, la sola consulta de 'ya tiene contrato' creaba la carpeta para poder buscar adentro; (2) un envio de foto invalido/cortado creaba la carpeta antes de que la imagen fallara en guardarse, y el servidor respondia exito de todas formas. Ahora la imagen se valida ANTES de crear cualquier carpeta, y la consulta de contrato usa una version de solo lectura que nunca crea nada.",
+        "Login: la pantalla de inicio de sesion ahora se ajusta exactamente al alto real del dispositivo, queda siempre centrada y ya no aparece scroll de pagina en el uso normal (celular, tablet, laptop/PC). En pantallas de muy poca altura se compacta automaticamente (oculta subtitulo y pie de pagina, achica campos) para seguir cabiendo entero sin scroll visible."
     ],
-    "releaseKey": "1.0.15",
+    "releaseKey": "1.0.16",
     "forceUpdate": false,
     "rollback": false
 }
