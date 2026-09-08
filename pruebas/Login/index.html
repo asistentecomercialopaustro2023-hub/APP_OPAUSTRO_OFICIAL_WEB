@@ -2694,7 +2694,15 @@
         const forced = release && (release.forceUpdate === true || release.rollback === true);
         const needsUpdate = stored && stored !== releaseKey;
         if (needsUpdate && !document.querySelector(".update-overlay")) {
-          showUpdatePrompt(release, current, releaseKey, !isInstalledApp() || forced);
+          // Un cambio de version real (releaseKey distinto) SIEMPRE debe mostrar
+          // el aviso "Actualizacion disponible" con botones Mas tarde/Actualizar
+          // ahora, sin importar si se abrio como PWA instalada o en el navegador
+          // normal -- antes, en el navegador (no instalada) se actualizaba sola
+          // y en silencio (autoUpdate=true), sin darle al usuario la chance de
+          // elegir el momento. El auto-update silencioso queda reservado solo
+          // para forceUpdate/rollback (bandera que se activa a mano en
+          // VERSION.json para un caso de emergencia real).
+          showUpdatePrompt(release, current, releaseKey, forced);
           return;
         }
         writeStored(RELEASE_KEY, releaseKey);
