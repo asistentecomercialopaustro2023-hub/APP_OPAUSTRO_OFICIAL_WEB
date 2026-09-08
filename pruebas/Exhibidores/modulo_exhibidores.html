@@ -280,7 +280,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   </div>
 
   <div class="note" id="notaPuntaje">
-    Puntaje: <b>% Llenado 35</b> · <b>Documento 20</b> · <b>Antes/Después 10</b> (vendedor, /65) + <b>Sin contaminación 35</b> (censo del supervisor). Total /100.
+    Puntaje (vigente desde Septiembre 2026): <b>% Llenado 45</b> · <b>Antes/Después 20</b> (vendedor, /65) + <b>Sin contaminación 35</b> (censo del supervisor). Total /100. El contrato queda como evidencia y ya no suma puntaje. Las visitas de Agosto 2026 y anteriores conservan su cálculo original (% Llenado 35 · Documento 20 · Antes/Después 10).
   </div>
 </div>
 
@@ -1518,7 +1518,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   // nadie mirando) y refresca al volver a ella. skipSiOcupado evita que dos
   // refrescos se pisen si una vuelta de red tarda mas que el intervalo.
   let refrescoEnCurso=false, refrescoTimer=null;
-  const REFRESCO_MS=8000;
+  // Bajado de 8000 a 2000ms para que el reporte se sienta "en tiempo real".
+  // El backend absorbe el aumento de consultas con una cache corta de 3s en
+  // filasEnRango_ (ver Code.gs) -- varios navegadores pidiendo cada 2s no
+  // multiplican las lecturas reales al Sheet, comparten la misma cache.
+  const REFRESCO_MS=2000;
   async function tickAutoRefresco(){
     if(refrescoEnCurso || document.hidden) return;
     refrescoEnCurso=true;
@@ -1732,8 +1736,14 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
         nvis=visHoy.length;
       }
       const ncen=cenRango.length, nvisRango=visRango.length;
-      return {v,acumVendedor,acumSupervisor,total,ejecDiario,contDiario,nvis,ncen,nvisRango,tieneDatos:vis.length||cen.length};
-    }).filter(x=>x.tieneDatos).sort((a,b)=>b.total-a.total);
+      return {v,acumVendedor,acumSupervisor,total,ejecDiario,contDiario,nvis,ncen,nvisRango};
+    // Antes se ocultaba la tarjeta de cualquier vendedor sin NINGUNA visita/censo
+    // en todo el historico (filter(x=>x.tieneDatos)) -- un vendedor asignado que
+    // todavia no registro nada simplemente desaparecia del ranking en vez de
+    // mostrarse en 0. Ahora se muestran SIEMPRE todos los vendedores asignados
+    // (vendoresUnicos()), con 0 si no tienen datos en el rango; el orden ya
+    // pone primero al de mas puntaje y al final al de menos (0 incluido).
+    }).sort((a,b)=>b.total-a.total);
     $("#rank").innerHTML=rows.map(x=>{
       const lineaDiaria=x.ejecDiario===null?"":
         `<div class="n">Ejecución hoy <b style="color:var(--txt)">${x.ejecDiario}</b>/65 · Contaminación hoy <b style="color:var(--txt)">${x.contDiario}</b>/35</div>
