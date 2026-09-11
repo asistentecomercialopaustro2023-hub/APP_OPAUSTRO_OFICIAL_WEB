@@ -1492,22 +1492,81 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   // (antes se esperaba primero a vendedores/supervisores y recien despues se
   // pedian visitas/censo -- dos vueltas de red en serie, mas lento de lo
   // necesario).
+  // baseLiveV/baseLiveC: cuantas filas del Sheet EN VIVO (mes en curso) ya
+  // estan cargadas en srvV/srvC en este momento -- es el "cursor" que usa el
+  // agente incremental (tickIncremental_) para pedir solo lo nuevo. Se
+  // renueva cada vez que se hace un refresco COMPLETO (carga inicial o
+  // boton Actualizar), via getEstadoLive.
+  let baseLiveV=null, baseLiveC=null;
   async function fetchReporteData(){
     const url=apiUrl();
     if(!url) return false;
     try{
-      const [rv,rc]=await Promise.all([
+      const [rv,rc,estado]=await Promise.all([
         fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
-        fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
+        fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()),
+        fetch(url+"?action=getEstadoLive&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json())]);
       srvV=(rv&&rv.success?rv.visitas:[]).map(mapVisita);
       srvC=(rc&&rc.success?rc.censo:[]).map(mapCenso);
+      if(estado&&estado.success){ baseLiveV=estado.visitas; baseLiveC=estado.censo; }
       // rv/rc pueden llegar con success:false (ej. respuesta del servidor con
       // error) sin que fetch() ni .json() lancen excepcion -- eso tambien debe
       // contar como refresco fallido para el boton Actualizar (X, no visto).
       return !!(rv&&rv.success&&rc&&rc.success);
-    }catch(e){ srvV=null; srvC=null; return false; }
+    }catch(e){ srvV=null; srvC=null; baseLiveV=null; baseLiveC=null; return false; }
   }
   async function refreshReporte(){ const ok=await fetchReporteData(); renderReporte(); return ok; }
+
+  // ===================== AGENTE INCREMENTAL (auto-refresco liviano) =====================
+  // En vez de volver a bajar TODO el reporte (visitas+censo+miniaturas) cada
+  // pocos segundos, este chequeo solo pregunta "¿cambio el numero de filas
+  // del Sheet en vivo?" (getEstadoLive -- unos pocos bytes, ni siquiera lee
+  // datos en el servidor). Si no cambio nada, no se pide ni se redibuja
+  // nada. Si SUBIO (alguien guardo una visita/censo nuevo mientras se mira
+  // el reporte), se trae SOLO esa/s fila/s nueva/s (getVisitas/getCenso con
+  // desdeFila=cursor) y se agregan a lo que ya estaba en memoria -- las
+  // tarjetas quedan al dia sin repetir la descarga pesada. Los meses ya
+  // archivados nunca cambian (ver CAMPOS_THUMB_/archivarMesHoja_ en
+  // Code.gs), asi que este chequeo ni los toca.
+  // Si el conteo BAJO (se archivo el mes en curso al cierre) o todavia no
+  // hay una base cargada, se hace un refresco COMPLETO normal en vez de
+  // incremental, para resincronizar todo desde cero sin arriesgar datos
+  // desactualizados o duplicados.
+  async function tickIncremental_(){
+    const url=apiUrl();
+    if(!url) return;
+    let estado;
+    try{ estado=await fetch(url+"?action=getEstadoLive&apiKey="+encodeURIComponent(INTERNAL_API_KEY)).then(r=>r.json()); }
+    catch(e){ return; }
+    if(!estado||!estado.success) return;
+    if(baseLiveV===null||baseLiveC===null||estado.visitas<baseLiveV||estado.censo<baseLiveC){
+      await fetchReporteData(); renderReporte(); return;
+    }
+    if(estado.visitas===baseLiveV && estado.censo===baseLiveC) return; // nada nuevo
+    const trabajos=[];
+    if(estado.visitas>baseLiveV){
+      const desde=baseLiveV;
+      trabajos.push(fetch(url+"?action=getVisitas&apiKey="+encodeURIComponent(INTERNAL_API_KEY)+"&desdeFila="+desde)
+        .then(r=>r.json()).then(rv=>{
+          if(rv&&rv.success&&rv.visitas&&rv.visitas.length){
+            srvV=rv.visitas.map(mapVisita).concat(srvV||[]).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+          }
+          baseLiveV=estado.visitas;
+        }));
+    }
+    if(estado.censo>baseLiveC){
+      const desde=baseLiveC;
+      trabajos.push(fetch(url+"?action=getCenso&apiKey="+encodeURIComponent(INTERNAL_API_KEY)+"&desdeFila="+desde)
+        .then(r=>r.json()).then(rc=>{
+          if(rc&&rc.success&&rc.censo&&rc.censo.length){
+            srvC=rc.censo.map(mapCenso).concat(srvC||[]).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+          }
+          baseLiveC=estado.censo;
+        }));
+    }
+    await Promise.all(trabajos);
+    renderReporte();
+  }
 
   // ===================== AUTO-REFRESCO (tiempo real) =====================
   // La vista Reporte (y "Reporte Exhibidores Supervisor") no tiene forma de
@@ -1518,15 +1577,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   // nadie mirando) y refresca al volver a ella. skipSiOcupado evita que dos
   // refrescos se pisen si una vuelta de red tarda mas que el intervalo.
   let refrescoEnCurso=false, refrescoTimer=null;
-  // Bajado de 8000 a 2000ms para que el reporte se sienta "en tiempo real".
-  // El backend absorbe el aumento de consultas con una cache corta de 3s en
-  // filasEnRango_ (ver Code.gs) -- varios navegadores pidiendo cada 2s no
-  // multiplican las lecturas reales al Sheet, comparten la misma cache.
+  // Cada REFRESCO_MS se llama a tickIncremental_ (ver arriba), NO a un
+  // refresco completo -- en el caso normal (nada nuevo) eso es solo un
+  // pedido chiquito de "¿cambio el conteo?" (getEstadoLive), no los varios
+  // MB de visitas+censo+miniaturas de antes. Por eso 2000ms sigue siendo
+  // seguro aunque el historico ya tenga cientos de filas.
   const REFRESCO_MS=2000;
   async function tickAutoRefresco(){
     if(refrescoEnCurso || document.hidden) return;
     refrescoEnCurso=true;
-    try{ await refreshReporte(); }
+    try{ await tickIncremental_(); }
     finally{ refrescoEnCurso=false; }
   }
   function iniciarAutoRefrescoReporte(){
