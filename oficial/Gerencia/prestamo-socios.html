@@ -224,8 +224,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 
 <script>
 // Apps Script PROPIO y aislado (no toca Flujo de Caja ni ningun otro modulo):
-// PrestamoSocios/Code.gs (oficial), publicado como Web App. El mismo
-// script y el mismo Sheet sirven tanto Prestamo Socios (hojas
+// AppsScript_PRUEBAS/PrestamoSocios/Code.gs, publicado como Web App. El
+// mismo script y el mismo Sheet sirven tanto Prestamo Socios (hojas
 // config/cuotas) como Inversion BG (hoja INVERSIONES).
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk8jKDDCs_K2HL-dK17oOV-wsCtq8ZY8MrWcgTVjcFlUMkg7J-g7wpe4C5ScHcpRw/exec';
 
@@ -255,13 +255,31 @@ function setEstado(status, msg){
   el.className = 'date-tag' + (status ? ' ' + status : '');
 }
 
+/* Apps Script a veces responde con una pagina HTML (arranque en frio /
+   limite momentaneo) en vez del JSON esperado -> resp.json() truena con
+   "Unexpected token '<'". Se reintenta un par de veces antes de mostrar
+   error al usuario. */
+async function fetchJsonConReintento_(url, intentos){
+  intentos = intentos || 3;
+  let ultimoError;
+  for(let i = 0; i < intentos; i++){
+    try{
+      const resp = await fetch(url, {cache:'no-store'});
+      return await resp.json();
+    }catch(err){
+      ultimoError = err;
+      if(i < intentos - 1) await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  throw new Error('El servidor no respondio correctamente, intenta de nuevo en unos segundos.');
+}
+
 async function cargarPrestamo(){
   setEstado('', 'Sincronizando…');
   try{
     if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL (la URL del Apps Script) en este archivo.');
     if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
-    const resp = await fetch(SCRIPT_URL + '?action=getPrestamo&t=' + Date.now(), {cache:'no-store'});
-    const json = await resp.json();
+    const json = await fetchJsonConReintento_(SCRIPT_URL + '?action=getPrestamo&t=' + Date.now());
     if(!json.ok) throw new Error(json.error || 'Error desconocido del servidor.');
     DATA = json.prestamo;
     if(!DATA.cuotas || !DATA.cuotas.length){
@@ -447,8 +465,7 @@ async function cargarInversion(){
   try{
     if(!SCRIPT_URL) throw new Error('Falta configurar SCRIPT_URL en este archivo.');
     if(location.protocol === 'file:') throw new Error('Abrir con servidor local');
-    const resp = await fetch(SCRIPT_URL + '?action=getInversion&t=' + Date.now(), {cache:'no-store'});
-    const json = await resp.json();
+    const json = await fetchJsonConReintento_(SCRIPT_URL + '?action=getInversion&t=' + Date.now());
     if(!json.ok) throw new Error(json.error || 'Error desconocido del servidor.');
     DATA_INV = json.inversion;
     if(!DATA_INV.movimientos || !DATA_INV.movimientos.length){
