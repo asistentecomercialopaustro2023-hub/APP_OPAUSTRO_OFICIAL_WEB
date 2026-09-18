@@ -84,6 +84,14 @@ body{background:#f4f5f7;font-family:'Inter',sans-serif;font-size:12px;color:#1a1
 .st.st-orange{background:#fff7ed;border-color:#ffedd5}
 .st.st-yellow{background:#fefce8;border-color:#fef9c3}
 .st.st-gray{background:#f8fafc;border-color:#eef0f4}
+.st[data-f]{cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
+.st[data-f]:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(20,25,40,.09)}
+.st[data-f].active{box-shadow:0 0 0 2px #c7ceda inset}
+.st.st-blue[data-f].active{box-shadow:0 0 0 2px #93c5fd inset}
+.st.st-green[data-f].active{box-shadow:0 0 0 2px #86efac inset}
+.st.st-red[data-f].active{box-shadow:0 0 0 2px #fca5a5 inset}
+.st.st-orange[data-f].active{box-shadow:0 0 0 2px #fdba74 inset}
+.st.st-gray[data-f].active{box-shadow:0 0 0 2px #cbd5e1 inset}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(14,15,19,.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 .loading-overlay.show{display:flex}
 .spinner{width:40px;height:40px;border:3px solid #2a2a40;border-top-color:#4fffb0;border-radius:50%;animation:spin .7s linear infinite}
@@ -226,12 +234,12 @@ thead tr.tr-main th{position:relative}
 
 <div class="pill-bar">
   <span>Filtrar:</span>
-  <button class="fpill active"  onclick="setF('all',this)">Todos</button>
-  <button class="fpill f-ok"    onclick="setF('ok',this)">✓ Cumple objetivo</button>
-  <button class="fpill f-above" onclick="setF('above',this)">↑ Sobre objetivo</button>
-  <button class="fpill f-below" onclick="setF('below',this)">↓ Bajo objetivo</button>
-  <button class="fpill f-neg"   onclick="setF('neg',this)">⚠ Negativo</button>
-  <button class="fpill"         onclick="setF('noobj',this)">Sin objetivo</button>
+  <button class="fpill active"  data-f="all"   onclick="setF('all')">Todos</button>
+  <button class="fpill f-ok"    data-f="ok"    onclick="setF('ok')">✓ Cumple objetivo</button>
+  <button class="fpill f-above" data-f="above" onclick="setF('above')">↑ Sobre objetivo</button>
+  <button class="fpill f-below" data-f="below" onclick="setF('below')">↓ Bajo objetivo</button>
+  <button class="fpill f-neg"   data-f="neg"   onclick="setF('neg')">⚠ Negativo</button>
+  <button class="fpill"         data-f="noobj" onclick="setF('noobj')">Sin objetivo</button>
   <div class="xlsx-sync" aria-live="polite">
     <span class="xlsx-dot" id="rc-xlsx-dot"></span>
     <span id="rc-xlsx-status">Verificando archivo</span>
@@ -546,8 +554,11 @@ function sortC(idx){
   if(sd<0)document.querySelectorAll('#thead th')[idx].classList.add('asc');
   render();
 }
-function setF(f,btn){
-  curF=f;document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();
+function setF(f){
+  curF=f;
+  document.querySelectorAll('.fpill,.st[data-f]').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('[data-f="'+f+'"]').forEach(b=>b.classList.add('active'));
+  render();
 }
 function fp(v){return v===null||v===undefined?'—':'$'+v.toFixed(4);}
 function pillM(v){
@@ -604,15 +615,16 @@ function render(){
     else noobj++;
   });
   const am=nM?(sM/nM).toFixed(1)+'%':'—',ac=nC?(sC/nC).toFixed(1)+'%':'—';
+  const act=f=>curF===f?' active':'';
   document.getElementById('sb').innerHTML=`
-    <div class="st st-blue"><span class="st-ico">📦</span><div class="st-txt"><span class="sv c-blue">${rows.length}</span><span class="sl">Artículos</span></div></div>
+    <div class="st st-blue${act('all')}" data-f="all" onclick="setF('all')"><span class="st-ico">📦</span><div class="st-txt"><span class="sv c-blue">${rows.length}</span><span class="sl">Artículos</span></div></div>
     <div class="st st-yellow"><span class="st-ico">🏬</span><div class="st-txt"><span class="sv c-yellow">${am}</span><span class="sl">Prom. Mayorista</span></div></div>
     <div class="st st-green"><span class="st-ico">🚚</span><div class="st-txt"><span class="sv c-green">${ac}</span><span class="sl">Prom. Cobertura</span></div></div>
-    <div class="st st-red"><span class="st-ico">⚠️</span><div class="st-txt"><span class="sv c-red">${neg}</span><span class="sl">Negativos</span></div></div>
-    <div class="st st-orange"><span class="st-ico">↓</span><div class="st-txt"><span class="sv c-orange">${below}</span><span class="sl">Bajo objetivo</span></div></div>
-    <div class="st st-green"><span class="st-ico">✓</span><div class="st-txt"><span class="sv c-green">${ok}</span><span class="sl">Cumple</span></div></div>
-    <div class="st st-blue"><span class="st-ico">↑</span><div class="st-txt"><span class="sv c-blue">${above}</span><span class="sl">Sobre objetivo</span></div></div>
-    <div class="st st-gray"><span class="st-ico">—</span><div class="st-txt"><span class="sv c-gray">${noobj}</span><span class="sl">Sin objetivo</span></div></div>
+    <div class="st st-red${act('neg')}" data-f="neg" onclick="setF('neg')"><span class="st-ico">⚠️</span><div class="st-txt"><span class="sv c-red">${neg}</span><span class="sl">Negativos</span></div></div>
+    <div class="st st-orange${act('below')}" data-f="below" onclick="setF('below')"><span class="st-ico">↓</span><div class="st-txt"><span class="sv c-orange">${below}</span><span class="sl">Bajo objetivo</span></div></div>
+    <div class="st st-green${act('ok')}" data-f="ok" onclick="setF('ok')"><span class="st-ico">✓</span><div class="st-txt"><span class="sv c-green">${ok}</span><span class="sl">Cumple</span></div></div>
+    <div class="st st-blue${act('above')}" data-f="above" onclick="setF('above')"><span class="st-ico">↑</span><div class="st-txt"><span class="sv c-blue">${above}</span><span class="sl">Sobre objetivo</span></div></div>
+    <div class="st st-gray${act('noobj')}" data-f="noobj" onclick="setF('noobj')"><span class="st-ico">—</span><div class="st-txt"><span class="sv c-gray">${noobj}</span><span class="sl">Sin objetivo</span></div></div>
   `;
   document.getElementById('cnt').textContent=rows.length;
   let html='',lastProv=null;
