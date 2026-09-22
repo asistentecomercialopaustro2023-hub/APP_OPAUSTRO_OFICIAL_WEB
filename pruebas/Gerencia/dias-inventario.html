@@ -591,6 +591,14 @@ details.card-toggle[open] summary{margin-bottom:14px;padding-bottom:12px;border-
       <div class="ctl">
         <input type="search" id="rQ" placeholder="Buscar artículo, código o proveedor…" aria-label="Buscar">
         <select id="rFp" aria-label="Filtrar por proveedor"><option value="">Todos los proveedores</option></select>
+        <select id="rDiasOp" aria-label="Filtrar por días">
+          <option value="">Días: todos</option>
+          <option value="lt">Días &lt;</option>
+          <option value="lte">Días ≤</option>
+          <option value="gt">Días &gt;</option>
+          <option value="gte">Días ≥</option>
+        </select>
+        <input type="number" id="rDiasVal" placeholder="valor" min="0" step="1" style="width:78px;display:none">
         <span class="cnt" id="rCnt"></span>
       </div>
       <div class="tw"><table id="rAll"></table></div>
@@ -2112,8 +2120,19 @@ function renderDias(){
   }
   function filtradas(){
     const q=norm($('rQ').value), fp=selFp.value;
+    const dOp=$('rDiasOp').value, dVal=+$('rDiasVal').value;
+    const pasaDias=x=>{
+      if(!dOp || !isFinite(dVal)) return true;
+      if(x.dias==null) return false;
+      if(dOp==='lt') return x.dias<dVal;
+      if(dOp==='lte') return x.dias<=dVal;
+      if(dOp==='gt') return x.dias>dVal;
+      if(dOp==='gte') return x.dias>=dVal;
+      return true;
+    };
     return filas.filter(x=>(!rptFiltroEstado||x.est===rptFiltroEstado) && (!fp||x.prov===fp)
-      && (!q || norm(x.art).includes(q) || norm(x.codigo).includes(q) || norm(x.prov||'').includes(q)));
+      && (!q || norm(x.art).includes(q) || norm(x.codigo).includes(q) || norm(x.prov||'').includes(q))
+      && pasaDias(x));
   }
   const cArt={k:'art',t:'Artículo',cls:'art',val:x=>x.art,dirIni:'asc',
     cell:x=>'<span class="nm" title="'+esc(x.art)+'">'+esc(x.art)+'</span><small>'+esc(x.codigo)+' · '+esc(x.prov)+'</small>'};
@@ -2141,6 +2160,11 @@ function renderDias(){
   refrescaTabla();
   $('rQ').oninput=()=>{ rptLim=60; refrescaTabla(); };
   selFp.onchange=()=>{ rptLim=60; refrescaTabla(); };
+  $('rDiasOp').onchange=()=>{
+    $('rDiasVal').style.display = $('rDiasOp').value ? '' : 'none';
+    rptLim=60; refrescaTabla();
+  };
+  $('rDiasVal').oninput=()=>{ rptLim=60; refrescaTabla(); };
   $('rMore').onclick=()=>{ rptLim+=120; refrescaTabla(); };
   sincronizaUmbrales();
 }
