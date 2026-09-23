@@ -29,14 +29,6 @@
     --font:   'Segoe UI', system-ui, sans-serif;
     --radius: 10px;
     --shadow: 0 2px 12px rgba(11,60,73,.10);
-    /* Situacion Financiera / Utilidades Acumuladas (portado de flujo-caja-opaustro.html) */
-    --fc-s1: #ffffff; --fc-s2: #f2f5fa; --fc-s3: #e8edf6;
-    --fc-border: #e5e9f2; --fc-border2: #d4dce9;
-    --fc-blue: #2f6bff; --fc-cyan: #0e8fb3; --fc-green: #0a9d6c; --fc-red: #e23859;
-    --fc-yellow: #c07d12; --fc-purple: #7c3aed;
-    --fc-text: #1b2238; --fc-muted: #98a1b8; --fc-muted2: #5c6580;
-    --fc-mono: "JetBrains Mono", monospace;
-    --fc-glow-green: 0 8px 24px rgba(10,157,108,.16);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -569,42 +561,6 @@
     }
   }
 
-  /* ══════════════════════════════════════════════════
-     SITUACION FINANCIERA / UTILIDADES ACUMULADAS
-     (portado de flujo-caja-opaustro.html — clases con prefijo fc- y
-     variables --fc-* para no chocar con el resto del tablero)
-     ══════════════════════════════════════════════════ */
-  .fc-kpi { background: var(--fc-s1); border: 1px solid var(--fc-border); border-radius: 14px; padding: 16px; position: relative; overflow: hidden; transition: transform .15s, box-shadow .15s; }
-  .fc-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(23,34,66,.09); }
-  .fc-kpi-glow { position: absolute; top: -20px; right: -20px; width: 70px; height: 70px; border-radius: 50%; opacity: .12; filter: blur(6px); }
-  .fc-kpi-label { font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--fc-muted2); margin-bottom: 8px; }
-  .fc-kpi-val { font-family: var(--fc-mono); font-size: 22px; font-weight: 600; line-height: 1; }
-  .fc-kpi-sub { font-size: 10px; color: var(--fc-muted); margin-top: 6px; }
-  .fc-kpi-bar { height: 3px; border-radius: 3px; margin-top: 10px; background: currentColor; opacity: .25; }
-  .fc-card { background: var(--fc-s1); border: 1px solid var(--fc-border); border-radius: 14px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(23,34,66,.05); }
-  .fc-card-h { padding: 12px 16px; border-bottom: 1px solid var(--fc-border); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-  .fc-card-title { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--fc-muted2); }
-  .fc-tbl-wrap { overflow-x: auto; }
-  .fc-tbl { width: 100%; border-collapse: collapse; }
-  .fc-tbl th { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--fc-muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--fc-border); white-space: nowrap; }
-  .fc-tbl td { padding: 11px 16px; font-size: 12px; border-bottom: 1px solid var(--fc-border); vertical-align: middle; white-space: nowrap; }
-  .fc-tbl tr:last-child td { border-bottom: none; }
-  .fc-tbl tr:hover td { background: rgba(47,107,255,.03); }
-  .fc-num { font-family: var(--fc-mono); font-size: 11px; text-align: right; }
-  .fc-fi { background: var(--fc-s1); border: 1px solid var(--fc-border2); border-radius: 8px; color: var(--fc-text); font-family: var(--font); outline: none; transition: border-color .15s, box-shadow .15s; }
-  .fc-fi:focus { border-color: var(--fc-blue); box-shadow: 0 0 0 3px rgba(47,107,255,.1); }
-  .fc-alert { padding: 11px 16px; border-radius: 10px; font-size: 11px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; line-height: 1.5; font-weight: 500; }
-  .fc-a-warn { background: rgba(240,165,0,.08); border: 1px solid rgba(240,165,0,.22); color: var(--fc-yellow); }
-  .fc-a-danger { background: rgba(226,56,89,.08); border: 1px solid rgba(226,56,89,.22); color: var(--fc-red); }
-  .fc-a-ok { background: rgba(10,157,108,.08); border: 1px solid rgba(10,157,108,.22); color: var(--fc-green); }
-  .fc-a-info { background: rgba(47,107,255,.08); border: 1px solid rgba(47,107,255,.22); color: var(--fc-blue); }
-  .fc-prog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .fc-prog-label { font-size: 11px; color: var(--fc-muted2); width: 90px; flex-shrink: 0; }
-  .fc-prog-bar { flex: 1; background: var(--fc-s3); border-radius: 4px; height: 6px; overflow: hidden; }
-  .fc-prog-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
-  .fc-prog-val { font-family: var(--fc-mono); font-size: 11px; width: 55px; text-align: right; flex-shrink: 0; }
-  .fc-empty { text-align: center; padding: 36px; color: var(--fc-muted); font-size: 12px; line-height: 1.7; }
-
 </style>
 
 <script>
@@ -725,8 +681,6 @@
   <button class="tab-btn" onclick="switchTab(8)">👥 Talento Humano</button>
   <button class="tab-btn" onclick="switchTab(9)">💎 Rebate</button>
   <button class="tab-btn" onclick="switchTab(10)">📈 Inventario Global</button>
-  <button class="tab-btn" onclick="switchTab(11)">▤ Situación Financiera</button>
-  <button class="tab-btn" onclick="switchTab(12)">∑ Utilidades Acumuladas</button>
 
 </div>
 
@@ -1024,102 +978,6 @@
     </div>
   </div>
 
-  <!-- ===== SITUACION FINANCIERA (portado de flujo-caja-opaustro.html) ===== -->
-  <div class="tab-panel" id="panel-11">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
-      <div id="bal-alerta" style="flex:1;min-width:260px;"></div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:10px;color:var(--fc-muted2);text-transform:uppercase;letter-spacing:.08em;">Balance con corte a</span>
-        <input type="text" class="fc-fi" id="bal-corte" placeholder="ej. Junio 2026" style="width:140px;padding:6px 10px;font-size:11px;" onchange="guardarCorteBalance()">
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
-      <div class="fc-kpi">
-        <div class="fc-kpi-glow" style="background:var(--fc-green)"></div>
-        <div class="fc-kpi-label">Utilidad de este año</div>
-        <div class="fc-kpi-val" id="bal-util-actual" style="color:var(--fc-green)">$0</div>
-        <div class="fc-kpi-sub" id="bal-util-actual-sub">Ganancia del ejercicio</div>
-      </div>
-      <div class="fc-kpi">
-        <div class="fc-kpi-glow" style="background:var(--fc-cyan)"></div>
-        <div class="fc-kpi-label">Utilidad años anteriores</div>
-        <div class="fc-kpi-val" id="bal-util-previa" style="color:var(--fc-cyan)">$0</div>
-        <div class="fc-kpi-sub">Ganancias acumuladas</div>
-      </div>
-      <div class="fc-kpi" style="border-color:rgba(10,157,108,.35);box-shadow:var(--fc-glow-green);">
-        <div class="fc-kpi-glow" style="background:var(--fc-green)"></div>
-        <div class="fc-kpi-label" style="color:var(--fc-green)">Utilidad acumulada total</div>
-        <div class="fc-kpi-val" id="bal-util-total" style="color:var(--fc-green)">$0</div>
-        <div class="fc-kpi-sub">Todo lo ganado hasta hoy</div>
-        <div class="fc-kpi-bar" style="color:var(--fc-green)"></div>
-      </div>
-      <div class="fc-kpi">
-        <div class="fc-kpi-glow" style="background:var(--fc-blue)"></div>
-        <div class="fc-kpi-label">Efectivo disponible</div>
-        <div class="fc-kpi-val" id="bal-efectivo" style="color:var(--fc-blue)">$0</div>
-        <div class="fc-kpi-sub" id="bal-efectivo-sub">En bancos y caja</div>
-      </div>
-    </div>
-
-    <div class="fc-card" style="margin-bottom:16px;">
-      <div class="fc-card-h"><span class="fc-card-title">¿Dónde está el dinero? — En qué se convirtió la utilidad</span></div>
-      <div style="padding:16px;">
-        <div id="bal-insight" class="fc-alert fc-a-info" style="margin-bottom:14px;">Sin datos del balance todavía.</div>
-        <div id="bal-traza" style="font-size:12px;line-height:1.6;color:var(--fc-text);background:rgba(10,157,108,.06);border-left:3px solid var(--fc-green);padding:11px 14px;border-radius:6px;margin-bottom:18px;"></div>
-        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fc-muted2);margin-bottom:12px;">Composición de los activos — dónde está metido el dinero</div>
-        <div id="bal-dist"></div>
-      </div>
-    </div>
-
-    <div class="fc-card" style="margin-bottom:16px;">
-      <div class="fc-card-h"><span class="fc-card-title">¿A quién le debes? — Composición de las deudas (pasivos)</span></div>
-      <div style="padding:16px;">
-        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fc-muted2);margin-bottom:12px;">Pasivos por tipo de obligación — en general, no cuenta por cuenta</div>
-        <div id="bal-dist-pasivos"></div>
-        <div id="bal-pas-nota" style="font-size:11px;color:var(--fc-muted2);margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <div class="fc-card" style="margin-bottom:16px;">
-      <div class="fc-card-h"><span class="fc-card-title">Indicadores financieros</span><span style="font-size:10px;color:var(--fc-muted2);">🟢 sano · 🟡 ajustado · 🔴 atención</span></div>
-      <div id="bal-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px;"></div>
-    </div>
-
-    <div class="fc-card" style="margin-bottom:16px;">
-      <div class="fc-card-h"><span class="fc-card-title">¿Y si cierro mañana? — Escenario de liquidación</span></div>
-      <div id="bal-cierre" style="padding:16px;"></div>
-    </div>
-
-    <div style="display:flex;gap:26px;flex-wrap:wrap;font-size:11px;color:var(--fc-muted2);padding:2px 4px 0;">
-      <span>Total activos: <strong id="bal-ref-activos" style="color:var(--fc-text)">$0</strong></span>
-      <span>Total pasivos (deudas): <strong id="bal-ref-pasivos" style="color:var(--fc-text)">$0</strong></span>
-      <span>Patrimonio (lo que es tuyo): <strong id="bal-ref-patrimonio" style="color:var(--fc-text)">$0</strong></span>
-    </div>
-  </div>
-
-  <!-- ===== UTILIDADES ACUMULADAS (portado de flujo-caja-opaustro.html) ===== -->
-  <div class="tab-panel" id="panel-12">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
-      <div style="font-size:12px;color:var(--fc-muted2);">Generada = Repartida + Reinvertida (capitalizada) + Retenida (queda en libros)</div>
-      <div id="ua-corte" style="font-size:11px;color:var(--fc-muted2);"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
-      <div class="fc-kpi"><div class="fc-kpi-glow" style="background:var(--fc-green)"></div><div class="fc-kpi-label">Utilidad generada (histórico)</div><div class="fc-kpi-val" id="ua-gen" style="color:var(--fc-green)">$0</div><div class="fc-kpi-sub">Suma de todos los años</div></div>
-      <div class="fc-kpi"><div class="fc-kpi-glow" style="background:var(--fc-yellow)"></div><div class="fc-kpi-label">Repartida a socios</div><div class="fc-kpi-val" id="ua-rep" style="color:var(--fc-yellow)">$0</div><div class="fc-kpi-sub">Dividendos entregados</div></div>
-      <div class="fc-kpi"><div class="fc-kpi-glow" style="background:var(--fc-purple)"></div><div class="fc-kpi-label">Reinvertida / capitalizada</div><div class="fc-kpi-val" id="ua-reinv" style="color:var(--fc-purple)">$0</div><div class="fc-kpi-sub">Utilidad que pasó a capital</div></div>
-      <div class="fc-kpi"><div class="fc-kpi-glow" style="background:var(--fc-cyan)"></div><div class="fc-kpi-label">Utilidad acumulada años anteriores</div><div class="fc-kpi-val" id="ua-ret" style="color:var(--fc-cyan)">$0</div><div class="fc-kpi-sub">Queda en libros</div></div>
-    </div>
-    <div class="fc-card">
-      <div class="fc-card-h"><span class="fc-card-title">Detalle por año — utilidades, repartos y capitalización</span></div>
-      <div class="fc-tbl-wrap"><table class="fc-tbl">
-        <thead><tr><th>Año</th><th class="fc-num">Generada</th><th class="fc-num">Repartida</th><th class="fc-num">Reinvertida</th><th class="fc-num">Acumulada</th></tr></thead>
-        <tbody id="ua-tbody"><tr><td colspan="5" class="fc-empty">Cargando…</td></tr></tbody>
-      </table></div>
-      <div id="ua-valida" style="font-size:11px;padding:10px 14px;color:var(--fc-muted2);"></div>
-    </div>
-  </div>
-
 </div><!-- /content -->
 
 <script>
@@ -1164,258 +1022,8 @@ function excelDateToJSDate(serial) {
 const ARCHIVO_XLSX = 'TABLERO.xlsx';
 const ARCHIVO_TALENTO = 'TALENTO HUMANO.xlsx';
 const ARCHIVO_INVMESES = 'INVENTARIO POR MESES.xlsx';
-const ARCHIVO_BALANCE = 'BALANCE.xlsx';
 let WB_TALENTO = null;
 let WB_INVMESES = null;
-let WB_BALANCE = null;
-
-// ══════════════════════════════════════════════════
-// SITUACION FINANCIERA / UTILIDADES ACUMULADAS
-// (portado de flujo-caja-opaustro.html, fuente: BALANCE.xlsx en vez de Apps Script)
-// ══════════════════════════════════════════════════
-let balance = [];
-let utilidades = [];
-let balUtilPrevia = 0;
-let balUtilActual = 0;
-let balanceCorte = localStorage.getItem('opa_tablero_balance_corte') || '';
-const fcFmt = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-function fcParseNum(v){
-  if(v===null||v===undefined||v==='') return 0;
-  const n = Number(String(v).replace(/,/g,''));
-  return isFinite(n) ? n : 0;
-}
-
-function guardarCorteBalance(){
-  const v=(document.getElementById('bal-corte').value||'').trim();
-  balanceCorte=v;
-  localStorage.setItem('opa_tablero_balance_corte', v);
-  renderBalance();
-}
-
-function procesarBalanceXlsx(){
-  const shBal = WB_BALANCE.Sheets['balance'];
-  const shUt = WB_BALANCE.Sheets['UTILIDADES'];
-  balance = [];
-  if(shBal){
-    const arr = XLSX.utils.sheet_to_json(shBal, {header:1, defval:''});
-    for(let i=1;i<arr.length;i++){
-      const row = arr[i];
-      const descL = String(row[0]||'').trim();
-      if(descL){
-        balance.push({exp: row[1]!==''&&row[1]!==undefined ? String(row[1]).trim() : '', desc: descL, saldo: fcParseNum(row[2])});
-      }
-      const descR = String(row[5]||'').trim();
-      if(descR && descR!=='Descripcion'){
-        balance.push({exp: row[6]!==''&&row[6]!==undefined ? String(row[6]).trim() : '', desc: descR, saldo: fcParseNum(row[7])});
-      }
-    }
-  }
-  utilidades = [];
-  if(shUt){
-    const arr = XLSX.utils.sheet_to_json(shUt, {header:1, defval:''});
-    for(let i=1;i<arr.length;i++){
-      const row = arr[i];
-      const anio = String(row[0]||'').trim();
-      if(!anio) continue;
-      utilidades.push({anio, generada:fcParseNum(row[1]), repartida:fcParseNum(row[2]), reinvertida:fcParseNum(row[3])});
-    }
-  }
-  if(activeTab===11) renderBalance();
-  if(activeTab===12) renderUtilidades();
-}
-
-function renderUtilidades(){
-  const g=id=>document.getElementById(id);
-  if(!g('ua-tbody')) return;
-  const corteEl=g('ua-corte'); if(corteEl) corteEl.textContent = balanceCorte ? ('Corte: '+balanceCorte) : '';
-  const rows=(utilidades||[]).map(u=>({
-    anio: String(u.anio||'').trim(),
-    gen: +u.generada||0,
-    rep: +u.repartida||0,
-    reinv: +u.reinvertida||0
-  })).filter(r=>r.anio).sort((a,b)=>(parseInt(a.anio,10)||0)-(parseInt(b.anio,10)||0));
-  const clearIds=['ua-gen','ua-rep','ua-reinv','ua-ret'];
-  if(!rows.length){
-    g('ua-tbody').innerHTML='<tr><td colspan="5" class="fc-empty">Aún no hay datos. Verifica la hoja UTILIDADES en BALANCE.xlsx.</td></tr>';
-    clearIds.forEach(id=>{const el=g(id);if(el)el.textContent=fcFmt(0);});
-    const v0=g('ua-valida'); if(v0) v0.textContent='';
-    return;
-  }
-  let acum=0;
-  const body=rows.map(r=>{const ret=r.gen-r.rep-r.reinv; acum+=ret; return {anio:r.anio,gen:r.gen,rep:r.rep,reinv:r.reinv,acum};});
-  const totGen=body.reduce((s,r)=>s+r.gen,0);
-  const totRep=body.reduce((s,r)=>s+r.rep,0);
-  const totReinv=body.reduce((s,r)=>s+r.reinv,0);
-  const aniosAnt=acum;
-  g('ua-tbody').innerHTML=body.map(r=>`<tr>
-    <td style="font-family:var(--fc-mono)">${r.anio}</td>
-    <td class="fc-num">${fcFmt(r.gen)}</td>
-    <td class="fc-num" style="color:var(--fc-yellow)">${fcFmt(r.rep)}</td>
-    <td class="fc-num" style="color:var(--fc-purple)">${fcFmt(r.reinv)}</td>
-    <td class="fc-num" style="font-weight:700">${fcFmt(r.acum)}</td>
-  </tr>`).join('')+`<tr style="border-top:2px solid var(--fc-border);font-weight:700;background:var(--fc-s2);">
-    <td>TOTAL</td><td class="fc-num">${fcFmt(totGen)}</td>
-    <td class="fc-num" style="color:var(--fc-yellow)">${fcFmt(totRep)}</td>
-    <td class="fc-num" style="color:var(--fc-purple)">${fcFmt(totReinv)}</td>
-    <td class="fc-num">${fcFmt(aniosAnt)}</td></tr>`;
-  g('ua-gen').textContent=fcFmt(totGen);
-  g('ua-rep').textContent=fcFmt(totRep);
-  g('ua-reinv').textContent=fcFmt(totReinv);
-  g('ua-ret').textContent=fcFmt(aniosAnt);
-  const libros=+balUtilPrevia||0;
-  const dif=aniosAnt-libros;
-  const v=g('ua-valida');
-  if(v){
-    if(Math.abs(dif)<1.5){
-      v.style.color='var(--fc-green)';
-      v.innerHTML='<span>&#10003; Cuadra con el balance: la utilidad acumulada de a&#241;os anteriores ('+fcFmt(aniosAnt)+') coincide con la registrada en libros.</span>';
-    }else{
-      v.style.color='var(--fc-yellow)';
-      v.innerHTML='<span>&#9888; Diferencia de '+fcFmt(Math.abs(dif))+' frente a los '+fcFmt(libros)+' de a&#241;os anteriores del balance. Revisa Repartida/Reinvertida en la hoja.</span>';
-    }
-  }
-}
-
-function renderBalance(){
-  const g=id=>document.getElementById(id);
-  if(!g('bal-dist')) return;
-  const norm=s=>(s||'').toString().toLowerCase();
-  const clean=s=>(s||'').toString().replace(/^[.·\s]+/,'').trim();
-
-  const cInp=g('bal-corte'); if(cInp && document.activeElement!==cInp) cInp.value=balanceCorte||'';
-  const corteTxt = balanceCorte ? (' (corte '+balanceCorte+')') : '';
-
-  const ids=['bal-util-actual','bal-util-previa','bal-util-total','bal-efectivo','bal-ref-activos','bal-ref-pasivos','bal-ref-patrimonio'];
-  if(!balance.length){
-    ids.forEach(id=>{const el=g(id);if(el)el.textContent=fcFmt(0);});
-    g('bal-insight').innerHTML='Aún no hay datos del balance. Verifica que BALANCE.xlsx tenga la hoja "balance".';
-    g('bal-dist').innerHTML=''; g('bal-alerta').innerHTML='';
-    return;
-  }
-
-  const rows=balance.map(b=>({exp:(b.exp||'').toString().trim(), grupo:(b.exp||'').toString().trim().charAt(0), nombre:clean(b.desc), saldo:+b.saldo||0}));
-  const get=e=>{const r=rows.find(x=>x.exp===e);return r?r.saldo:0;};
-  const sum=(...es)=>es.reduce((s,e)=>s+get(e),0);
-  const codeVal=(...codes)=>codes.reduce((s,code)=>{const r=rows.find(x=>x.exp===code)||rows.find(x=>(x.nombre||'').indexOf(code)===0);return s+(r?r.saldo:0);},0);
-  const totA=get('1'), totP=get('2'), totPat=get('3');
-
-  const utilRe=/(utilidad|ganancia|p[eé]rdida|resultado).*(ejercicio|per[ií]odo|periodo)/i;
-  const exclRe=/acumulad|retenid|anterior/i;
-  const isLeaf=r=>!rows.some(o=>o!==r && o.exp && r.exp && o.exp.length>r.exp.length && o.exp.indexOf(r.exp)===0);
-  const utilActual=rows.filter(r=>r.grupo==='3' && r.exp && utilRe.test(norm(r.nombre)) && !exclRe.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
-  const utilPrevia = get('306') || rows.filter(r=>r.grupo==='3' && exclRe.test(norm(r.nombre)) && /(utilidad|ganancia|resultado)/.test(norm(r.nombre)) && isLeaf(r)).reduce((s,r)=>s+r.saldo,0);
-  const utilTotal=utilActual+utilPrevia;
-  balUtilPrevia=utilPrevia;
-  balUtilActual=utilActual;
-
-  const cats=[
-    {label:'Efectivo y bancos', icon:'💵', color:'var(--fc-green)', hint:'Dinero líquido disponible en caja y bancos', val:sum('10101','1010201')},
-    {label:'Por cobrar (cartera)', icon:'📄', color:'var(--fc-cyan)', hint:'Clientes nacionales + cheques postfechados (lo realmente cobrable)', val:codeVal('1010203','1010205001')},
-    {label:'Inventario (mercadería)', icon:'🏭', color:'var(--fc-blue)', hint:'Mercadería comprada, esperando venderse', val:sum('10103')},
-    {label:'Impuestos por cobrar', icon:'🏛️', color:'var(--fc-yellow)', hint:'Crédito tributario a favor (IVA / Renta)', val:sum('10105','10205')},
-    {label:'Activos fijos', icon:'🚚', color:'var(--fc-purple)', hint:'Vehículos, equipos y muebles (neto de depreciación)', val:sum('10201')},
-  ];
-  const clasificado=cats.reduce((s,c)=>s+c.val,0);
-  const otros=totA-clasificado;
-  if(Math.abs(otros)>1) cats.push({label:'Otros activos', icon:'📦', color:'var(--fc-muted)', hint:'Anticipos, seguros y otros activos menores', val:otros});
-
-  const efectivo=cats[0].val, cobrar=cats[1].val, inventario=cats[2].val;
-  const pctEf=totA>0?efectivo/totA*100:0;
-  const pctInv=totA>0?inventario/totA*100:0;
-  const pctCob=totA>0?cobrar/totA*100:0;
-
-  g('bal-util-actual').textContent=fcFmt(utilActual);
-  g('bal-util-actual-sub').textContent='Ganancia del ejercicio'+corteTxt;
-  g('bal-util-previa').textContent=fcFmt(utilPrevia);
-  g('bal-util-total').textContent=fcFmt(utilTotal);
-  g('bal-efectivo').textContent=fcFmt(efectivo);
-  g('bal-efectivo-sub').textContent=pctEf.toFixed(0)+'% de los activos';
-  g('bal-ref-activos').textContent=fcFmt(totA);
-  g('bal-ref-pasivos').textContent=fcFmt(totP);
-  g('bal-ref-patrimonio').textContent=fcFmt(totPat);
-
-  const dif=totA-(totP+totPat), cuadra=Math.abs(dif)<1;
-  g('bal-alerta').innerHTML=cuadra
-    ? `<div class="fc-alert fc-a-ok">✓ El balance cuadra: Activos ${fcFmt(totA)} = Pasivos ${fcFmt(totP)} + Patrimonio ${fcFmt(totPat)}</div>`
-    : `<div class="fc-alert fc-a-warn">⚠ El balance no cuadra por ${fcFmt(Math.abs(dif))}. Revisa la hoja "balance" en BALANCE.xlsx.</div>`;
-
-  const catsOrden=[...cats].sort((a,b)=>b.val-a.val);
-  g('bal-dist').innerHTML=catsOrden.map(c=>{
-    const p=totA>0?(c.val/totA*100):0;
-    return `<div class="fc-prog-row" title="${c.hint}" style="margin-bottom:8px;">
-      <span class="fc-prog-label" style="width:220px;font-size:11px;color:${c.color};">${c.icon} ${c.label}</span>
-      <div class="fc-prog-bar"><div class="fc-prog-fill" style="width:${Math.max(p,0).toFixed(1)}%;background:${c.color}"></div></div>
-      <span class="fc-prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fcFmt(c.val)} · ${p.toFixed(0)}%</span>
-    </div>`;
-  }).join('');
-
-  const PAL=['var(--fc-blue)','var(--fc-yellow)','var(--fc-cyan)','var(--fc-purple)','var(--fc-green)','var(--fc-red)'];
-  const capL=s=>{const t=(s||'').toString().trim();return t?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():t;};
-  let pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===5 && Math.abs(r.saldo)>0.5);
-  if(!pasRows.length) pasRows=rows.filter(r=>r.grupo==='2' && r.exp && r.exp.length===3 && Math.abs(r.saldo)>0.5);
-  let pcats=pasRows.map((r,i)=>({label:capL(r.nombre),color:PAL[i%PAL.length],val:r.saldo})).sort((a,b)=>b.val-a.val);
-  const pClas=pcats.reduce((s,c)=>s+c.val,0);
-  const pOtros=totP-pClas;
-  if(Math.abs(pOtros)>1) pcats.push({label:'Otras obligaciones',color:'var(--fc-muted)',val:pOtros});
-  const pd=g('bal-dist-pasivos');
-  if(pd){
-    pd.innerHTML = totP>0 ? pcats.map(c=>{
-      const p=totP>0?(c.val/totP*100):0;
-      return `<div class="fc-prog-row" style="margin-bottom:8px;">
-        <span class="fc-prog-label" style="width:260px;font-size:11px;color:${c.color};">${c.label}</span>
-        <div class="fc-prog-bar"><div class="fc-prog-fill" style="width:${Math.max(p,0).toFixed(1)}%;background:${c.color}"></div></div>
-        <span class="fc-prog-val" style="font-size:11px;min-width:155px;text-align:right;">${fcFmt(c.val)} · ${p.toFixed(0)}%</span>
-      </div>`;
-    }).join('') : '<div class="fc-empty">Sin datos de pasivos.</div>';
-    const nota=g('bal-pas-nota');
-    if(nota) nota.textContent='Total de deudas (pasivos): '+fcFmt(totP)+'.';
-  }
-
-  g('bal-insight').innerHTML =
-    `<span style="display:block;">La empresa ha ganado <strong>${fcFmt(utilTotal)}</strong> en total (${fcFmt(utilActual)} este año + ${fcFmt(utilPrevia)} de años anteriores), pero <strong>esa utilidad no está en el banco</strong>. En efectivo solo tienes <strong>${fcFmt(efectivo)}</strong>, el ${pctEf.toFixed(0)}% de todo. El resto se reinvirtió en el negocio: <strong>inventario</strong> (${pctInv.toFixed(0)}%) y <strong>cartera por cobrar</strong> (${pctCob.toFixed(0)}%). Para volverla efectivo hay que vender inventario y cobrar más rápido a los clientes.</span>`;
-
-  const eq=(a,b)=>b>0?(a/b*100):0;
-  const tz=g('bal-traza');
-  if(tz) tz.innerHTML=`📍 <strong>¿Dónde está tu utilidad?</strong> Tus <strong>${fcFmt(utilTotal)}</strong> de utilidad acumulada equivalen al <strong>${eq(utilTotal,totA).toFixed(0)}%</strong> de todo lo que tiene la empresa, o al <strong>${eq(utilTotal,inventario).toFixed(0)}%</strong> de tu inventario. En pocas palabras: está reinvertida, sobre todo en mercadería y en lo que te deben los clientes.`;
-
-  const AC=get('101'), PC=get('201');
-  const kb=g('bal-kpis');
-  if(kb){
-    const sem=(v,gd,yl)=> v>=gd?'var(--fc-green)': v>=yl?'var(--fc-yellow)':'var(--fc-red)';
-    const semInv=(v,gd,yl)=> v<=gd?'var(--fc-green)': v<=yl?'var(--fc-yellow)':'var(--fc-red)';
-    const rc = PC>0? AC/PC : 0;
-    const pa = PC>0? (AC-inventario)/PC : 0;
-    const endeud = totA>0? totP/totA : 0;
-    const solv = totP>0? totA/totP : 0;
-    const roe = totPat>0? utilActual/totPat : 0;
-    const inds=[
-      {l:'Razón corriente', v:rc.toFixed(2), c:sem(rc,1.5,1), h:'Activo corriente ÷ pasivo corriente. Ideal ≥ 1,5. Mide si puedes pagar lo de corto plazo.'},
-      {l:'Prueba ácida', v:pa.toFixed(2), c:sem(pa,1,0.5), h:'Igual pero SIN inventario. Ideal ≥ 1. Muestra la liquidez real sin depender de vender mercadería.'},
-      {l:'Endeudamiento', v:(endeud*100).toFixed(0)+'%', c:semInv(endeud,0.5,0.7), h:'Deuda ÷ activos. Ideal < 50%. Qué parte de la empresa se financia con deuda.'},
-      {l:'Solvencia', v:solv.toFixed(2)+'x', c:sem(solv,1.5,1), h:'Activos ÷ pasivos. Cuántas veces puedes cubrir TODAS tus deudas.'},
-      {l:'ROE', v:(roe*100).toFixed(1)+'%', c:sem(roe*100,15,5), h:'Utilidad ÷ patrimonio. Rentabilidad del dinero de los socios.'},
-    ];
-    kb.innerHTML=inds.map(k=>`<div title="${k.h}" style="background:var(--fc-s2);border:1px solid var(--fc-border);border-radius:12px;padding:14px 12px;text-align:center;">
-      <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fc-muted2);margin-bottom:8px;min-height:22px;">${k.l}</div>
-      <div style="font-family:var(--fc-mono);font-size:22px;font-weight:600;color:${k.c};line-height:1;">${k.v}</div>
-      <div style="margin-top:8px;width:7px;height:7px;border-radius:50%;background:${k.c};margin-left:auto;margin-right:auto;box-shadow:0 0 6px ${k.c};"></div>
-    </div>`).join('');
-  }
-
-  const cb=g('bal-cierre');
-  if(cb){
-    const fila=(lbl,val,col,strong)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 2px;${strong?'border-top:1px solid var(--fc-border);margin-top:4px;':''}">
-      <span style="font-size:${strong?'13':'12'}px;${strong?'font-weight:700;color:var(--fc-text);':'color:var(--fc-muted2);'}">${lbl}</span>
-      <span class="fc-num" style="font-size:${strong?'16':'13'}px;font-weight:${strong?'700':'600'};color:${col};">${val}</span></div>`;
-    cb.innerHTML =
-      fila('Vendo todo lo que tiene la empresa (activos)', fcFmt(totA), 'var(--fc-blue)') +
-      fila('− Pago todas las deudas (pasivos)', '− '+fcFmt(totP), 'var(--fc-red)') +
-      fila('= Queda para los socios (patrimonio)', fcFmt(totPat), 'var(--fc-green)', true) +
-      `<div class="fc-alert fc-a-ok" style="margin-top:14px;"><span style="display:block;">✓ La empresa es <strong>solvente</strong>: si cerrara hoy alcanzaría de sobra para pagar todo, y aún quedarían <strong>${fcFmt(totPat)}</strong> para los socios (de eso, ${fcFmt(utilTotal)} son utilidades). El reto no es la solvencia sino la <strong>liquidez</strong>: ese dinero está en inventario y cartera, no en el banco.</span></div>
-      <div style="font-size:10px;color:var(--fc-muted);margin-top:2px;">* Cálculo a valor en libros. En un cierre real, el inventario y la cartera podrían venderse o cobrarse por menos.</div>`;
-  }
-}
 
 
 function notifyHostStatus(status, message){
@@ -1493,14 +1101,6 @@ async function cargarDesdeServidor(){
       procesarSheetsInvMeses();
       poblarFiltrosInvGlobal();
       if(activeTab===10) renderInventarioGlobal(getFiltros());
-    }).catch(()=>{});
-  // cargar también BALANCE.xlsx en paralelo (Situacion Financiera / Utilidades Acumuladas)
-  fetch(ARCHIVO_BALANCE + '?t=' + Date.now())
-    .then(r=>r.ok?r.arrayBuffer():null)
-    .then(buf=>{
-      if(!buf) return;
-      WB_BALANCE = XLSX.read(buf, {type:'array', cellDates:false});
-      procesarBalanceXlsx();
     }).catch(()=>{});
   loading(true);
   try {
@@ -2070,8 +1670,6 @@ function switchTab(idx){
   activeTab = idx;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
   document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
-  if(idx===11){ renderBalance(); return; }      // Situacion Financiera: independiente de TABLERO.xlsx
-  if(idx===12){ renderUtilidades(); return; }   // Utilidades Acumuladas: independiente de TABLERO.xlsx
   if(!WB) return;
   const f = getFiltros();
   const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate,renderInventarioGlobal];

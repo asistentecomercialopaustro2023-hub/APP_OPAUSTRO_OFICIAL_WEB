@@ -302,7 +302,7 @@
     </section>
   </div>
 
-  <script src="../module-catalog.js?v=20260814"></script>
+  <script src="../module-catalog.js?v=20260902"></script>
   <script>
   (function(){
     // Vigila module-catalog.js en segundo plano: si detecta que cambio en el
@@ -324,7 +324,7 @@
   })();
   </script>
   <script>
-    const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbzc6Bmm6y2Z9mgVtzpyB2yMRzslZvuVj1XFdCwfK6RhBByhnuFS_c_lbksN1S3I9y0nWA/exec";
+    const ACCESS_API_URL = "https://script.google.com/macros/s/AKfycbwcCp7XoggKct8SYc5oPJC0FwXPTq1DnVmPxRIuu1P0qHvUVgQSjuMhvkYhCimfsQy2/exec";
     const INTERNAL_API_KEY = "OPA-INTERNAL-2026";
     const $ = id => document.getElementById(id);
     let users = [];
@@ -344,23 +344,10 @@
     function norm(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim()}
     function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
     function statusClass(value){const n=norm(value);if(n==="VACACIONES")return"vacaciones";if(n==="BLOQUEADO")return"bloqueado";if(n==="RETIRADO")return"retirado";return"activo"}
-    // Apps Script a veces responde con una pagina HTML (arranque en frio) en vez
-    // del JSON esperado -> JSON.parse truena y el guardado queda sin efecto sin
-    // avisar claro. Se reintenta un par de veces antes de darse por vencido.
     async function api(action,payload={}){
-      const intentos=3;
-      let ultimoError;
-      for(let i=0;i<intentos;i++){
-        try{
-          const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action,payload:{...payload,apiKey:INTERNAL_API_KEY}})});
-          const text=await response.text();
-          return JSON.parse(String(text||"{}"));
-        }catch(e){
-          ultimoError=e;
-          if(i<intentos-1) await new Promise(r=>setTimeout(r,1000*(i+1)));
-        }
-      }
-      throw ultimoError;
+      const response=await fetch(ACCESS_API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},cache:"no-store",body:JSON.stringify({action,payload:{...payload,apiKey:INTERNAL_API_KEY}})});
+      const text=await response.text();
+      return JSON.parse(String(text||"{}"));
     }
     function setMessage(text,type=""){ $("message").textContent=text; $("message").style.color=type==="error"?"#b42318":"#6d8497"; }
     async function loadUsers(){

@@ -21,11 +21,10 @@ body{background:#f4f5f7;font-family:'Inter',sans-serif;font-size:12px;color:#1a1
 .header h1 span{color:#7c3aed}
 .controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;width:100%}
 .ctrl-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;width:100%}
-.srch{background:#f8fafc;border:1.5px solid #e2e8f0;color:#1a1a2e;padding:6px 11px;border-radius:8px;font-size:11px;width:185px;outline:none;transition:border-color .15s,box-shadow .15s}
-.srch:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.srch{background:#f8fafc;border:1px solid #e2e8f0;color:#1a1a2e;padding:5px 10px;border-radius:6px;font-size:11px;width:185px;outline:none}
+.srch:focus{border-color:#7c3aed}
 .srch::placeholder{color:#94a3b8}
-.sel{background:#f8fafc;border:1.5px solid #e2e8f0;color:#1a1a2e;padding:6px 9px;border-radius:8px;font-size:11px;outline:none;cursor:pointer;max-width:185px;transition:border-color .15s}
-.sel:hover{border-color:#c7ceda}
+.sel{background:#f8fafc;border:1px solid #e2e8f0;color:#1a1a2e;padding:5px 8px;border-radius:6px;font-size:11px;outline:none;cursor:pointer;max-width:185px}
 @media (max-width:899px){
   .title-row{flex-wrap:nowrap;gap:6px}
   .header h1{font-size:.8rem}
@@ -47,8 +46,8 @@ body{background:#f4f5f7;font-family:'Inter',sans-serif;font-size:12px;color:#1a1
 }
 .badge{background:#f4f5f7;border:1px solid #e0e4ed;color:#6b7280;padding:4px 9px;border-radius:6px;font-size:11px;white-space:nowrap}
 .badge b{color:#059669}
-.export-btn{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:none;white-space:nowrap;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 6px rgba(37,99,235,.28)}
-.export-btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(37,99,235,.35)}
+.export-btn{display:flex;align-items:center;gap:5px;background:#2563eb;color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;white-space:nowrap;transition:background .15s}
+.export-btn:hover{background:#1d4ed8}
 .export-btn svg{width:13px;height:13px;flex-shrink:0}
 .xlsx-sync{display:inline-flex;align-items:center;gap:5px;background:transparent;color:#64748b;border:1px solid #d8e0e8;border-radius:999px;padding:4px 7px;font-size:10px;white-space:nowrap}
 .xlsx-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 7px rgba(245,158,11,.45)}
@@ -71,34 +70,17 @@ body{background:#f4f5f7;font-family:'Inter',sans-serif;font-size:12px;color:#1a1
 .fpill.f-above.active{background:#2563eb;border-color:#2563eb}
 .tol-tag{font-size:10px;color:#888;margin-left:auto;padding:3px 10px;background:#f4f5f7;border-radius:20px;border:1px solid #e0e4ed}
 .tol-tag b{color:#1a1a2e}
-.stats-bar{background:#fff;border-bottom:1px solid #e0e4ed;padding:10px 18px;display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;align-items:stretch}
-.st{display:flex;align-items:center;gap:9px;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;padding:7px 13px;min-width:88px}
-.st-ico{font-size:15px;line-height:1;flex-shrink:0}
-.st-txt{display:flex;flex-direction:column;gap:1px}
-.sv{font-size:1rem;font-weight:800;line-height:1.1}
-.sl{font-size:9px;color:#8a93a6;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-.c-blue{color:#2563eb}.c-green{color:#16a34a}.c-yellow{color:#ca8a04}.c-red{color:#dc2626}.c-orange{color:#ea580c}.c-gray{color:#6b7280}
-.st.st-blue{background:#eff6ff;border-color:#dbeafe}
-.st.st-green{background:#f0fdf4;border-color:#dcfce7}
-.st.st-red{background:#fef2f2;border-color:#fee2e2}
-.st.st-orange{background:#fff7ed;border-color:#ffedd5}
-.st.st-yellow{background:#fefce8;border-color:#fef9c3}
-.st.st-gray{background:#f8fafc;border-color:#eef0f4}
-.st[data-f]{cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
-.st[data-f]:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(20,25,40,.09)}
-.st[data-f].active{box-shadow:0 0 0 2px #c7ceda inset}
-.st.st-blue[data-f].active{box-shadow:0 0 0 2px #93c5fd inset}
-.st.st-green[data-f].active{box-shadow:0 0 0 2px #86efac inset}
-.st.st-red[data-f].active{box-shadow:0 0 0 2px #fca5a5 inset}
-.st.st-orange[data-f].active{box-shadow:0 0 0 2px #fdba74 inset}
-.st.st-gray[data-f].active{box-shadow:0 0 0 2px #cbd5e1 inset}
+.stats-bar{background:#fff;border-bottom:1px solid #e0e4ed;padding:5px 18px;display:flex;gap:18px;flex-wrap:wrap;flex-shrink:0;align-items:center}
+.st{display:flex;align-items:baseline;gap:4px}
+.sv{font-size:.95rem;font-weight:700}
+.sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.3px}
+.c-blue{color:#2563eb}.c-green{color:#16a34a}.c-yellow{color:#ca8a04}.c-red{color:#dc2626}.c-orange{color:#ea580c}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(14,15,19,.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 .loading-overlay.show{display:flex}
 .spinner{width:40px;height:40px;border:3px solid #2a2a40;border-top-color:#4fffb0;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:#e8eaf0;font-size:.85rem}
-.table-shell{flex:1;overflow:hidden;padding:12px 18px 16px;display:flex;min-height:0}
-.table-wrap{overflow:auto;flex:1;border-radius:12px;box-shadow:0 1px 3px rgba(20,25,40,.06),0 8px 24px rgba(20,25,40,.06);border:1px solid #e5e8f0}
+.table-wrap{overflow:auto;flex:1}
 table{width:100%;border-collapse:collapse;white-space:nowrap}
 thead{position:sticky;top:0;z-index:10}
 thead tr.tr-group th{background:#131929;color:#4a5270;font-size:9px;text-transform:uppercase;letter-spacing:.4px;padding:4px 8px;font-weight:600;border-right:1px solid #1e2640;text-align:center}
@@ -130,12 +112,9 @@ td.td-sep{border-left:2px solid #e0e4ed}
 .exc-icon{font-size:10px;color:#f59e0b;margin-left:3px}
 .date-tag{font-size:10px;color:#6b7280;background:#f4f5f7;border:1px solid #e0e4ed;padding:4px 10px;border-radius:6px;white-space:nowrap}
 .date-tag.updated{color:#047857;background:#f7fffb;border-color:#bdebd8}
-::-webkit-scrollbar{width:12px;height:14px}
-::-webkit-scrollbar-track{background:#eef0f4}
-::-webkit-scrollbar-thumb{background:#aab2c5;border-radius:8px;border:3px solid #eef0f4}
-::-webkit-scrollbar-thumb:hover{background:#8b93aa}
-::-webkit-scrollbar-corner{background:#eef0f4}
-.table-wrap{scrollbar-color:#aab2c5 #eef0f4;scrollbar-width:auto}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#f4f5f7}
+::-webkit-scrollbar-thumb{background:#c8cdd8;border-radius:3px}
 /* Resizable columns */
 thead tr.tr-main th{position:relative}
 .col-resizer{position:absolute;right:0;top:0;height:100%;width:5px;cursor:col-resize;user-select:none;z-index:1}
@@ -234,12 +213,12 @@ thead tr.tr-main th{position:relative}
 
 <div class="pill-bar">
   <span>Filtrar:</span>
-  <button class="fpill active"  data-f="all"   onclick="setF('all')">Todos</button>
-  <button class="fpill f-ok"    data-f="ok"    onclick="setF('ok')">✓ Cumple objetivo</button>
-  <button class="fpill f-above" data-f="above" onclick="setF('above')">↑ Sobre objetivo</button>
-  <button class="fpill f-below" data-f="below" onclick="setF('below')">↓ Bajo objetivo</button>
-  <button class="fpill f-neg"   data-f="neg"   onclick="setF('neg')">⚠ Negativo</button>
-  <button class="fpill"         data-f="noobj" onclick="setF('noobj')">Sin objetivo</button>
+  <button class="fpill active"  onclick="setF('all',this)">Todos</button>
+  <button class="fpill f-ok"    onclick="setF('ok',this)">✓ Cumple objetivo</button>
+  <button class="fpill f-above" onclick="setF('above',this)">↑ Sobre objetivo</button>
+  <button class="fpill f-below" onclick="setF('below',this)">↓ Bajo objetivo</button>
+  <button class="fpill f-neg"   onclick="setF('neg',this)">⚠ Negativo</button>
+  <button class="fpill"         onclick="setF('noobj',this)">Sin objetivo</button>
   <div class="xlsx-sync" aria-live="polite">
     <span class="xlsx-dot" id="rc-xlsx-dot"></span>
     <span id="rc-xlsx-status">Verificando archivo</span>
@@ -250,7 +229,6 @@ thead tr.tr-main th{position:relative}
 
 <div class="stats-bar" id="sb"></div>
 
-<div class="table-shell">
 <div class="table-wrap">
 <table>
 <thead>
@@ -263,7 +241,6 @@ thead tr.tr-main th{position:relative}
 </thead>
 <tbody id="tb"></tbody>
 </table>
-</div>
 </div>
 
 <script>
@@ -554,11 +531,8 @@ function sortC(idx){
   if(sd<0)document.querySelectorAll('#thead th')[idx].classList.add('asc');
   render();
 }
-function setF(f){
-  curF=f;
-  document.querySelectorAll('.fpill,.st[data-f]').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('[data-f="'+f+'"]').forEach(b=>b.classList.add('active'));
-  render();
+function setF(f,btn){
+  curF=f;document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();
 }
 function fp(v){return v===null||v===undefined?'—':'$'+v.toFixed(4);}
 function pillM(v){
@@ -615,16 +589,15 @@ function render(){
     else noobj++;
   });
   const am=nM?(sM/nM).toFixed(1)+'%':'—',ac=nC?(sC/nC).toFixed(1)+'%':'—';
-  const act=f=>curF===f?' active':'';
   document.getElementById('sb').innerHTML=`
-    <div class="st st-blue${act('all')}" data-f="all" onclick="setF('all')"><span class="st-ico">📦</span><div class="st-txt"><span class="sv c-blue">${rows.length}</span><span class="sl">Artículos</span></div></div>
-    <div class="st st-yellow"><span class="st-ico">🏬</span><div class="st-txt"><span class="sv c-yellow">${am}</span><span class="sl">Prom. Mayorista</span></div></div>
-    <div class="st st-green"><span class="st-ico">🚚</span><div class="st-txt"><span class="sv c-green">${ac}</span><span class="sl">Prom. Cobertura</span></div></div>
-    <div class="st st-red${act('neg')}" data-f="neg" onclick="setF('neg')"><span class="st-ico">⚠️</span><div class="st-txt"><span class="sv c-red">${neg}</span><span class="sl">Negativos</span></div></div>
-    <div class="st st-orange${act('below')}" data-f="below" onclick="setF('below')"><span class="st-ico">↓</span><div class="st-txt"><span class="sv c-orange">${below}</span><span class="sl">Bajo objetivo</span></div></div>
-    <div class="st st-green${act('ok')}" data-f="ok" onclick="setF('ok')"><span class="st-ico">✓</span><div class="st-txt"><span class="sv c-green">${ok}</span><span class="sl">Cumple</span></div></div>
-    <div class="st st-blue${act('above')}" data-f="above" onclick="setF('above')"><span class="st-ico">↑</span><div class="st-txt"><span class="sv c-blue">${above}</span><span class="sl">Sobre objetivo</span></div></div>
-    <div class="st st-gray${act('noobj')}" data-f="noobj" onclick="setF('noobj')"><span class="st-ico">—</span><div class="st-txt"><span class="sv c-gray">${noobj}</span><span class="sl">Sin objetivo</span></div></div>
+    <div class="st"><span class="sv c-blue">${rows.length}</span><span class="sl">artículos</span></div>
+    <div class="st"><span class="sv c-yellow">${am}</span><span class="sl">prom MAY</span></div>
+    <div class="st"><span class="sv c-green">${ac}</span><span class="sl">prom COB</span></div>
+    <div class="st"><span class="sv c-red">${neg}</span><span class="sl">negativos</span></div>
+    <div class="st"><span class="sv c-orange">${below}</span><span class="sl">bajo obj.</span></div>
+    <div class="st"><span class="sv c-green">${ok}</span><span class="sl">cumple</span></div>
+    <div class="st"><span class="sv c-blue">${above}</span><span class="sl">sobre obj.</span></div>
+    <div class="st"><span class="sv" style="color:#888">${noobj}</span><span class="sl">sin obj.</span></div>
   `;
   document.getElementById('cnt').textContent=rows.length;
   let html='',lastProv=null;
