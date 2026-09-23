@@ -3118,7 +3118,12 @@
 
     function areaGroupsForSession(session) {
       const normalized = normalizeRoleName(session && (session.role || session.rol));
-      if (normalized === "LOGISTICA") {
+      // Un usuario Logistica con modulos propios (override) puede tener modulos
+      // de otras areas (ej. Gerencia) asignados puntualmente desde Control de
+      // usuarios: en ese caso no restringir a solo el grupo "Logistica", para
+      // que esas areas si se dibujen. Sin override, se mantiene el recorte
+      // clasico (Logistica ve solo su area, aunque el rol tenga mas modulos).
+      if (normalized === "LOGISTICA" && !(session && session.hasUserModulesOverride)) {
         return AREA_GROUPS.map((group) => (
           group.id === "Logistica" ? { ...group, modules: LOGISTICA_MODULES } : group
         )).filter((group) => group.id === "Logistica");
