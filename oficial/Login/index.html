@@ -2804,18 +2804,32 @@
       }).catch(() => setMessage("No se pudo conectar con Login API.", "error"));
     }
 
+    // Apps Script a veces responde con una pagina HTML (arranque en frio) en vez
+    // del JSON esperado, o con un status no-ok pasajero. Sin reintento, eso se
+    // mostraba como "no se pudo validar el acceso" aunque la clave fuera
+    // correcta. Se reintenta un par de veces antes de darse por vencido.
     async function callLoginApi(action, payload) {
       if (!LOGIN_API_URL) {
         throw new Error("Configura LOGIN_API_URL con la URL /exec del Apps Script de Login para pruebas locales.");
       }
-      const response = await fetch(LOGIN_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        cache: "no-store",
-        body: JSON.stringify({ action, payload })
-      });
-      if (!response.ok) throw new Error("No se pudo contactar el servicio de Login.");
-      return response.json();
+      const intentos = 3;
+      let ultimoError;
+      for (let i = 0; i < intentos; i++) {
+        try {
+          const response = await fetch(LOGIN_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            cache: "no-store",
+            body: JSON.stringify({ action, payload })
+          });
+          if (!response.ok) throw new Error("No se pudo contactar el servicio de Login.");
+          return await response.json();
+        } catch (error) {
+          ultimoError = error;
+          if (i < intentos - 1) await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+        }
+      }
+      throw ultimoError;
     }
 
     function authenticate(payload) {
@@ -3118,7 +3132,12 @@
 
     function areaGroupsForSession(session) {
       const normalized = normalizeRoleName(session && (session.role || session.rol));
-      if (normalized === "LOGISTICA") {
+      // Un usuario Logistica con modulos propios (override) puede tener modulos
+      // de otras areas (ej. Gerencia) asignados puntualmente desde Control de
+      // usuarios: en ese caso no restringir a solo el grupo "Logistica", para
+      // que esas areas si se dibujen. Sin override, se mantiene el recorte
+      // clasico (Logistica ve solo su area, aunque el rol tenga mas modulos).
+      if (normalized === "LOGISTICA" && !(session && session.hasUserModulesOverride)) {
         return AREA_GROUPS.map((group) => (
           group.id === "Logistica" ? { ...group, modules: LOGISTICA_MODULES } : group
         )).filter((group) => group.id === "Logistica");

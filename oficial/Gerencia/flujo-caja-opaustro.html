@@ -872,12 +872,25 @@ function weekRange(off) {
 }
 
 // ======== API ========
+/* Apps Script a veces responde con una pagina HTML (arranque en frio) en vez
+   del JSON esperado -> res.json() truena con "Unexpected token '<'". Se
+   reintenta un par de veces antes de darse por vencido. */
 async function api(action, data={}) {
   if(!SCRIPT_URL) throw new Error('Sin URL');
-  const res = await fetch(SCRIPT_URL+'?action='+action, {method:'POST', body:JSON.stringify({action,data})});
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
-  return json;
+  const intentos=3;
+  let ultimoError;
+  for(let i=0;i<intentos;i++){
+    try{
+      const res = await fetch(SCRIPT_URL+'?action='+action, {method:'POST', body:JSON.stringify({action,data})});
+      const json = await res.json();
+      if(json.error) throw new Error(json.error);
+      return json;
+    }catch(e){
+      ultimoError = e;
+      if(i<intentos-1) await new Promise(r=>setTimeout(r,1000*(i+1)));
+    }
+  }
+  throw ultimoError;
 }
 
 // ======== SPIN / TOAST ========
