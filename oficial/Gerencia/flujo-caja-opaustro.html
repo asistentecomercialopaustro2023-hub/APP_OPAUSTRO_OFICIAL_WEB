@@ -544,7 +544,10 @@ body::before {
       <!-- ===== PAGOS ===== -->
       <div class="panel" id="panel-pagos">
         <div class="card">
-          <div class="card-h"><span class="card-title">Todos los pagos y gastos</span></div>
+          <div class="card-h">
+            <span class="card-title">Todos los pagos y gastos</span>
+            <input type="month" class="fi" id="filtro-mes-pagos" style="padding:5px 10px;font-size:11px;width:140px;" onchange="renderPagosPanel()">
+          </div>
           <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vence</th><th>Proveedor / Concepto</th><th>Categoría</th><th>PP %</th><th class="num">Original</th><th class="num">A Pagar</th><th>Estado</th><th></th></tr></thead>
           <tbody id="tbody-pagos"><tr><td colspan="8" class="empty">Sin pagos</td></tr></tbody></table></div>
         </div>
@@ -1085,9 +1088,10 @@ function renderHistorial(){
 
 function renderPagosPanel(){
   const hoy=today();
-  const lista=[...pagos].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const mes=document.getElementById('filtro-mes-pagos').value;
+  const lista=[...pagos].filter(p=>!mes||(p.fecha&&p.fecha.slice(0,7)===mes)).sort((a,b)=>a.fecha.localeCompare(b.fecha));
   const tb=document.getElementById('tbody-pagos');
-  if(!lista.length){tb.innerHTML='<tr><td colspan="8" class="empty">Sin pagos registrados</td></tr>';return;}
+  if(!lista.length){tb.innerHTML='<tr><td colspan="8" class="empty">'+(mes?'Sin pagos para este mes':'Sin pagos registrados')+'</td></tr>';return;}
   tb.innerHTML=lista.map(p=>{
     const venc=p.estado==='pendiente'&&p.fecha<hoy;
     const estado=venc?'vencido':p.estado;
