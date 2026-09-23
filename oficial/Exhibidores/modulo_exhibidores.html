@@ -1829,7 +1829,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
     if(hasta && t>parseFechaInputEcuador_(hasta,true).getTime()) return false;
     return true;
   }
-  function renderVisitas(){
+  function visitasFiltradas(){
     const filtro=$("#fFiltro").value;
     const cliente=($("#repFiltroCliente").value||"").trim().toLowerCase();
     const desde=$("#repDesde").value, hasta=$("#repHasta").value;
@@ -1837,6 +1837,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
     if(filtro) list=list.filter(r=>r.vendedor===filtro);
     if(cliente) list=list.filter(r=>String(r.cliente||"").toLowerCase().includes(cliente));
     if(desde||hasta) list=list.filter(r=>enRangoInputs(r.fecha,desde,hasta));
+    return list;
+  }
+  function renderVisitas(){
+    const desde=$("#repDesde").value, hasta=$("#repHasta").value;
+    let list=visitasFiltradas();
     $("#repEmpty").style.display=list.length?"none":"block";
     $("#repBody").innerHTML=list.map(r=>{const p=r.ia?r.ia.puntaje:0;const cls=p>=55?"b-ok":(p>=35?"b-warn":"b-bad");
       return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
@@ -1861,6 +1866,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
   }
 
   let censoSupSeleccionado="";
+  let ultimoCensoFiltrado=[];
   function renderCenso(){
     const Call=dataC();
     const {start,end}=monthRangeFor(new Date());
@@ -1896,6 +1902,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
     if(filtroVend) list=list.filter(r=>r.vendedor===filtroVend);
     if(filtroCliente) list=list.filter(r=>String(r.cliente||"").toLowerCase().includes(filtroCliente));
     if(desde||hasta) list=list.filter(r=>enRangoInputs(r.fecha,desde,hasta));
+    ultimoCensoFiltrado=list;
     $("#censoEmpty").style.display=list.length?"none":"block";
     $("#censoBody").innerHTML=list.map(r=>{const inv=(r.invasiones||[]).filter(Boolean);
       return `<tr class="click" data-id="${r.id}"><td>${new Date(r.fecha).toLocaleString("es",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td>
@@ -2017,11 +2024,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer}
     const cd=central.reduce((s,c)=>s+c.length,0);const end=new Uint8Array([0x50,0x4b,5,6,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cd),...u32(offset),...u16(0)]);
     const all=chunks.concat(central,[end]);const total=all.reduce((s,c)=>s+c.length,0);const out=new Uint8Array(total);let p=0;all.forEach(c=>{out.set(c,p);p+=c.length;});return out;}
 
-  $("#btnExport").onclick=()=>{const l=loadV();exportXLSX(
+  $("#btnExport").onclick=()=>{const l=visitasFiltradas();exportXLSX(
     ["Indice","Fecha","Vendedor","Cliente","Llenado_%","Doc_Firmado","Antes_Despues","Puntaje_65","Observacion"],
     l.map(r=>[r.index,new Date(r.fecha).toLocaleString("es"),r.vendedor||"",String(r.cliente||""),Number(r.ia?r.ia.porcentaje_llenado:0),r.ia&&r.ia.documento_firmado?"Si":"No",r.ia&&r.ia.evidencia_completa?"Si":"No",Number(r.ia?r.ia.puntaje:0),r.ia&&r.ia.observaciones||""]),
     "visitas_vendedores.xlsx");};
-  $("#btnExportCenso").onclick=()=>{const l=loadC();exportXLSX(
+  $("#btnExportCenso").onclick=()=>{const l=ultimoCensoFiltrado;exportXLSX(
     ["Indice","Fecha","Vendedor","Cliente","Contaminado","Invasiones","Puntaje_35","Observacion"],
     l.map(r=>[r.index,new Date(r.fecha).toLocaleString("es"),r.vendedor||"",String(r.cliente||""),r.contaminado?"Si":"No",(r.invasiones||[]).join(" / "),Number(r.puntaje),r.observaciones||""]),
     "censo_supervisor.xlsx");};
