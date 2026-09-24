@@ -727,6 +727,7 @@
   <button class="tab-btn" onclick="switchTab(10)">📈 Inventario Global</button>
   <button class="tab-btn" onclick="switchTab(11)">▤ Situación Financiera</button>
   <button class="tab-btn" onclick="switchTab(12)">∑ Utilidades Acumuladas</button>
+  <button class="tab-btn" onclick="switchTab(13)">🏷️ Detalle por Proveedor</button>
 
 </div>
 
@@ -1120,6 +1121,18 @@
     </div>
   </div>
 
+  <!-- TAB 13: DETALLE POR PROVEEDOR -->
+  <div class="tab-panel" id="panel-13">
+    <div class="section-title">🏷️ Rentabilidad por Proveedor</div>
+    <div id="prov-aviso"></div>
+    <div id="kpi-prov-big" class="kpi-big-grid"></div>
+    <div id="kpi-prov-gauges" class="kpi-gauge-grid"></div>
+    <hr class="divider"/>
+    <div class="table-wrap"><table id="tbl-prov"><thead></thead><tbody></tbody></table></div>
+    <div class="section-title" style="margin-top:22px;">📊 Ganancia Neta por Proveedor</div>
+    <div id="prov-ranking" style="padding:4px 2px;"></div>
+  </div>
+
 </div><!-- /content -->
 
 <script>
@@ -1165,9 +1178,11 @@ const ARCHIVO_XLSX = 'TABLERO.xlsx';
 const ARCHIVO_TALENTO = 'TALENTO HUMANO.xlsx';
 const ARCHIVO_INVMESES = 'INVENTARIO POR MESES.xlsx';
 const ARCHIVO_BALANCE = 'BALANCE.xlsx';
+const ARCHIVO_PROVEEDOR = 'DETALLE POR PROVEEDOR.xlsx';
 let WB_TALENTO = null;
 let WB_INVMESES = null;
 let WB_BALANCE = null;
+let WB_PROVEEDOR = null;
 
 // ══════════════════════════════════════════════════
 // SITUACION FINANCIERA / UTILIDADES ACUMULADAS
@@ -1501,6 +1516,15 @@ async function cargarDesdeServidor(){
       if(!buf) return;
       WB_BALANCE = XLSX.read(buf, {type:'array', cellDates:false});
       procesarBalanceXlsx();
+    }).catch(()=>{});
+  // cargar también DETALLE POR PROVEEDOR.xlsx en paralelo (Detalle por Proveedor)
+  fetch(encodeURI(ARCHIVO_PROVEEDOR) + '?t=' + Date.now())
+    .then(r=>r.ok?r.arrayBuffer():null)
+    .then(buf=>{
+      if(!buf) return;
+      WB_PROVEEDOR = XLSX.read(buf, {type:'array', cellDates:false});
+      procesarSheetsProveedor();
+      if(activeTab===13) renderProveedor(getFiltros());
     }).catch(()=>{});
   loading(true);
   try {
@@ -2064,6 +2088,179 @@ function mostrarDetalleInvgProv(prov){
 }
 
 // ══════════════════════════════════════════════════
+// TAB 13 – DETALLE POR PROVEEDOR
+// ══════════════════════════════════════════════════
+// Lee DETALLE POR PROVEEDOR.xlsx (hoja "POR LINEA"), que tiene la misma forma
+// que TABLERO.xlsx pero pivoteado por PROVEEDOR en vez de por LINEA. Solo trae
+// 4 conceptos (venta, costo, gastos, bonificacion), por eso esta pestaña llega
+// hasta GANANCIA NETA y no hasta utilidad liquida: participacion/IR/retenciones
+// no estan abiertos por proveedor todavia.
+function procesarSheetsProveedor(){
+  if(!WB_PROVEEDOR) return;
+  const nombreHoja = WB_PROVEEDOR.SheetNames.find(n=>n.trim().toUpperCase()==='POR LINEA') || WB_PROVEEDOR.SheetNames[0];
+  const raw = XLSX.utils.sheet_to_json(WB_PROVEEDOR.Sheets[nombreHoja], {defval:''});
+  sheets.proveedor = raw.map(r=>{
+    const obj={};
+    Object.keys(r).forEach(k=>{ obj[cleanUpper(k)] = r[k]; });
+    // La columna del valor viene de una tabla dinamica ("Suma de VentaNeta"),
+    // por eso no se busca por nombre fijo sino por lo que no sea dimension.
+    const keyValor = Object.keys(obj).find(k=>k.startsWith('SUMA DE')) || 'TOTAL';
+    return {
+      AÑO: cleanNum(obj['AÑO']),
+      MES: cleanUpper(obj['MES']),
+      PROVEEDOR: cleanStr(obj['PROVEEDOR']).trim(),
+      DETALLE: cleanStr(obj['DETALLE']).trim(),
+      TOTAL: cleanNum(obj[keyValor])
+    };
+  }).filter(r=>r.PROVEEDOR && r.DETALLE);
+}
+
+const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','OTROS INGRESOS','GANANCIA NETA','% MARGEN'];
+const PROV_PCT=['% COSTO SOBRE VENTAS','% GASTOS SOBRE VENTAS','% MARGEN'];
+const PROV_SUBTOT=['VENTA NETA'];
+const PROV_CALC=['GANANCIA NETA'];
+const COL_SIN_ASIGNAR='SIN ASIGNAR';
+
+function renderProveedor(f=getFiltros()){
+  const aviso=$('prov-aviso');
+  const base=(sheets.proveedor||[]).filter(r=>r.AÑO===f.año);
+  const mesesArchivo=sortMes([...new Set((sheets.proveedor||[]).filter(r=>r.AÑO===f.año).map(r=>r.MES))]);
+  const data = f.mes!=='TODOS' ? base.filter(r=>r.MES===f.mes) : base;
+
+  const limpiar=()=>{
+    ['kpi-prov-big','kpi-prov-gauges','prov-ranking'].forEach(id=>{ const e=$(id); if(e) e.innerHTML=''; });
+    const t=$('tbl-prov'); if(t){ t.querySelector('thead').innerHTML=''; t.querySelector('tbody').innerHTML=''; }
+  };
+
+  if(!sheets.proveedor || !sheets.proveedor.length){
+    limpiar();
+    if(aviso) aviso.innerHTML=`<div class="fc-alert fc-a-warn">⚠ No se pudo leer <b>${ARCHIVO_PROVEEDOR}</b>. Verifica que el archivo esté en la carpeta Gerencia.</div>`;
+    return;
+  }
+  if(!data.length){
+    limpiar();
+    if(aviso) aviso.innerHTML=`<div class="fc-alert fc-a-warn">⚠ No hay detalle por proveedor para <b>${f.mes==='TODOS'?'':f.mes+' '}${f.año||''}</b>. El archivo tiene: <b>${mesesArchivo.length?mesesArchivo.join(', '):'ningún mes de ese año'}</b>.</div>`;
+    return;
+  }
+
+  // Meses realmente cubiertos: el comparativo contra el Tablero se hace SOLO
+  // sobre estos meses, si no la columna "sin asignar" se comeria los meses que
+  // el Tablero ya tiene cargados y el detalle por proveedor todavia no.
+  const mesesCubiertos=sortMes([...new Set(data.map(r=>r.MES))]);
+  const provs=[...new Set(data.map(r=>r.PROVEEDOR))];
+
+  const pivot={};
+  const set=(det,col,v)=>{ if(!pivot[det]) pivot[det]={}; pivot[det][col]=v; };
+  const get=(det,col)=>(pivot[det] && pivot[det][col])||0;
+  data.forEach(r=>{
+    if(!pivot[r.DETALLE]) pivot[r.DETALLE]={};
+    pivot[r.DETALLE][r.PROVEEDOR]=(pivot[r.DETALLE][r.PROVEEDOR]||0)+r.TOTAL;
+  });
+
+  // Columna SIN ASIGNAR = lo que el Tablero tiene para el mismo periodo menos
+  // lo que suman los proveedores. Asi el Total de esta tabla cuadra exactamente
+  // con el Tablero Normal y se ve cuanta venta/costo no quedo atribuido.
+  const hayTablero=!!(sheets.tablero && sheets.tablero.length);
+  const CONCEPTOS=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','COSTO DE VENTAS Y PRODUCCIÓN','GASTOS','OTROS INGRESOS'];
+  if(hayTablero){
+    const tabPeriodo=sheets.tablero.filter(r=>r.AÑO===f.año && mesesCubiertos.includes(r.MES));
+    CONCEPTOS.forEach(c=>{
+      const totTab=tabPeriodo.filter(r=>r.DETALLE===c).reduce((a,b)=>a+b.TOTAL,0);
+      const totProv=provs.reduce((a,p)=>a+get(c,p),0);
+      set(c,COL_SIN_ASIGNAR,totTab-totProv);
+    });
+  }
+
+  const cols=[...provs].sort((a,b)=>(get('VENTA DE BIENES',b))-(get('VENTA DE BIENES',a)));
+  if(hayTablero) cols.push(COL_SIN_ASIGNAR);
+  const todas=[...cols,'Total'];
+
+  // Total por concepto
+  CONCEPTOS.forEach(c=>{ set(c,'Total',cols.reduce((a,col)=>a+get(c,col),0)); });
+
+  // Metricas derivadas, misma formula que el Tablero Normal
+  todas.forEach(col=>{
+    const venta=get('VENTA DE BIENES',col);
+    const boni=get('BONIFICACIÓN EN PRODUCTO',col);
+    const costo=get('COSTO DE VENTAS Y PRODUCCIÓN',col);
+    const gastos=get('GASTOS',col);
+    const otros=get('OTROS INGRESOS',col);
+    const neta=venta-boni;
+    const div=neta||1;
+    const gn=venta-boni-costo-gastos+otros;
+    set('VENTA NETA',col,neta);
+    set('% COSTO SOBRE VENTAS',col,costo/div*100);
+    set('% GASTOS SOBRE VENTAS',col,gastos/div*100);
+    set('GANANCIA NETA',col,gn);
+    set('% MARGEN',col,gn/div*100);
+  });
+
+  // Aviso de contexto: que periodo cubre y por que no aplica el filtro de LINEA
+  if(aviso){
+    const faltan=f.mes==='TODOS' && mesesArchivo.length && hayTablero
+      ? sortMes([...new Set(sheets.tablero.filter(r=>r.AÑO===f.año).map(r=>r.MES))]).filter(m=>!mesesCubiertos.includes(m))
+      : [];
+    const sinAsig=hayTablero?get('VENTA DE BIENES',COL_SIN_ASIGNAR):0;
+    const ventaTot=get('VENTA DE BIENES','Total')||1;
+    aviso.innerHTML=`<div class="fc-alert fc-a-ok">ℹ️ Periodo con detalle por proveedor: <b>${mesesCubiertos.join(', ')} ${f.año}</b>. El filtro de <b>LÍNEA</b> no aplica en esta pestaña (el archivo no abre la información por agencia).</div>`
+      + (faltan.length?`<div class="fc-alert fc-a-warn">⚠ El Tablero ya tiene <b>${faltan.join(', ')}</b>, pero ${ARCHIVO_PROVEEDOR} todavía no. Esos meses no están incluidos aquí.</div>`:'')
+      + (hayTablero && Math.abs(sinAsig)>0.5?`<div class="fc-alert fc-a-warn">⚠ Hay <b>${fmt$(sinAsig)}</b> de venta (${(sinAsig/ventaTot*100).toFixed(2)}%) sin proveedor asignado — se muestra en la columna <b>${COL_SIN_ASIGNAR}</b> para que el Total cuadre con el Tablero Normal.</div>`:'');
+  }
+
+  // KPIs
+  const gnT=get('GANANCIA NETA','Total'), netaT=get('VENTA NETA','Total');
+  renderKPIGauges('kpi-prov-big','kpi-prov-gauges',
+    [
+      {label:'💰 Ganancia Neta', value:fmt$(gnT), cls:gnT>=0?'green':'red'},
+      {label:'💳 Venta Neta', value:fmt$(netaT), cls:''},
+      {label:'🏷️ Proveedores', value:String(provs.length), cls:''},
+    ],
+    [
+      {id:'prov-margen', value:Math.max(0,get('% MARGEN','Total')), max:20, label:'% Margen', unit:'%',
+       colorFn:v=>v>=5?'#1DB87A':v>=2?'#F0A500':'#E05252'},
+      {id:'prov-costo', value:get('% COSTO SOBRE VENTAS','Total'), max:100, label:'% Costo Venta', unit:'%',
+       colorFn:v=>v<=80?'#1DB87A':v<=90?'#F0A500':'#E05252'},
+      {id:'prov-gasto', value:get('% GASTOS SOBRE VENTAS','Total'), max:30, label:'% Gasto Venta', unit:'%',
+       colorFn:v=>v<=15?'#1DB87A':v<=20?'#F0A500':'#E05252'},
+    ]
+  );
+
+  // Tabla
+  const tbl=$('tbl-prov');
+  if(tbl){
+    const thead=tbl.querySelector('thead'), tbody=tbl.querySelector('tbody');
+    thead.innerHTML=`<tr>${['DETALLE',...cols,'Total'].map(c=>`<th>${c}</th>`).join('')}</tr>`;
+    tbody.innerHTML=PROV_ORDEN.filter(fila=>pivot[fila]).map(fila=>{
+      const pct=PROV_PCT.includes(fila);
+      const cls=PROV_CALC.includes(fila)?'row-calc':PROV_SUBTOT.includes(fila)?'row-calc':pct?'row-pct':'';
+      const cells=todas.map(col=>{
+        const v=get(fila,col);
+        return `<td>${pct?fmtPct(v):fmt$(v)}</td>`;
+      }).join('');
+      return `<tr class="${cls}"><td>${fila}</td>${cells}</tr>`;
+    }).join('');
+  }
+
+  // Ranking de ganancia neta
+  const rank=$('prov-ranking');
+  if(rank){
+    // El ranking solo lista proveedores reales; SIN ASIGNAR queda en la tabla,
+    // que es donde sirve (cuadrar el total contra el Tablero Normal).
+    const filas=provs.map(c=>({col:c, gn:get('GANANCIA NETA',c), margen:get('% MARGEN',c)})).sort((a,b)=>b.gn-a.gn);
+    const esc=Math.max(...filas.map(x=>Math.abs(x.gn)),1);
+    rank.innerHTML=filas.map(x=>{
+      const pos=x.gn>=0;
+      const color=pos?'#1DB87A':'#E05252';
+      return `<div class="fc-prog-row">
+        <span class="fc-prog-label" style="width:150px;font-size:11px;font-weight:600;color:var(--navy);">${x.col}</span>
+        <div class="fc-prog-bar"><div class="fc-prog-fill" style="width:${(Math.abs(x.gn)/esc*100).toFixed(1)}%;background:${color}"></div></div>
+        <span class="fc-prog-val" style="width:190px;font-size:11px;color:${color};font-weight:700;">${fmt$(x.gn)} · ${x.margen.toFixed(2)}%</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ══════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════
 function switchTab(idx){
@@ -2072,6 +2269,7 @@ function switchTab(idx){
   document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
   if(idx===11){ renderBalance(); return; }      // Situacion Financiera: independiente de TABLERO.xlsx
   if(idx===12){ renderUtilidades(); return; }   // Utilidades Acumuladas: independiente de TABLERO.xlsx
+  if(idx===13){ renderProveedor(getFiltros()); return; } // Detalle por Proveedor: su propio xlsx
   if(!WB) return;
   const f = getFiltros();
   const renders = [renderNormal,renderSin,renderGastos,renderTransporte,renderRetornos,renderDescuentos,renderNCS,renderFin,renderTalento,renderRebate,renderInventarioGlobal];
