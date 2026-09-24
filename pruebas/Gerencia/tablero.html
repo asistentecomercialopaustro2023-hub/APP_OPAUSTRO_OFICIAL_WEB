@@ -2095,6 +2095,9 @@ function mostrarDetalleInvgProv(prov){
 // 4 conceptos (venta, costo, gastos, bonificacion), por eso esta pestaña llega
 // hasta GANANCIA NETA y no hasta utilidad liquida: participacion/IR/retenciones
 // no estan abiertos por proveedor todavia.
+// Esta pestaña muestra UNICAMENTE lo que trae ese archivo -- no se cruza ni se
+// completa con TABLERO.xlsx, asi que sus totales son los del archivo y no
+// tienen por que coincidir con los del Tablero Normal.
 function procesarSheetsProveedor(){
   if(!WB_PROVEEDOR) return;
   const nombreHoja = WB_PROVEEDOR.SheetNames.find(n=>n.trim().toUpperCase()==='POR LINEA') || WB_PROVEEDOR.SheetNames[0];
@@ -2115,11 +2118,11 @@ function procesarSheetsProveedor(){
   }).filter(r=>r.PROVEEDOR && r.DETALLE);
 }
 
-const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','OTROS INGRESOS','GANANCIA NETA','% MARGEN'];
+const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','GANANCIA NETA','% MARGEN'];
 const PROV_PCT=['% COSTO SOBRE VENTAS','% GASTOS SOBRE VENTAS','% MARGEN'];
 const PROV_SUBTOT=['VENTA NETA'];
 const PROV_CALC=['GANANCIA NETA'];
-const COL_SIN_ASIGNAR='SIN ASIGNAR';
+const PROV_CONCEPTOS=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','COSTO DE VENTAS Y PRODUCCIÓN','GASTOS'];
 
 function renderProveedor(f=getFiltros()){
   const aviso=$('prov-aviso');
@@ -2143,9 +2146,6 @@ function renderProveedor(f=getFiltros()){
     return;
   }
 
-  // Meses realmente cubiertos: el comparativo contra el Tablero se hace SOLO
-  // sobre estos meses, si no la columna "sin asignar" se comeria los meses que
-  // el Tablero ya tiene cargados y el detalle por proveedor todavia no.
   const mesesCubiertos=sortMes([...new Set(data.map(r=>r.MES))]);
   const provs=[...new Set(data.map(r=>r.PROVEEDOR))];
 
@@ -2157,37 +2157,22 @@ function renderProveedor(f=getFiltros()){
     pivot[r.DETALLE][r.PROVEEDOR]=(pivot[r.DETALLE][r.PROVEEDOR]||0)+r.TOTAL;
   });
 
-  // Columna SIN ASIGNAR = lo que el Tablero tiene para el mismo periodo menos
-  // lo que suman los proveedores. Asi el Total de esta tabla cuadra exactamente
-  // con el Tablero Normal y se ve cuanta venta/costo no quedo atribuido.
-  const hayTablero=!!(sheets.tablero && sheets.tablero.length);
-  const CONCEPTOS=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','COSTO DE VENTAS Y PRODUCCIÓN','GASTOS','OTROS INGRESOS'];
-  if(hayTablero){
-    const tabPeriodo=sheets.tablero.filter(r=>r.AÑO===f.año && mesesCubiertos.includes(r.MES));
-    CONCEPTOS.forEach(c=>{
-      const totTab=tabPeriodo.filter(r=>r.DETALLE===c).reduce((a,b)=>a+b.TOTAL,0);
-      const totProv=provs.reduce((a,p)=>a+get(c,p),0);
-      set(c,COL_SIN_ASIGNAR,totTab-totProv);
-    });
-  }
-
   const cols=[...provs].sort((a,b)=>(get('VENTA DE BIENES',b))-(get('VENTA DE BIENES',a)));
-  if(hayTablero) cols.push(COL_SIN_ASIGNAR);
   const todas=[...cols,'Total'];
 
   // Total por concepto
-  CONCEPTOS.forEach(c=>{ set(c,'Total',cols.reduce((a,col)=>a+get(c,col),0)); });
+  PROV_CONCEPTOS.forEach(c=>{ set(c,'Total',cols.reduce((a,col)=>a+get(c,col),0)); });
 
-  // Metricas derivadas, misma formula que el Tablero Normal
+  // Metricas derivadas, misma formula que el Tablero Normal. No entra OTROS
+  // INGRESOS: este archivo no lo abre por proveedor.
   todas.forEach(col=>{
     const venta=get('VENTA DE BIENES',col);
     const boni=get('BONIFICACIÓN EN PRODUCTO',col);
     const costo=get('COSTO DE VENTAS Y PRODUCCIÓN',col);
     const gastos=get('GASTOS',col);
-    const otros=get('OTROS INGRESOS',col);
     const neta=venta-boni;
     const div=neta||1;
-    const gn=venta-boni-costo-gastos+otros;
+    const gn=venta-boni-costo-gastos;
     set('VENTA NETA',col,neta);
     set('% COSTO SOBRE VENTAS',col,costo/div*100);
     set('% GASTOS SOBRE VENTAS',col,gastos/div*100);
@@ -2196,15 +2181,17 @@ function renderProveedor(f=getFiltros()){
   });
 
   // Aviso de contexto: que periodo cubre y por que no aplica el filtro de LINEA
+  // Meses cargados a medias: traen venta pero el costo llega en cero. Si no se
+  // avisa, el margen de esos meses sale inflado (toda la venta cae a ganancia).
+  const mesesSinCosto=mesesCubiertos.filter(m=>{
+    const dm=data.filter(r=>r.MES===m);
+    const v=dm.filter(r=>r.DETALLE.startsWith('VENTA')).reduce((a,b)=>a+b.TOTAL,0);
+    const c=dm.filter(r=>r.DETALLE.startsWith('COSTO')).reduce((a,b)=>a+b.TOTAL,0);
+    return v>0 && c<=0;
+  });
   if(aviso){
-    const faltan=f.mes==='TODOS' && mesesArchivo.length && hayTablero
-      ? sortMes([...new Set(sheets.tablero.filter(r=>r.AÑO===f.año).map(r=>r.MES))]).filter(m=>!mesesCubiertos.includes(m))
-      : [];
-    const sinAsig=hayTablero?get('VENTA DE BIENES',COL_SIN_ASIGNAR):0;
-    const ventaTot=get('VENTA DE BIENES','Total')||1;
-    aviso.innerHTML=`<div class="fc-alert fc-a-ok">ℹ️ Periodo con detalle por proveedor: <b>${mesesCubiertos.join(', ')} ${f.año}</b>. El filtro de <b>LÍNEA</b> no aplica en esta pestaña (el archivo no abre la información por agencia).</div>`
-      + (faltan.length?`<div class="fc-alert fc-a-warn">⚠ El Tablero ya tiene <b>${faltan.join(', ')}</b>, pero ${ARCHIVO_PROVEEDOR} todavía no. Esos meses no están incluidos aquí.</div>`:'')
-      + (hayTablero && Math.abs(sinAsig)>0.5?`<div class="fc-alert fc-a-warn">⚠ Hay <b>${fmt$(sinAsig)}</b> de venta (${(sinAsig/ventaTot*100).toFixed(2)}%) sin proveedor asignado — se muestra en la columna <b>${COL_SIN_ASIGNAR}</b> para que el Total cuadre con el Tablero Normal.</div>`:'');
+    aviso.innerHTML=`<div class="fc-alert fc-a-ok">ℹ️ Periodo: <b>${mesesCubiertos.join(', ')} ${f.año}</b>. El filtro de <b>LÍNEA</b> no aplica en esta pestaña (el archivo no abre la información por agencia).</div>`
+      + (mesesSinCosto.length?`<div class="fc-alert fc-a-warn">⚠ <b>${mesesSinCosto.join(', ')}</b> tiene venta cargada pero el costo llega en cero en ${ARCHIVO_PROVEEDOR}. Mientras esté así, el margen y la ganancia neta de esta pestaña salen inflados.</div>`:'');
   }
 
   // KPIs
@@ -2244,8 +2231,6 @@ function renderProveedor(f=getFiltros()){
   // Ranking de ganancia neta
   const rank=$('prov-ranking');
   if(rank){
-    // El ranking solo lista proveedores reales; SIN ASIGNAR queda en la tabla,
-    // que es donde sirve (cuadrar el total contra el Tablero Normal).
     const filas=provs.map(c=>({col:c, gn:get('GANANCIA NETA',c), margen:get('% MARGEN',c)})).sort((a,b)=>b.gn-a.gn);
     const esc=Math.max(...filas.map(x=>Math.abs(x.gn)),1);
     rank.innerHTML=filas.map(x=>{
