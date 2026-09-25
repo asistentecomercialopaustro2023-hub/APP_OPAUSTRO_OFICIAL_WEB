@@ -2118,11 +2118,14 @@ function procesarSheetsProveedor(){
   }).filter(r=>r.PROVEEDOR && r.DETALLE);
 }
 
-const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','GANANCIA NETA','% MARGEN'];
+const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','GANANCIA NETA','PARTICIPACIÓN 15%','BASE IMPONIBLE','IMPUESTO RENTA 25%','RETENCIONES RENTA NETA','IR POR PAGAR','UTILIDAD LIQUIDA','% MARGEN'];
 const PROV_PCT=['% COSTO SOBRE VENTAS','% GASTOS SOBRE VENTAS','% MARGEN'];
 const PROV_SUBTOT=['VENTA NETA'];
-const PROV_CALC=['GANANCIA NETA'];
-const PROV_CONCEPTOS=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','COSTO DE VENTAS Y PRODUCCIÓN','GASTOS'];
+const PROV_CALC=['GANANCIA NETA','PARTICIPACIÓN 15%','BASE IMPONIBLE','IMPUESTO RENTA 25%','RETENCIONES RENTA NETA','IR POR PAGAR'];
+const PROV_FINAL=['UTILIDAD LIQUIDA'];
+// Conceptos que vienen tal cual del xlsx (el resto se calcula). No entra
+// INVENTARIO: el archivo no lo abre por proveedor y no se quiere aqui.
+const PROV_CONCEPTOS=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','COSTO DE VENTAS Y PRODUCCIÓN','GASTOS','RETENCIONES RENTA'];
 
 function renderProveedor(f=getFiltros()){
   const aviso=$('prov-aviso');
@@ -2163,8 +2166,8 @@ function renderProveedor(f=getFiltros()){
   // Total por concepto
   PROV_CONCEPTOS.forEach(c=>{ set(c,'Total',cols.reduce((a,col)=>a+get(c,col),0)); });
 
-  // Metricas derivadas, misma formula que el Tablero Normal. No entra OTROS
-  // INGRESOS: este archivo no lo abre por proveedor.
+  // Metricas derivadas, misma cadena de calculo que el Tablero Normal. No
+  // entra OTROS INGRESOS: este archivo no lo abre por proveedor.
   todas.forEach(col=>{
     const venta=get('VENTA DE BIENES',col);
     const boni=get('BONIFICACIÓN EN PRODUCTO',col);
@@ -2173,11 +2176,22 @@ function renderProveedor(f=getFiltros()){
     const neta=venta-boni;
     const div=neta||1;
     const gn=venta-boni-costo-gastos;
+    const part=Math.max(0,gn)*0.15;
+    const baseImp=gn-part;
+    const ir=Math.max(0,baseImp)*0.25;
+    const ret=get('RETENCIONES RENTA',col);
+    const util=gn-part-ir;
     set('VENTA NETA',col,neta);
     set('% COSTO SOBRE VENTAS',col,costo/div*100);
     set('% GASTOS SOBRE VENTAS',col,gastos/div*100);
     set('GANANCIA NETA',col,gn);
-    set('% MARGEN',col,gn/div*100);
+    set('PARTICIPACIÓN 15%',col,part);
+    set('BASE IMPONIBLE',col,baseImp);
+    set('IMPUESTO RENTA 25%',col,ir);
+    set('RETENCIONES RENTA NETA',col,ret);
+    set('IR POR PAGAR',col,Math.max(0,ir-ret));
+    set('UTILIDAD LIQUIDA',col,util);
+    set('% MARGEN',col,util/div*100);
   });
 
   // Aviso de contexto: que periodo cubre y por que no aplica el filtro de LINEA
@@ -2200,12 +2214,12 @@ function renderProveedor(f=getFiltros()){
   }
 
   // KPIs
-  const gnT=get('GANANCIA NETA','Total'), netaT=get('VENTA NETA','Total');
+  const gnT=get('GANANCIA NETA','Total'), netaT=get('VENTA NETA','Total'), utilT=get('UTILIDAD LIQUIDA','Total');
   renderKPIGauges('kpi-prov-big','kpi-prov-gauges',
     [
       {label:'💰 Ganancia Neta', value:fmt$(gnT), cls:gnT>=0?'green':'red'},
+      {label:'💵 Utilidad Líquida', value:fmt$(utilT), cls:utilT>=0?'green':'red'},
       {label:'💳 Venta Neta', value:fmt$(netaT), cls:''},
-      {label:'🏷️ Proveedores', value:String(provs.length), cls:''},
     ],
     [
       {id:'prov-margen', value:Math.max(0,get('% MARGEN','Total')), max:20, label:'% Margen', unit:'%',
@@ -2224,7 +2238,7 @@ function renderProveedor(f=getFiltros()){
     thead.innerHTML=`<tr>${['DETALLE',...cols,'Total'].map(c=>`<th>${c}</th>`).join('')}</tr>`;
     tbody.innerHTML=PROV_ORDEN.filter(fila=>pivot[fila]).map(fila=>{
       const pct=PROV_PCT.includes(fila);
-      const cls=PROV_CALC.includes(fila)?'row-calc':PROV_SUBTOT.includes(fila)?'row-calc':pct?'row-pct':'';
+      const cls=PROV_FINAL.includes(fila)?'row-final':(PROV_CALC.includes(fila)||PROV_SUBTOT.includes(fila))?'row-calc':pct?'row-pct':'';
       const cells=todas.map(col=>{
         const v=get(fila,col);
         return `<td>${pct?fmtPct(v):fmt$(v)}</td>`;
