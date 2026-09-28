@@ -271,16 +271,13 @@
   .pv-scope .pv-scroll table { min-width:760px; font-size:12.5px; }
   .pv-scope .pv-scroll thead th { background:var(--navy); text-align:right; padding:11px 14px; font-size:10.5px; letter-spacing:.07em; white-space:nowrap; }
   .pv-scope .pv-scroll thead th:first-child { text-align:left; }
-  .pv-scope .pv-scroll thead th.pv-av { background:#0E4A5A; color:#9FD4E0; }
   .pv-scope .pv-scroll tbody td { font-variant-numeric:tabular-nums; white-space:nowrap; }
   .pv-scope .pv-scroll tbody td:first-child { font-weight:500; }
-  .pv-scope .pv-scroll tbody td.pv-av { background:var(--gray1); color:#5B7078; font-weight:700; }
   .pv-scope .pv-scroll tbody tr:hover { background:#FAFCFD; }
   .pv-scope .pv-scroll tr.row-calc td:first-child { color:var(--navy); font-weight:800; }
   .pv-scope .pv-scroll tr.pv-step td:first-child { padding-left:28px; color:#5B7078; font-weight:400; }
   .pv-scope .pv-scroll tr.row-final td { background:var(--navy); color:#fff; font-weight:800; font-size:13px; border-bottom:none; }
   .pv-scope .pv-scroll tr.row-final:hover { background:var(--navy); }
-  .pv-scope .pv-scroll tr.row-final td.pv-av { background:#0E4A5A; color:#9FD4E0; }
   .pv-scope .pv-neg { color:var(--red); }
   .pv-scope .pv-scroll tr.row-final .pv-neg { color:#FF9A9A; }
 
@@ -840,7 +837,7 @@
       <div class="pv-tiles" id="normal-tiles"></div>
     </div>
     <div id="kpi-normal-gauges" class="kpi-gauge-grid" style="margin-top:16px"></div>
-    <div class="pv-sec">Estado de resultados por línea <small>· la columna A.V. es cada línea como % de la venta neta</small></div>
+    <div class="pv-sec">Estado de resultados por línea</div>
     <div class="pv-card pv-scroll"><table id="tbl-normal"><thead></thead><tbody></tbody></table></div>
   </div>
 
@@ -1256,7 +1253,7 @@
       </div>
       <div class="pv-tiles" id="prov-tiles"></div>
     </div>
-    <div class="pv-sec">Estado de resultados por proveedor <small>· la columna A.V. es cada línea como % de la venta neta</small></div>
+    <div class="pv-sec">Estado de resultados por proveedor</div>
     <div class="pv-card pv-scroll"><table id="tbl-prov"><thead></thead><tbody></tbody></table></div>
     <div class="pv-sec">Ganancia neta por proveedor <small>· de mayor a menor</small></div>
     <div class="pv-card"><div class="pv-rank" id="prov-ranking"></div></div>
@@ -2501,13 +2498,10 @@ function renderProveedor(f=getFiltros()){
     tiles:pvTilesResultado(netaT, get('COSTO DE VENTAS Y PRODUCCIÓN','Total'), get('GASTOS','Total'), gnT)
   });
 
-  // Tabla. La columna A.V. (analisis vertical) expresa cada linea como % de la
-  // venta neta del total, que es la lectura que pidio el usuario.
   const tbl=$('tbl-prov');
   if(tbl){
     const thead=tbl.querySelector('thead'), tbody=tbl.querySelector('tbody');
-    thead.innerHTML=`<tr>${['DETALLE',...cols,'Total'].map(c=>`<th>${c}</th>`).join('')}<th class="pv-av">A.V.</th></tr>`;
-    const baseAV=netaT||1;
+    thead.innerHTML=`<tr>${['DETALLE',...cols,'Total'].map(c=>`<th>${c}</th>`).join('')}</tr>`;
     tbody.innerHTML=PROV_ORDEN.filter(fila=>pivot[fila]).map(fila=>{
       const pct=PROV_PCT.includes(fila);
       const cls=[PROV_FINAL.includes(fila)?'row-final':(PROV_CALC.includes(fila)||PROV_SUBTOT.includes(fila))?'row-calc':pct?'row-pct':'',
@@ -2516,8 +2510,7 @@ function renderProveedor(f=getFiltros()){
         const v=get(fila,col);
         return `<td${!pct&&v<0?' class="pv-neg"':''}>${pct?fmtPct(v):fmt$(v)}</td>`;
       }).join('');
-      const av=pct?'—':fmtPct(get(fila,'Total')/baseAV*100);
-      return `<tr class="${cls}"><td>${fila}</td>${cells}<td class="pv-av">${av}</td></tr>`;
+      return `<tr class="${cls}"><td>${fila}</td>${cells}</tr>`;
     }).join('');
   }
 
@@ -2739,21 +2732,14 @@ const FILAS_FINAL=['UTILIDAD LIQUIDA'];
 // Filas que son pasos intermedios del calculo de impuestos: se indentan para
 // que se lea que cuelgan de GANANCIA NETA y no son conceptos de su mismo nivel.
 const FILAS_STEP=['PARTICIPACIÓN 15%','BASE IMPONIBLE','IMPUESTO RENTA 25%','RETENCIONES RENTA NETA','IR POR PAGAR'];
-// Filas que no son resultado del periodo: un % sobre la venta no significa nada
-// ahi (el inventario es un saldo y el presupuesto es una meta, no un realizado).
-const FILAS_NO_AV=['INVENTARIO','PRESUPUESTO VENTAS'];
 
-// analisisVertical: agrega la columna A.V. con cada linea como % de la venta
-// neta del total. Solo la piden las pestañas con estilo dashboard.
-function renderPivotTable(tableId, {pivot,lineas,orden}, analisisVertical=false){
+function renderPivotTable(tableId, {pivot,lineas,orden}){
   const tbl=$(`#${tableId}`) || document.querySelector(`#${tableId}`);
   if(!tbl) return;
   const thead=tbl.querySelector('thead');
   const tbody=tbl.querySelector('tbody');
   const cols=['DETALLE',...lineas,'Total'];
-  const gTot=d=>(pivot[d] && pivot[d]['Total'])||0;
-  const baseAV=(gTot('VENTA DE BIENES')-gTot('BONIFICACIÓN EN PRODUCTO'))||1;
-  thead.innerHTML=`<tr>${cols.map(c=>`<th>${c}</th>`).join('')}${analisisVertical?'<th class="pv-av">A.V.</th>':''}</tr>`;
+  thead.innerHTML=`<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
   let html='';
   orden.forEach(fila=>{
     if(!pivot[fila]) return;
@@ -2762,16 +2748,14 @@ function renderPivotTable(tableId, {pivot,lineas,orden}, analisisVertical=false)
     const calc=FILAS_CALC.includes(fila);
     const final=FILAS_FINAL.includes(fila);
     const cls=[final?'row-final':calc?'row-calc':pct?'row-pct':'',
-               analisisVertical&&FILAS_STEP.includes(fila)?'pv-step':''].filter(Boolean).join(' ');
+               FILAS_STEP.includes(fila)?'pv-step':''].filter(Boolean).join(' ');
     const cells=[fila,...lineas,'Total'].map((c,i)=>{
       if(i===0) return `<td>${fila}</td>`;
       const v=pivot[fila][c]||0;
       const fmt=pct?fmtPct(v):dias?fmtNum(v):fmt$(v);
-      return `<td${analisisVertical&&!pct&&!dias&&v<0?' class="pv-neg"':''}>${fmt}</td>`;
+      return `<td${!pct&&!dias&&v<0?' class="pv-neg"':''}>${fmt}</td>`;
     });
-    const sinAV=pct||dias||FILAS_NO_AV.includes(fila);
-    const av=analisisVertical?`<td class="pv-av">${sinAV?'—':fmtPct(gTot(fila)/baseAV*100)}</td>`:'';
-    html+=`<tr class="${cls}">${cells.join('')}${av}</tr>`;
+    html+=`<tr class="${cls}">${cells.join('')}</tr>`;
   });
   tbody.innerHTML=html;
 }
@@ -2822,7 +2806,7 @@ function renderNormal(f=getFiltros()){
        colorFn:v=>v<=15?'#1DB87A':v<=20?'#F0A500':'#E05252'},
     ]
   );
-  renderPivotTable('tbl-normal', result, true);
+  renderPivotTable('tbl-normal', result);
 }
 
 // ══════════════════════════════════════════════════
@@ -2874,7 +2858,7 @@ function renderSin(f=getFiltros()){
        colorFn:v=>v<=15?'#1DB87A':v<=20?'#F0A500':'#E05252'},
     ]
   );
-  renderPivotTable('tbl-sin', result, true);
+  renderPivotTable('tbl-sin', result);
 }
 
 // ══════════════════════════════════════════════════
