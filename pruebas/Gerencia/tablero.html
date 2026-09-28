@@ -232,6 +232,11 @@
      no chocar con los estilos de tabla/tarjeta que comparten las demas. */
   .pv-scope .pv-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
   .pv-scope .pv-periodo { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--teal); background:var(--sky); border-radius:99px; padding:5px 12px; }
+  .pv-scope .pv-toggle { display:inline-flex; background:var(--gray1); border:1px solid var(--gray2); border-radius:99px; padding:3px; gap:2px; }
+  .pv-scope .pv-toggle button { border:none; background:transparent; cursor:pointer; font-family:inherit; font-size:11px; font-weight:700; color:#5B7078; padding:5px 14px; border-radius:99px; transition:background .15s,color .15s; }
+  .pv-scope .pv-toggle button:hover { color:var(--navy); }
+  .pv-scope .pv-toggle button.is-on { background:var(--navy); color:#fff; }
+  .pv-scope .pv-toggle button:focus-visible { outline:2px solid var(--teal2); outline-offset:2px; }
 
   .pv-scope .pv-hero { display:grid; grid-template-columns:minmax(250px,1.05fr) 2fr; gap:16px; margin-bottom:6px; }
   .pv-scope .pv-hero-card {
@@ -1231,7 +1236,13 @@
   <div class="tab-panel pv-scope" id="panel-13">
     <div class="pv-head">
       <div class="section-title" style="margin-bottom:0">🏷️ Rentabilidad por Proveedor</div>
-      <div class="pv-periodo" id="prov-periodo"></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="pv-toggle" id="prov-toggle">
+          <button type="button" class="is-on" data-adic="con" onclick="setProvAdicionales('con')">Normal</button>
+          <button type="button" data-adic="sin" onclick="setProvAdicionales('sin')">Sin Adicionales</button>
+        </div>
+        <div class="pv-periodo" id="prov-periodo"></div>
+      </div>
     </div>
     <div id="prov-aviso"></div>
     <div class="pv-hero">
@@ -1316,6 +1327,10 @@ let utilidades = [];
 let balUtilPrevia = 0;
 let balUtilActual = 0;
 let balanceCorte = localStorage.getItem('opa_tablero_balance_corte') || '';
+// Cuando el corte viene del propio BALANCE.xlsx, el campo se bloquea: si
+// siguiera editable cada usuario podria dejar escrita una fecha distinta a la
+// del archivo que estan viendo todos.
+let balanceCorteDesdeArchivo = false;
 const fcFmt = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 function fcParseNum(v){
@@ -1331,12 +1346,40 @@ function guardarCorteBalance(){
   renderBalance();
 }
 
+// Lee la fecha de corte que viene en la hoja "balance": en la fila de
+// encabezado hay una celda con el texto CORTE y, a su derecha, la fecha.
+// Antes el corte se escribia a mano y se guardaba en el navegador de cada
+// usuario, asi que cada quien veia una fecha distinta.
+function leerCorteBalance_(arr){
+  if(!arr || !arr.length) return '';
+  for(let i=0;i<Math.min(arr.length,5);i++){
+    const row=arr[i]||[];
+    for(let c=0;c<row.length;c++){
+      if(String(row[c]||'').trim().toUpperCase()!=='CORTE') continue;
+      const v=row[c+1];
+      if(v===''||v==null) continue;
+      const n=Number(v);
+      if(!isNaN(n) && n>1000){
+        const d=excelDateToJSDate(n);
+        if(d){
+          const t=d.toLocaleDateString('es',{month:'long',year:'numeric',timeZone:'UTC'}).replace(' de ',' ');
+          return t.charAt(0).toUpperCase()+t.slice(1);
+        }
+      }
+      return String(v).trim();
+    }
+  }
+  return '';
+}
+
 function procesarBalanceXlsx(){
   const shBal = WB_BALANCE.Sheets['balance'];
   const shUt = WB_BALANCE.Sheets['UTILIDADES'];
   balance = [];
   if(shBal){
     const arr = XLSX.utils.sheet_to_json(shBal, {header:1, defval:''});
+    const corte = leerCorteBalance_(arr);
+    if(corte){ balanceCorte = corte; balanceCorteDesdeArchivo = true; }
     for(let i=1;i<arr.length;i++){
       const row = arr[i];
       const descL = String(row[0]||'').trim();
@@ -1421,7 +1464,14 @@ function renderBalance(){
   const norm=s=>(s||'').toString().toLowerCase();
   const clean=s=>(s||'').toString().replace(/^[.·\s]+/,'').trim();
 
-  const cInp=g('bal-corte'); if(cInp && document.activeElement!==cInp) cInp.value=balanceCorte||'';
+  const cInp=g('bal-corte');
+  if(cInp && document.activeElement!==cInp) cInp.value=balanceCorte||'';
+  if(cInp){
+    cInp.readOnly=balanceCorteDesdeArchivo;
+    cInp.title=balanceCorteDesdeArchivo?'Viene de la celda CORTE de BALANCE.xlsx':'Se guarda solo en este navegador';
+    cInp.style.opacity=balanceCorteDesdeArchivo?'.75':'';
+    cInp.style.cursor=balanceCorteDesdeArchivo?'default':'';
+  }
   const corteTxt = balanceCorte ? (' (corte '+balanceCorte+')') : '';
 
   const ids=['bal-util-actual','bal-util-previa','bal-util-total','bal-efectivo','bal-ref-activos','bal-ref-pasivos','bal-ref-patrimonio'];
@@ -2239,6 +2289,30 @@ function procesarSheetsProveedor(){
       TOTAL: cleanNum(obj[keyValor])
     };
   }).filter(r=>r.PROVEEDOR && r.DETALLE);
+
+  // Hoja ADICIONALES: mismos gastos adicionales que el Tablero maneja con la
+  // pestaña "Sin Adicionales", pero abiertos por proveedor. Aqui no va en una
+  // pestaña aparte sino en un selector dentro de la misma.
+  const hojaAdic = WB_PROVEEDOR.SheetNames.find(n=>n.trim().toUpperCase()==='ADICIONALES');
+  sheets.proveedor_adic = !hojaAdic ? [] : XLSX.utils.sheet_to_json(WB_PROVEEDOR.Sheets[hojaAdic], {defval:''}).map(r=>{
+    const obj={};
+    Object.keys(r).forEach(k=>{ obj[cleanUpper(k)] = r[k]; });
+    const keyValor = Object.keys(obj).find(k=>k.startsWith('SUMA DE')) || 'VALOR';
+    return {
+      AÑO: cleanNum(obj['AÑO']),
+      MES: cleanUpper(obj['MES']),
+      PROVEEDOR: cleanStr(obj['PROVEEDOR']).trim(),
+      DETALLE: cleanStr(obj['DETALLE']).trim() || 'GASTOS',
+      TOTAL: cleanNum(obj[keyValor] !== undefined ? obj[keyValor] : obj['TOTAL'])
+    };
+  }).filter(r=>r.PROVEEDOR);
+}
+
+let provAdicionales = 'con';
+function setProvAdicionales(modo){
+  provAdicionales = modo;
+  document.querySelectorAll('#prov-toggle button').forEach(b=>b.classList.toggle('is-on', b.dataset.adic===modo));
+  renderProveedor(getFiltros());
 }
 
 const PROV_ORDEN=['VENTA DE BIENES','BONIFICACIÓN EN PRODUCTO','VENTA NETA','COSTO DE VENTAS Y PRODUCCIÓN','% COSTO SOBRE VENTAS','GASTOS','% GASTOS SOBRE VENTAS','GANANCIA NETA','PARTICIPACIÓN 15%','BASE IMPONIBLE','IMPUESTO RENTA 25%','RETENCIONES RENTA NETA','IR POR PAGAR','UTILIDAD LIQUIDA','% MARGEN'];
@@ -2342,6 +2416,22 @@ function renderProveedor(f=getFiltros()){
     pivot[r.DETALLE][r.PROVEEDOR]=(pivot[r.DETALLE][r.PROVEEDOR]||0)+r.TOTAL;
   });
 
+  // En modo "Sin Adicionales" se restan del gasto de cada proveedor los
+  // adicionales del mismo periodo, igual que hace la pestaña Sin Adicionales
+  // del Tablero con las lineas.
+  const sinAdic = provAdicionales==='sin';
+  let adicTotal = 0;
+  if(sinAdic){
+    (sheets.proveedor_adic||[])
+      .filter(r=>r.AÑO===f.año && mesesCubiertos.includes(r.MES) && provs.includes(r.PROVEEDOR))
+      .forEach(r=>{
+        const det = r.DETALLE.toUpperCase().startsWith('GASTO') ? 'GASTOS' : r.DETALLE;
+        if(!pivot[det]) return;
+        pivot[det][r.PROVEEDOR]=(pivot[det][r.PROVEEDOR]||0)-r.TOTAL;
+        adicTotal += r.TOTAL;
+      });
+  }
+
   const cols=[...provs].sort((a,b)=>(get('VENTA DE BIENES',b))-(get('VENTA DE BIENES',a)));
   const todas=[...cols,'Total'];
 
@@ -2392,7 +2482,13 @@ function renderProveedor(f=getFiltros()){
   if(aviso){
     // El periodo ya lo muestra la pildora del encabezado, aqui solo va lo que
     // el usuario no puede deducir mirando la pantalla.
-    aviso.innerHTML=`<div class="fc-alert fc-a-ok">ℹ️ El filtro de <b>LÍNEA</b> no aplica en esta pestaña: el archivo no abre la información por agencia.</div>`
+    const avisoAdic = sinAdic
+      ? (adicTotal>0
+          ? `<div class="fc-alert fc-a-ok">✓ Modo <b>Sin Adicionales</b>: se restaron <b>${fmt$(adicTotal)}</b> de gastos adicionales del periodo.</div>`
+          : `<div class="fc-alert fc-a-warn">⚠ Modo <b>Sin Adicionales</b>, pero no hay adicionales cargados para este periodo en la hoja ADICIONALES de ${ARCHIVO_PROVEEDOR}.</div>`)
+      : '';
+    aviso.innerHTML=avisoAdic
+      + `<div class="fc-alert fc-a-ok">ℹ️ El filtro de <b>LÍNEA</b> no aplica en esta pestaña: el archivo no abre la información por agencia.</div>`
       + (incompletos.length?`<div class="fc-alert fc-a-warn">⚠ ${incompletos.map(x=>`<b>${x.mes}</b> tiene venta cargada pero ${x.falta} en cero`).join('; ')} en ${ARCHIVO_PROVEEDOR}. Mientras esté así, el margen y la ganancia neta salen inflados.</div>`:'');
   }
 
@@ -2448,13 +2544,18 @@ function renderProveedor(f=getFiltros()){
     }).join('');
   }
 
-  renderProveedorComparativa(data, mesesCubiertos, f);
+  // La comparativa recalcula desde las filas, no desde el pivot, asi que el
+  // descuento de adicionales hay que pasarselo tambien a ella.
+  const dataCmp = sinAdic && adicTotal>0
+    ? data.concat([{AÑO:f.año, MES:mesesCubiertos[0], PROVEEDOR:'(adicionales)', DETALLE:'GASTOS', TOTAL:-adicTotal}])
+    : data;
+  renderProveedorComparativa(dataCmp, mesesCubiertos, f, sinAdic);
 }
 
 // Comparativa contra el Tablero General, acotada a los meses que el archivo de
 // proveedor realmente cubre (si no, los meses que solo tiene el Tablero
 // aparecerian como una diferencia gigante que no significa nada).
-function renderProveedorComparativa(data, meses, f){
+function renderProveedorComparativa(data, meses, f, sinAdic){
   const tbl=$('tbl-prov-comp'), nota=$('prov-comp-nota');
   if(!tbl) return;
   const limpiar=()=>{ tbl.querySelector('thead').innerHTML=''; tbl.querySelector('tbody').innerHTML=''; };
@@ -2464,7 +2565,16 @@ function renderProveedorComparativa(data, meses, f){
     return;
   }
   const P=provCalc(data);
-  const G=provCalc(sheets.tablero.filter(r=>r.AÑO===f.año && meses.includes(r.MES)));
+  // Si el detalle por proveedor esta sin adicionales, al Tablero hay que
+  // quitarle los suyos tambien: comparar uno con y otro sin daria una brecha
+  // que es solo la diferencia de criterio, no un descuadre real.
+  let filasTab=sheets.tablero.filter(r=>r.AÑO===f.año && meses.includes(r.MES));
+  if(sinAdic){
+    const adicTab=(sheets.adicionales||[]).filter(r=>r.AÑO===f.año && meses.includes(r.MES))
+      .reduce((a,b)=>a+b.TOTAL,0);
+    filasTab=filasTab.concat([{AÑO:f.año, MES:meses[0], DETALLE:'GASTOS', LINEA:'(adicionales)', TOTAL:-adicTab}]);
+  }
+  const G=provCalc(filasTab);
   const fils=[
     {k:'Venta Neta', p:P.neta, g:G.neta},
     {k:'Costo de Ventas', p:P.costo, g:G.costo},
