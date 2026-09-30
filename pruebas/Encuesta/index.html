@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Encuesta — Vendedor</title>
+  <script>
+    const params = new URLSearchParams(location.search);
+    params.set("embed", params.get("embed") || "1");
+    location.replace("./modulo_encuesta.html?" + params.toString());
+  </script>
+</head>
+<body>
+  <a href="./modulo_encuesta.html?embed=1">Abrir Encuesta</a>
+</body>
+</html>

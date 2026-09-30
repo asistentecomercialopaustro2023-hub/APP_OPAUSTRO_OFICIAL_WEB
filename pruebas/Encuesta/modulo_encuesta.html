@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>Encuesta — Opaustro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#ffffff;--panel:#eef2f7;--border:rgba(10,22,40,.12);--txt:#0a1628;--mut:rgba(10,22,40,.55);--blue:#0099ff;--blue2:#005B9E;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
+body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:16px;padding-bottom:40px}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 18% 12%,rgba(16,185,129,.06),transparent 45%),radial-gradient(ellipse at 85% 88%,rgba(0,153,255,.06),transparent 46%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.logo{background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 16px}.logo img{height:28px;display:block}
+.head h1{font-size:20px;font-weight:800}.head .sub{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.spacer{flex:1}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(10,22,40,.05)}
+.card h2{font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label,.lbl{display:block;font-size:11px;color:var(--mut);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+input,textarea{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:10px 12px;font-size:14px;font-family:inherit}
+input:focus,textarea:focus{outline:none;border-color:var(--blue)}
+input:disabled,textarea:disabled{opacity:.7;cursor:not-allowed}
+.field{margin-bottom:12px}
+.ident{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px}
+.cliente-row{display:flex;gap:8px}
+.cliente-row input{flex:1;min-width:0}
+.q{border-top:1px solid var(--border);padding-top:14px;margin-top:6px}
+.q-title{font-size:14px;font-weight:700;margin-bottom:10px;line-height:1.4}
+.q-title .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue2);color:#fff;font-size:12px;margin-right:6px;vertical-align:1px}
+.q-title .hint{display:block;font-size:11.5px;font-weight:400;color:var(--mut);margin-top:2px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--border);border-radius:11px;padding:11px 12px;margin:0;cursor:pointer;font-size:14px;line-height:1.3;user-select:none;color:var(--txt);text-transform:none;letter-spacing:0;font-weight:400}
+.opt input{width:18px;height:18px;flex-shrink:0;accent-color:var(--blue2);margin:0}
+.opt:hover{border-color:rgba(0,153,255,.45)}
+.opt.sel{border-color:var(--blue);background:rgba(0,153,255,.10);font-weight:600}
+.opts.locked .opt{cursor:not-allowed;opacity:.75}
+.opts.locked .opt.sel{opacity:1}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{border:none;border-radius:11px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn.primary{background:linear-gradient(135deg,var(--blue2),var(--blue));color:#fff}
+.btn.green{background:linear-gradient(135deg,#047857,var(--green));color:#fff}
+.btn.ghost{background:rgba(10,22,40,.05);color:var(--txt);border:1px solid var(--border)}
+.btn.sm{padding:10px 14px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn:hover:not(:disabled){filter:brightness(1.05)}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(10,22,40,.15);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+.btn .spin{border-color:rgba(255,255,255,.35);border-top-color:#fff;margin-right:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.status{font-size:14px;margin-top:12px;min-height:18px;line-height:1.45}.status.err{color:#b91c1c}.status.ok{color:#047857}.status.info{color:var(--mut)}
+.aviso{border-radius:12px;padding:14px;margin-top:12px;font-size:14px;line-height:1.5}
+.aviso.dup{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);color:#7c2d12}
+.aviso b{display:block;font-size:15px;margin-bottom:2px}
+.note{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.5}
+.pill{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#92400e}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(3,8,20,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.modal.open{display:flex}
+.modal .inner{background:#fff;border:1px solid var(--border);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:20px;box-shadow:0 8px 30px rgba(10,22,40,.15)}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:12px}
+.resumen{width:100%;border-collapse:collapse;font-size:14px}
+.resumen th,.resumen td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.resumen th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em;width:45%;font-weight:700}
+.resumen td{font-weight:600;word-break:break-word}
+.exito{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 6px}
+.exito .check{width:84px;height:84px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;animation:pop .35s ease-out}
+.exito .check svg{width:46px;height:46px}
+.exito .check path{stroke:#fff;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dibuja .4s .2s ease-out forwards}
+.exito p{font-size:17px;font-weight:800;color:#047857;margin-top:14px}
+.exito small{font-size:12.5px;color:var(--mut);margin-top:4px}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes dibuja{to{stroke-dashoffset:0}}
+@media(max-width:600px){.grid2,.opts{grid-template-columns:1fr}body{padding:12px}.modal .btnrow .btn{flex:1 1 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo"><img src="../Recuros_imagenes/logo_opaustro.png" alt="Opaustro" onerror="this.parentNode.style.display='none'"></div>
+    <div><h1>Encuesta</h1></div>
+    <div class="spacer"></div>
+    <span class="pill hidden" id="demoPill">demo</span>
+  </div>
+
+  <div class="card">
+    <h2>📝 Nueva encuesta</h2>
+    <div class="grid2">
+      <div class="field"><div class="lbl">Vendedor</div><div class="ident" id="vendedorNombre">Cargando…</div></div>
+      <div class="field"><label for="fCliente">Código de cliente</label>
+        <div class="cliente-row">
+          <input id="fCliente" inputmode="numeric" autocomplete="off" placeholder="Ej: 1024">
+          <button class="btn primary sm" id="btnBuscar" type="button">Verificar</button>
+        </div>
+      </div>
+    </div>
+    <div class="status" id="clienteStatus"></div>
+
+    <div class="aviso dup hidden" id="avisoDup">
+      <b>⚠️ Este cliente ya fue encuestado</b>
+      <span id="avisoDupDetalle"></span>
+      <div class="btnrow" style="margin-top:12px"><button class="btn ghost" id="btnOtroCliente" type="button">🧑 Encuestar otro cliente</button></div>
+    </div>
+
+    <div id="formEncuesta" class="hidden">
+      <div class="q">
+        <div class="q-title"><span class="n">1</span>¿Qué tipo de negocio tiene este cliente?<span class="hint">Marca una sola opción.</span></div>
+        <div class="opts" id="optsNegocio"></div>
+      </div>
+
+      <div id="bloqueExtra" class="hidden">
+        <div class="q" style="margin-top:14px">
+          <div class="q-title"><span class="n">2</span>¿Cuántas neveras, refrigeradores y/o congeladores tiene el cliente?<span class="hint">Propios y de proveedores. Solo números enteros.</span></div>
+          <input id="fNeveras" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="Ej: 3">
+        </div>
+        <div class="q" style="margin-top:14px">
+          <div class="q-title"><span class="n">3</span>¿Cuántos puntos de cobro tiene el cliente?<span class="hint">Cajas / check outs. Solo números enteros.</span></div>
+          <input id="fCajas" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="Ej: 1">
+        </div>
+      </div>
+
+      <div id="bloqueObs" class="hidden" style="margin-top:14px">
+        <label for="fObs">Observación rápida (opcional)</label>
+        <input id="fObs" maxlength="250" autocomplete="off" placeholder="Escribe una observación corta…">
+      </div>
+
+      <div class="status" id="formStatus"></div>
+      <div class="btnrow">
+        <button class="btn green" id="btnEnviar" type="button" disabled>📤 Enviar encuesta</button>
+        <button class="btn ghost" id="btnLimpiar" type="button">↺ Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel de confirmacion -->
+<div class="modal" id="modalConfirmar" role="dialog" aria-modal="true" aria-labelledby="tituloConfirmar">
+  <div class="inner">
+    <div id="vistaResumen">
+      <h3 id="tituloConfirmar">Confirma la encuesta</h3>
+      <table class="resumen"><tbody id="resumenBody"></tbody></table>
+      <div class="status" id="envioStatus"></div>
+      <div class="btnrow">
+        <button class="btn ghost" id="btnRegresar" type="button">✎ Regresar a editar</button>
+        <button class="btn green" id="btnConfirmar" type="button">✔ Confirmar</button>
+      </div>
+    </div>
+    <div id="vistaExito" class="exito hidden">
+      <div class="check"><svg viewBox="0 0 52 52"><path d="M14 27l8 8 16-17"/></svg></div>
+      <p>Encuesta enviada exitosamente</p>
+      <small>Preparando una nueva encuesta…</small>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  const QS=new URLSearchParams(location.search);
+
+  // Deployment /exec del Apps Script de Encuesta de ESTE ambiente (pruebas):
+  // AppsScript_PRUEBAS/Encuesta/Code.gs.
+  const DEFAULT_API_URL="https://script.google.com/macros/s/AKfycbwKHYKScNuW744_JB1jIvwJEbWytcUSGVqBEljvD3pJM5oQrC9mqfm_ldFxZK5I5pI4/exec";
+  // Misma clave interna compartida por Login/Logistica/ICE_Pinguino/Exhibidores.
+  const INTERNAL_API_KEY="OPA-INTERNAL-2026";
+  const SUBMODULO="EncuestaVendedor";
+  const TIPOS_NEGOCIO=["Tienda de Barrio","Kiosko / Puesto al Paso","Minimercado","SMI (Supermercado Independiente)","Mayorista Abarrotero","Mayoristas Confitero","Tienda de Conveniencia","Panadería","Farmacias","Licorería","Frutería","Bazar","Otros especializados"];
+  // SMI no pide las preguntas 2 y 3: se envia directo.
+  const TIPO_SIN_EXTRA="SMI (Supermercado Independiente)";
+  const K_BORRADOR="opaustro_encuesta_pendiente";
+  const TIEMPO_ESPERA_MS=45000;
+  // ?demo=1 simula el servidor en este navegador (para revisar la pantalla sin
+  // backend). En demo el cliente 1001 ya figura encuestado y ?falla=1 hace que
+  // el envio falle, para probar que no se pierde lo ingresado.
+  const DEMO=QS.get("demo")==="1";
+  const DEMO_FALLA=QS.get("falla")==="1";
+
+  let VENDEDOR="", USUARIO="";
+  let clienteVerificado="";
+  let estado="cliente"; // cliente | editando | confirmando | enviando | enviado
+  let pendiente=null;   // encuesta armada al presionar Enviar
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+  function msg(el,t,c){ const e=$(el); e.textContent=t||""; e.className="status"+(c?" "+c:""); }
+  function norm(v){ return String(v||"").trim().toLowerCase(); }
+  function apiUrl(){ return DEFAULT_API_URL; }
+  function sesion(){ try{const raw=localStorage.getItem("opaustro_session");if(raw) return JSON.parse(raw).session||{};}catch(e){} return {}; }
+
+  async function llamar(action,payload){
+    if(DEMO) return demoServidor(action,payload);
+    const url=apiUrl();
+    if(!url) throw new Error("El servidor de Encuesta todavía no está configurado.");
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),TIEMPO_ESPERA_MS);
+    try{
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},signal:ctrl.signal,
+        body:JSON.stringify({action,payload:Object.assign({},payload,{apiKey:INTERNAL_API_KEY})})});
+      return await resp.json();
+    }catch(e){
+      throw new Error(e&&e.name==="AbortError"?"El servidor tardó demasiado en responder.":"No hay conexión con el servidor.");
+    }finally{ clearTimeout(t); }
+  }
+
+  // ===== Demo local =====
+  function demoServidor(action,p){
+    return new Promise((resolve,reject)=>setTimeout(()=>{
+      let lista=[]; try{lista=JSON.parse(localStorage.getItem("opaustro_encuesta_demo")||"[]");}catch(e){}
+      if(!lista.length) lista=[{id:"demo-0",cliente:"1001",vendedor:"Vendedor demo",fecha:new Date().toISOString()}];
+      if(action==="verificarCliente"){
+        const f=lista.find(r=>norm(r.cliente)===norm(p.cliente));
+        return resolve(f?{success:true,encuestado:true,fecha:f.fecha,vendedor:f.vendedor}:{success:true,encuestado:false});
+      }
+      if(action==="guardarEncuesta"){
+        if(DEMO_FALLA) return reject(new Error("No hay conexión con el servidor. (falla simulada)"));
+        const f=lista.find(r=>norm(r.cliente)===norm(p.cliente));
+        if(f&&f.id!==p.id) return resolve({success:false,encuestado:true,fecha:f.fecha,vendedor:f.vendedor,message:"Este cliente ya fue encuestado."});
+        if(!f){ lista.push({id:p.id,cliente:p.cliente,vendedor:p.vendedor,fecha:new Date().toISOString()}); localStorage.setItem("opaustro_encuesta_demo",JSON.stringify(lista)); }
+        return resolve({success:true,id:p.id});
+      }
+      if(action==="getDatosIniciales"){ const c={}; lista.forEach(r=>{c[norm(r.cliente)]=[r.fecha,r.vendedor];}); return resolve({success:true,vendedor:"Vendedor demo",clientes:c}); }
+      resolve({success:false,message:"Acción no válida."});
+    },700));
+  }
+
+  // ===== Datos locales: nombre del vendedor + clientes ya encuestados =====
+  // Apps Script puede tardar de 3 a 30 s por consulta, asi que la pantalla no
+  // espera al servidor: usa la ultima copia guardada en este equipo (al
+  // instante) y la renueva en segundo plano con getDatosIniciales, que el
+  // servidor responde desde la foto que mantiene su agente (sin abrir Sheets).
+  const K_NOMBRE="opaustro_encuesta_nombre_", K_CLIENTES="opaustro_encuesta_clientes";
+  const REFRESCO_MS=2*60*1000;
+  let CLIENTES=null; // { codigoEnMinuscula: [fechaISO, vendedor] } o null si nunca se cargo
+  function leerClientesLocal(){ try{const d=JSON.parse(localStorage.getItem(K_CLIENTES)||"null"); if(d&&d.clientes) CLIENTES=d.clientes;}catch(e){} }
+  function guardarClientesLocal(){ try{localStorage.setItem(K_CLIENTES,JSON.stringify({ts:Date.now(),clientes:CLIENTES}));}catch(e){} }
+  function ponerNombre(nombre){
+    if(!nombre) return;
+    VENDEDOR=nombre; $("#vendedorNombre").textContent=nombre;
+    try{localStorage.setItem(K_NOMBRE+norm(USUARIO),nombre);}catch(e){}
+  }
+  let refrescando=null;
+  function refrescarDatos(){
+    if(refrescando) return refrescando;
+    refrescando=llamar("getDatosIniciales",{usuario:USUARIO}).then(r=>{
+      if(!r||!r.success) return;
+      if(r.vendedor) ponerNombre(r.vendedor);
+      if(r.clientes){ CLIENTES=r.clientes; guardarClientesLocal(); }
+    }).catch(()=>{}).finally(()=>{ refrescando=null; });
+    return refrescando;
+  }
+
+  // ===== Identidad del vendedor (tomada de la sesion, igual que Exhibidores) =====
+  function cargarVendedor(){
+    const s=sesion();
+    USUARIO=String(s.user||s.usuario||"").trim();
+    if(!USUARIO&&DEMO) USUARIO="demo";
+    let nombre="";
+    try{ nombre=localStorage.getItem(K_NOMBRE+norm(USUARIO))||""; }catch(e){}
+    VENDEDOR=nombre||USUARIO||"";
+    if(DEMO&&USUARIO==="demo") VENDEDOR="Vendedor demo";
+    $("#vendedorNombre").textContent=VENDEDOR||"No identificado — inicia sesión como vendedor";
+    restaurarBorrador();
+    if(USUARIO&&(DEMO||apiUrl())){
+      refrescarDatos();
+      setInterval(()=>{ if(document.visibilityState==="visible") refrescarDatos(); },REFRESCO_MS);
+      document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refrescarDatos(); });
+    }
+  }
+
+  // ===== Paso 1: codigo de cliente =====
+  function clienteActual(){ return $("#fCliente").value.trim(); }
+  let buscando=false;
+  async function verificarCliente(){
+    const cliente=clienteActual();
+    if(buscando||estado!=="cliente") return;
+    if(!VENDEDOR){ msg("#clienteStatus","Espera a que se identifique tu usuario antes de encuestar.","err"); return; }
+    if(!cliente){ msg("#clienteStatus","Ingresa el código del cliente.","err"); $("#fCliente").focus(); return; }
+    buscando=true; $("#fCliente").disabled=true; $("#btnBuscar").disabled=true;
+    $("#clienteStatus").innerHTML='<span class="spin"></span>Verificando si el cliente ya fue encuestado…'; $("#clienteStatus").className="status info";
+    try{
+      let r;
+      // Si la carga inicial todavia esta en camino, se espera esa misma
+      // (no se lanza otra consulta en paralelo).
+      if(!CLIENTES&&refrescando) await refrescando;
+      if(CLIENTES){
+        // Copia local: respuesta inmediata. El servidor confirma en segundo
+        // plano (ver confirmarEnServidor) por si otro vendedor lo acaba de encuestar.
+        const f=CLIENTES[cliente.toLowerCase()];
+        r=f?{success:true,encuestado:true,fecha:f[0],vendedor:f[1]}:{success:true,encuestado:false};
+        if(!f) confirmarEnServidor(cliente);
+      }else{
+        // Primera vez en este equipo (sin copia local): hay que esperar al servidor.
+        r=await llamar("verificarCliente",{cliente});
+      }
+      if(!r||!r.success) throw new Error((r&&r.message)||"No se pudo verificar el cliente.");
+      if(r.encuestado){ mostrarDuplicado(cliente,r); return; }
+      clienteVerificado=cliente; estado="editando";
+      msg("#clienteStatus","✓ Cliente "+cliente+" disponible para encuestar.","ok");
+      $("#btnBuscar").textContent="Cambiar";
+      $("#btnBuscar").disabled=false;
+      $("#formEncuesta").classList.remove("hidden");
+      guardarBorrador();
+      actualizarFormulario();
+    }catch(e){
+      msg("#clienteStatus",e.message+" Intenta de nuevo.","err");
+      $("#fCliente").disabled=false; $("#btnBuscar").disabled=false;
+    }finally{ buscando=false; }
+  }
+  // Si mientras el vendedor llena la encuesta el servidor dice que ese cliente
+  // ya fue encuestado, se avisa en ese momento (solo si sigue en ese cliente y
+  // todavia no lo envio). Si el servidor no responde, no se interrumpe nada:
+  // al guardar, el servidor vuelve a revisar de todas formas.
+  function confirmarEnServidor(cliente){
+    llamar("verificarCliente",{cliente}).then(r=>{
+      if(!r||!r.success||!r.encuestado) return;
+      if(CLIENTES){ CLIENTES[cliente.toLowerCase()]=[r.fecha||"",r.vendedor||""]; guardarClientesLocal(); }
+      if(clienteVerificado===cliente&&estado==="editando"){
+        estado="cliente"; clienteVerificado=""; borrarBorrador(); mostrarDuplicado(cliente,r);
+      }
+    }).catch(()=>{});
+  }
+  function fechaCorta(v){ const d=new Date(v); return isNaN(d.getTime())?String(v||""):d.toLocaleDateString("es-EC",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+  function mostrarDuplicado(cliente,r){
+    msg("#clienteStatus","","");
+    const partes=["El cliente "+cliente+" ya tiene una encuesta registrada"];
+    if(r.fecha) partes.push("el "+fechaCorta(r.fecha));
+    if(r.vendedor) partes.push("por "+r.vendedor);
+    $("#avisoDupDetalle").textContent=partes.join(" ")+".";
+    $("#avisoDup").classList.remove("hidden");
+    $("#formEncuesta").classList.add("hidden");
+    $("#fCliente").disabled=true; $("#btnBuscar").disabled=true;
+  }
+  $("#btnBuscar").addEventListener("click",()=>{ if(estado==="editando"){ reiniciar(true); } else verificarCliente(); });
+  $("#fCliente").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); verificarCliente(); } });
+  $("#btnOtroCliente").addEventListener("click",()=>reiniciar(true));
+
+  // ===== Paso 2: preguntas =====
+  function tipoSeleccionado(){ const r=document.querySelector('input[name="tipoNegocio"]:checked'); return r?r.value:""; }
+  function pintarOpciones(){
+    $("#optsNegocio").innerHTML=TIPOS_NEGOCIO.map((t,i)=>
+      '<label class="opt" for="tn'+i+'"><input type="radio" name="tipoNegocio" id="tn'+i+'" value="'+esc(t)+'"><span>'+esc(t)+'</span></label>').join("");
+    document.querySelectorAll('input[name="tipoNegocio"]').forEach(r=>r.addEventListener("change",()=>{ actualizarFormulario(); guardarBorrador(); }));
+  }
+  // Solo digitos: cualquier otro caracter (punto, coma, signo, letras) se descarta al escribir o pegar.
+  function soloEnteros(el){
+    el.addEventListener("input",()=>{ const limpio=el.value.replace(/\D+/g,"").slice(0,4); if(limpio!==el.value) el.value=limpio; actualizarFormulario(); guardarBorrador(); });
+  }
+  soloEnteros($("#fNeveras")); soloEnteros($("#fCajas"));
+  $("#fObs").addEventListener("input",guardarBorrador);
+
+  function necesitaExtra(tipo){ return !!tipo&&tipo!==TIPO_SIN_EXTRA; }
+  function formularioCompleto(){
+    const tipo=tipoSeleccionado(); if(!tipo) return false;
+    if(!necesitaExtra(tipo)) return true;
+    return /^\d+$/.test($("#fNeveras").value)&&/^\d+$/.test($("#fCajas").value);
+  }
+  function actualizarFormulario(){
+    const tipo=tipoSeleccionado();
+    document.querySelectorAll("#optsNegocio .opt").forEach(o=>o.classList.toggle("sel",o.querySelector("input").checked));
+    $("#bloqueExtra").classList.toggle("hidden",!necesitaExtra(tipo));
+    $("#bloqueObs").classList.toggle("hidden",!tipo);
+    $("#btnEnviar").disabled=!(estado==="editando"&&formularioCompleto());
+    if(estado==="editando"){
+      if(!tipo) msg("#formStatus","Selecciona el tipo de negocio.","info");
+      else if(!formularioCompleto()) msg("#formStatus","Completa las preguntas 2 y 3 con números enteros.","info");
+      else msg("#formStatus","","");
+    }
+  }
+
+  // Bloquea/desbloquea todo lo editable (cliente, opciones, numeros, observacion y botones).
+  function bloquear(on){
+    document.querySelectorAll('input[name="tipoNegocio"]').forEach(r=>r.disabled=on);
+    $("#optsNegocio").classList.toggle("locked",on);
+    ["#fNeveras","#fCajas","#fObs"].forEach(s=>$(s).disabled=on);
+    $("#btnBuscar").disabled=on; $("#btnLimpiar").disabled=on; $("#fCliente").disabled=true;
+    if(on) $("#btnEnviar").disabled=true; else actualizarFormulario();
+  }
+
+  // ===== Enviar -> panel de confirmacion -> Confirmar =====
+  function armarEncuesta(){
+    const tipo=tipoSeleccionado(); const extra=necesitaExtra(tipo);
+    return {
+      id:(pendiente&&pendiente.id)||("ENC-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)),
+      cliente:clienteVerificado, vendedor:VENDEDOR, usuario:USUARIO, tipoNegocio:tipo,
+      neveras:extra?Number($("#fNeveras").value):"", puntosCobro:extra?Number($("#fCajas").value):"",
+      observaciones:$("#fObs").value.trim()
+    };
+  }
+  function pintarResumen(p){
+    const filas=[["Vendedor",p.vendedor],["Código de cliente",p.cliente],["Tipo de negocio",p.tipoNegocio]];
+    if(p.tipoNegocio!==TIPO_SIN_EXTRA){ filas.push(["Neveras / refrigeradores / congeladores",p.neveras]); filas.push(["Puntos de cobro (cajas)",p.puntosCobro]); }
+    filas.push(["Observación",p.observaciones||"—"]);
+    $("#resumenBody").innerHTML=filas.map(f=>"<tr><th>"+esc(f[0])+"</th><td>"+esc(f[1])+"</td></tr>").join("");
+  }
+  $("#btnEnviar").addEventListener("click",()=>{
+    if(estado!=="editando"||!formularioCompleto()) return;
+    pendiente=armarEncuesta(); estado="confirmando";
+    bloquear(true); guardarBorrador(); pintarResumen(pendiente);
+    msg("#envioStatus","Revisa la información antes de confirmar.","info");
+    $("#btnConfirmar").innerHTML="✔ Confirmar"; $("#btnConfirmar").disabled=false; $("#btnRegresar").disabled=false;
+    $("#vistaResumen").classList.remove("hidden"); $("#vistaExito").classList.add("hidden");
+    $("#modalConfirmar").classList.add("open");
+  });
+  $("#btnRegresar").addEventListener("click",()=>{
+    if(estado==="enviando") return;
+    estado="editando"; $("#modalConfirmar").classList.remove("open"); bloquear(false); guardarBorrador();
+  });
+  $("#btnConfirmar").addEventListener("click",async()=>{
+    if(estado!=="confirmando"||!pendiente) return;
+    estado="enviando"; guardarBorrador();
+    $("#btnConfirmar").disabled=true; $("#btnRegresar").disabled=true;
+    $("#btnConfirmar").innerHTML='<span class="spin"></span>Enviando…';
+    msg("#envioStatus","Enviando encuesta, no cierres esta pantalla…","info");
+    try{
+      const r=await llamar("guardarEncuesta",pendiente);
+      if(r&&r.success){ enviadoOk(); return; }
+      if(r&&r.encuestado){
+        // Otro vendedor lo registro mientras se llenaba esta encuesta: no tiene
+        // sentido reintentar, se descarta y se avisa.
+        $("#modalConfirmar").classList.remove("open");
+        const cliente=pendiente.cliente; borrarBorrador(); pendiente=null; estado="cliente";
+        if(CLIENTES){ CLIENTES[cliente.toLowerCase()]=[r.fecha||"",r.vendedor||""]; guardarClientesLocal(); }
+        bloquear(false); $("#formEncuesta").classList.add("hidden"); mostrarDuplicado(cliente,r);
+        return;
+      }
+      throw new Error((r&&r.message)||"El servidor no pudo guardar la encuesta.");
+    }catch(e){
+      // No se pierde nada: la encuesta queda armada (y guardada en este equipo) para reintentar.
+      estado="confirmando"; guardarBorrador();
+      msg("#envioStatus","❌ "+e.message+" Tu información sigue aquí; presiona Reintentar.","err");
+      $("#btnConfirmar").innerHTML="↻ Reintentar envío"; $("#btnConfirmar").disabled=false; $("#btnRegresar").disabled=false;
+    }
+  });
+  function enviadoOk(){
+    estado="enviado"; borrarBorrador();
+    if(CLIENTES&&pendiente){ CLIENTES[pendiente.cliente.toLowerCase()]=[new Date().toISOString(),pendiente.vendedor]; guardarClientesLocal(); }
+    $("#vistaResumen").classList.add("hidden"); $("#vistaExito").classList.remove("hidden");
+    setTimeout(()=>{ $("#modalConfirmar").classList.remove("open"); reiniciar(true); },2000);
+  }
+
+  // ===== Reiniciar / cancelar =====
+  function reiniciar(enfocar){
+    estado="cliente"; pendiente=null; clienteVerificado=""; borrarBorrador();
+    $("#fCliente").value=""; $("#fCliente").disabled=false;
+    $("#btnBuscar").textContent="Verificar"; $("#btnBuscar").disabled=false;
+    $("#avisoDup").classList.add("hidden"); $("#formEncuesta").classList.add("hidden");
+    document.querySelectorAll('input[name="tipoNegocio"]').forEach(r=>{r.checked=false;r.disabled=false;});
+    $("#optsNegocio").classList.remove("locked");
+    ["#fNeveras","#fCajas","#fObs"].forEach(s=>{$(s).value="";$(s).disabled=false;});
+    $("#btnLimpiar").disabled=false;
+    msg("#clienteStatus",""); msg("#formStatus","");
+    actualizarFormulario();
+    if(enfocar) $("#fCliente").focus();
+  }
+  $("#btnLimpiar").addEventListener("click",()=>{ if(estado==="editando") reiniciar(true); });
+
+  // ===== Borrador en este equipo: si se cierra la app o falla el envio, nada se pierde =====
+  function guardarBorrador(){
+    if(!clienteVerificado||estado==="enviado") return;
+    const d={usuario:USUARIO,cliente:clienteVerificado,tipo:tipoSeleccionado(),neveras:$("#fNeveras").value,cajas:$("#fCajas").value,obs:$("#fObs").value,pendiente:(estado==="confirmando"||estado==="enviando")?pendiente:null};
+    try{localStorage.setItem(K_BORRADOR,JSON.stringify(d));}catch(e){}
+  }
+  function borrarBorrador(){ try{localStorage.removeItem(K_BORRADOR);}catch(e){} }
+  function restaurarBorrador(){
+    let d=null; try{d=JSON.parse(localStorage.getItem(K_BORRADOR)||"null");}catch(e){}
+    if(!d||!d.cliente||norm(d.usuario)!==norm(USUARIO)) return;
+    clienteVerificado=d.cliente; estado="editando";
+    $("#fCliente").value=d.cliente; $("#fCliente").disabled=true;
+    $("#btnBuscar").textContent="Cambiar";
+    $("#formEncuesta").classList.remove("hidden");
+    const r=[...document.querySelectorAll('input[name="tipoNegocio"]')].find(x=>x.value===d.tipo); if(r) r.checked=true;
+    $("#fNeveras").value=d.neveras||""; $("#fCajas").value=d.cajas||""; $("#fObs").value=d.obs||"";
+    msg("#clienteStatus","Se recuperó una encuesta sin enviar del cliente "+d.cliente+".","info");
+    actualizarFormulario();
+    if(d.pendiente){
+      // Habia quedado en el panel de confirmacion (o enviando): se reabre tal cual,
+      // con el mismo ID, para reintentar sin duplicar.
+      pendiente=d.pendiente; estado="confirmando"; bloquear(true); pintarResumen(pendiente);
+      msg("#envioStatus","Esta encuesta quedó sin confirmar su envío. Presiona Confirmar para enviarla.","info");
+      $("#btnConfirmar").innerHTML="✔ Confirmar"; $("#btnConfirmar").disabled=false; $("#btnRegresar").disabled=false;
+      $("#modalConfirmar").classList.add("open");
+    }
+  }
+
+  // ===== Inicio =====
+  if(DEMO) $("#demoPill").classList.remove("hidden");
+  pintarOpciones();
+  if(!DEMO) leerClientesLocal();
+  if(!DEMO&&!apiUrl()) msg("#clienteStatus","El servidor de Encuesta todavía no está configurado.","err");
+  cargarVendedor();
+})();
+</script>
+</body>
+</html>
