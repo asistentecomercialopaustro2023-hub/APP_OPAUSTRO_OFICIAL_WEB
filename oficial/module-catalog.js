@@ -209,6 +209,18 @@ const MODULE_DEFINITIONS = {
     symbol: "exhibidorReport",
     path: "../Exhibidores/reporte.html?embed=1&solo=avance",
     embed: true
+  },
+  EncuestaVendedor: {
+    label: "Encuesta",
+    symbol: "survey",
+    path: "../Encuesta/modulo_encuesta.html?embed=1",
+    embed: true
+  },
+  EncuestaReporte: {
+    label: "Reportes Encuesta",
+    symbol: "report",
+    path: "../Encuesta/reporte.html?embed=1",
+    embed: true
   }
 };
 
@@ -230,6 +242,7 @@ const SYMBOLS = {
   exhibidorPhoto: "&#127980;",
   exhibidorAudit: "&#128221;",
   exhibidorReport: "&#128202;",
+  survey: "&#128221;",
   loan: "&#127974;",
   days: "&#128230;"
 };
@@ -289,6 +302,12 @@ const AREA_GROUPS = [
     label: "Exhibidores",
     icon: "&#127978;",
     modules: ["ExhibidoresVendedor", "ExhibidoresSupervisor", "ExhibidoresReporte", "ExhibidoresReporteSupervisor"]
+  },
+  {
+    id: "Encuesta",
+    label: "Encuesta",
+    icon: "&#128221;",
+    modules: ["EncuestaVendedor", "EncuestaReporte"]
   }
 ];
 
