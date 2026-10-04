@@ -2549,6 +2549,99 @@
       }
     }
 
+    /* Pulido visual del marco principal. Los informes incrustados de Power BI
+       conservan su contenido y controles; estos estilos solo afectan a la app. */
+    .app-screen:not(.is-hidden) .app-topbar {
+      background: linear-gradient(112deg, #073c52 0%, #075d7d 58%, #08769a 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: 0 5px 18px rgba(7, 45, 64, .18);
+      padding-inline: clamp(14px, 2.4vw, 38px);
+    }
+
+    .app-screen:not(.is-hidden) .menu-toggle {
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .11);
+      transition: background .18s ease, transform .18s ease;
+    }
+
+    .app-screen:not(.is-hidden) .menu-toggle:hover {
+      background: rgba(255, 255, 255, .2);
+      transform: translateY(-1px);
+    }
+
+    .app-screen:not(.is-hidden) .app-logo {
+      border-radius: 11px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .12);
+    }
+
+    .app-screen:not(.is-hidden) .module-sidebar {
+      background: linear-gradient(180deg, #f1f7fa 0%, #e8f1f5 100%);
+      border-right-color: #d5e3e9;
+    }
+
+    .app-screen:not(.is-mobile-layout).sidebar-expanded .app-body {
+      grid-template-columns: 238px minmax(0, 1fr);
+    }
+
+    .app-screen:not(.is-hidden) .module-list {
+      gap: 9px;
+    }
+
+    .app-screen:not(.is-hidden) .module-group {
+      border-bottom-color: rgba(27, 73, 94, .09);
+    }
+
+    .app-screen:not(.is-hidden) .group-toggle {
+      min-height: 52px;
+      border: 1px solid rgba(191, 214, 225, .66);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .62);
+      color: #14536e;
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .app-screen:not(.is-hidden) .group-toggle:hover,
+    .app-screen:not(.is-hidden) .module-group.is-open .group-toggle {
+      border-color: #b7d9e5;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(13, 73, 99, .08);
+      transform: translateY(-1px);
+    }
+
+    .app-screen:not(.is-hidden) .group-items .module-link {
+      position: relative;
+      min-height: 38px;
+      padding: 5px 8px;
+      border-radius: 9px;
+      color: #36586a;
+      transition: color .16s ease, background .16s ease;
+    }
+
+    .app-screen:not(.is-hidden) .group-items .module-link:hover,
+    .app-screen:not(.is-hidden) .group-items .module-link.is-active {
+      color: #075f84;
+      background: rgba(255, 255, 255, .82);
+    }
+
+    .app-screen:not(.is-hidden) .group-items .module-link.is-active {
+      box-shadow: inset 3px 0 #10a6a0;
+      font-weight: 750;
+    }
+
+    .app-screen:not(.is-hidden) .module-workspace {
+      background: #f4f7f9;
+    }
+
+    @media (max-width: 850px) {
+      .app-screen:not(.is-hidden) .app-topbar {
+        padding-inline: 12px;
+      }
+
+      .app-screen:not(.is-hidden) .module-sidebar {
+        box-shadow: 12px 0 28px rgba(8, 47, 67, .16);
+      }
+    }
+
   </style>
 </head>
 <body>
