@@ -124,7 +124,7 @@
 
     .brand-panel h1,
     .brand-panel p {
-      display: none;
+      display: block;
     }
 
     .login-card {
@@ -2335,6 +2335,220 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Acceso renovado: identidad clara en escritorio y tarjeta compacta en móvil. */
+    .login-screen {
+      position: relative;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at 12% 18%, rgba(67, 173, 218, .26), transparent 31%),
+        radial-gradient(ellipse at 85% 88%, rgba(15, 127, 173, .34), transparent 35%),
+        linear-gradient(135deg, #062b45 0%, #074e73 54%, #087aa0 100%);
+      padding: clamp(24px, 5vw, 72px);
+      row-gap: 18px;
+    }
+
+    .login-screen::before,
+    .login-screen::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border: 1px solid rgba(255, 255, 255, .11);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .login-screen::before {
+      width: min(58vw, 760px);
+      aspect-ratio: 1;
+      left: -28vw;
+      top: -48vw;
+    }
+
+    .login-screen::after {
+      width: min(45vw, 580px);
+      aspect-ratio: 1;
+      right: -20vw;
+      bottom: -32vw;
+    }
+
+    .login-shell {
+      width: min(100%, 1040px);
+      grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
+      gap: clamp(36px, 7vw, 88px);
+      justify-items: stretch;
+      align-content: center;
+    }
+
+    .brand-panel {
+      width: 100%;
+      max-height: none;
+      justify-items: start;
+      align-content: center;
+      gap: 30px;
+    }
+
+    .logo-mark {
+      max-width: 300px;
+      max-height: 100px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      box-shadow: 0 16px 46px rgba(0, 19, 35, .2);
+    }
+
+    .brand-panel h1 {
+      max-width: 480px;
+      margin: 0;
+      color: #fff;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      line-height: 1.06;
+      letter-spacing: -.045em;
+      font-weight: 760;
+    }
+
+    .brand-panel p {
+      max-width: 410px;
+      margin: -14px 0 0;
+      color: rgba(240, 249, 255, .78);
+      font-size: 1.08rem;
+      line-height: 1.7;
+    }
+
+    .login-card {
+      width: 100%;
+      padding: clamp(28px, 4vw, 44px);
+      border: 1px solid rgba(255, 255, 255, .78);
+      border-radius: 22px;
+      box-shadow: 0 28px 80px rgba(0, 20, 38, .28);
+    }
+
+    .card-head h2 {
+      font-size: clamp(1.65rem, 3vw, 2rem);
+      letter-spacing: -.035em;
+    }
+
+    label {
+      gap: 8px;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+
+    select,
+    input {
+      min-height: 54px;
+      border-radius: 11px;
+      background: #f7fafc;
+    }
+
+    .primary-btn {
+      min-height: 54px;
+      border-radius: 11px;
+      box-shadow: 0 8px 18px rgba(7, 95, 155, .2);
+    }
+
+    .login-footer {
+      color: rgba(240, 249, 255, .68);
+      letter-spacing: .045em;
+    }
+
+    @media (max-width: 850px) {
+      .login-screen {
+        height: auto;
+        min-height: 100dvh;
+        max-height: none;
+        overflow-x: hidden;
+        overflow-y: auto;
+        place-items: start center;
+        align-content: start;
+        padding: 28px 20px;
+      }
+
+      .login-shell {
+        width: min(100%, 500px);
+        max-height: none;
+        overflow: visible;
+        grid-template-columns: 1fr;
+        gap: 22px;
+        justify-items: center;
+      }
+
+      .brand-panel {
+        width: 100%;
+        justify-items: center;
+        text-align: center;
+        gap: 12px;
+      }
+
+      .logo-mark {
+        width: min(240px, 76%);
+        margin: 0 0 6px;
+      }
+
+      .brand-panel h1 {
+        max-width: 420px;
+        font-size: clamp(1.8rem, 7vw, 2.4rem);
+      }
+
+      .brand-panel p {
+        max-width: 400px;
+        margin: 0;
+        font-size: .95rem;
+      }
+
+      .login-card {
+        padding: clamp(22px, 6vw, 34px);
+        border-radius: 18px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .login-screen {
+        padding: 22px 16px;
+      }
+      .login-shell {
+        gap: 18px;
+      }
+      .login-card {
+        padding: 24px 20px;
+      }
+    }
+
+    @media (max-width: 850px) and (max-height: 700px) {
+      .login-screen {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+      .login-shell {
+        gap: 10px;
+      }
+      .brand-panel {
+        gap: 0;
+      }
+      .brand-panel h1 {
+        display: none;
+      }
+      .logo-mark {
+        max-height: 62px;
+        padding: 8px 14px;
+      }
+      .login-card {
+        padding: 20px 22px;
+      }
+      .card-head {
+        margin-bottom: 12px;
+      }
+      form {
+        gap: 9px;
+      }
+      select,
+      input,
+      .primary-btn {
+        min-height: 46px;
+      }
+      .login-footer {
+        font-size: .65rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2342,6 +2556,8 @@
     <section class="login-shell">
       <div class="brand-panel" aria-label="OPAUSTRO">
         <img class="logo-mark" src="../Recuros_imagenes/logo_color.png?v=1.0.0" alt="OPAUSTRO">
+        <h1>Una sola plataforma para avanzar</h1>
+        <p>Accede a tus herramientas de gesti&oacute;n, log&iacute;stica y ventas en un solo lugar.</p>
       </div>
 
       <section class="login-card" aria-label="Inicio de sesi&oacute;n">
