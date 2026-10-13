@@ -827,7 +827,12 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
     <p id="eli-warn" style="font-size:11px;color:var(--dn-c);background:var(--dn-b);border:1px solid var(--dn-c);border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;"></p>
     <div class="fg fspan" style="margin-bottom:12px;">
       <label>Motivo de la eliminación <span class="req">*</span></label>
-      <textarea id="eli-motivo" rows="3" placeholder="Ej: chatarrizado, equipo duplicado, registrado por error..." style="width:100%;"></textarea>
+      <select id="eli-motivo">
+        <option value="">Seleccionar motivo...</option>
+        <option value="Equipo devuelto">Equipo devuelto</option>
+        <option value="Equipo a la baja">Equipo a la baja</option>
+        <option value="Equipo perdido">Equipo perdido</option>
+      </select>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn" id="btn-eli-confirm" style="flex:1;background:var(--dn-c);color:#fff;border-color:var(--dn-c);" onclick="confirmarEliminar()">Eliminar</button>
@@ -2067,7 +2072,7 @@ async function confirmarEliminar(){
   var placa=g('eli-placa').value;
   var e=DB.equipos[placa]; if(!e){toast('Equipo no encontrado','err');return;}
   var motivo=g('eli-motivo').value.trim();
-  if(!motivo){toast('Escribe el motivo de la eliminación','err');g('eli-motivo').focus();return;}
+  if(!motivo){toast('Selecciona el motivo de la eliminación','err');g('eli-motivo').focus();return;}
   if(!confirm('¿Estás seguro de eliminar la placa '+placa+' de la base de datos?\n\nEsta acción no se puede deshacer. El equipo pasará al historial de Eliminados.'))return;
   var usuario=usuarioActual();
   _eliEnviando=true;
