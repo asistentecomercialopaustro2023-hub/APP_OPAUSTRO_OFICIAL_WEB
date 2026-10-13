@@ -97,8 +97,10 @@ tr.plan-vencida td{background:#fff1f2;}
 .mc{cursor:pointer;font-size:18px;color:var(--mut);background:none;border:none;}
 .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
 .fg label{font-size:11px;font-weight:600;color:var(--mut);}
-.fg input,.fg select{background:var(--surf2);border:1px solid var(--brd);border-radius:var(--rs);padding:7px 9px;font-size:13px;color:var(--txt);width:100%;outline:none;transition:.15s;}
-.fg input:focus,.fg select:focus{border-color:var(--acc);}
+.fg input,.fg select,.fg textarea{background:var(--surf2);border:1px solid var(--brd);border-radius:var(--rs);padding:7px 9px;font-size:13px;color:var(--txt);width:100%;outline:none;transition:.15s;font-family:inherit;resize:vertical;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--acc);}
+.btn-eli-bd,.btn-eli-op{display:block;width:100%;margin-top:12px;padding:10px;background:transparent;color:var(--dn-c);border:1px dashed var(--dn-c);}
+.btn-eli-bd:hover,.btn-eli-op:hover{background:var(--dn-b);}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .fspan{grid-column:1/-1;}
 .req{color:var(--dn-c);}
@@ -288,6 +290,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
   <button class="nt pane-tab pane-rep"    onclick="showPane('rep',this)">📈 Reporte taller</button>
   <button class="nt pane-tab pane-mov"    onclick="showPane('mov',this)">🚚 Movimientos</button>
   <button class="nt pane-tab pane-plan"    onclick="showPane('plan',this)">📅 Planificación</button>
+  <button class="nt pane-tab pane-eli"     onclick="showPane('eli',this)">🗑️ Eliminados</button>
 </div>
 
 <div class="wrap">
@@ -423,6 +426,21 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <input class="fi" placeholder="Buscar placa, cliente..." oninput="sPl(this.value)">
     </div>
     <div class="tw"><table><thead><tr><th>Fecha planif.</th><th>Estado</th><th>Placa</th><th>Modelo</th><th>Cód. cliente</th><th>Cliente</th><th>Transporte</th><th>Registrado</th><th>Acción</th></tr></thead><tbody id="tb-plan"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ELIMINADOS -->
+<div id="pane-eli" class="pane">
+  <div class="card">
+    <div class="ch"><span class="ct">🗑️ Historial de cabinets eliminados</span><span class="cc" id="cc-eli"></span></div>
+    <div class="fs">
+      <button id="fb-eli-todos" class="fb on" onclick="fEli('TODOS',this)">Todos</button>
+      <button id="fb-eli-ok" class="fb" onclick="fEli('BODEGA_OK',this)">Bodega OK</button>
+      <button id="fb-eli-mt" class="fb" onclick="fEli('MANTENIMIENTO',this)">Mantenimiento</button>
+      <button id="fb-eli-dn" class="fb" onclick="fEli('DAÑADO',this)">Dañados</button>
+      <input class="fi" placeholder="Buscar placa, modelo, motivo..." oninput="sEli(this.value)">
+    </div>
+    <div class="tw"><table><thead><tr><th>Fecha eliminación</th><th>Placa</th><th>Modelo</th><th>Estaba en</th><th>Motivo</th><th>Usuario</th><th>Fotos</th></tr></thead><tbody id="tb-eli"></tbody></table></div>
   </div>
 </div>
 
@@ -793,6 +811,28 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <button class="btn btn-ok" id="btn-cor-et" onclick="confirmarCorrEtapa()" style="flex:1;">Guardar corrección</button>
       <button class="btn" onclick="closeCorrEtapa()">Cancelar</button>
     </div>
+    <button class="btn btn-eli-op" id="cor-btn-eliminar" onclick="eliminarDesdeCorrEtapa()">🗑️ Eliminar cabinet</button>
+  </div>
+</div>
+<!-- MODAL ELIMINAR CABINET -->
+<div class="mbg" id="modal-eliminar">
+  <div class="modal" style="max-width:440px;">
+    <div class="mh"><h2 id="eli-title">🗑️ Eliminar cabinet</h2><button class="mc" id="eli-btn-close" onclick="closeEliminar()">✕</button></div>
+    <input type="hidden" id="eli-placa">
+    <div style="background:var(--surf2);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;">
+      <strong>Placa:</strong> <span id="eli-placa-show" style="font-family:monospace;color:var(--acc);font-weight:700;"></span>
+      &nbsp;·&nbsp; <strong>Estado actual:</strong> <span id="eli-estado-show"></span><br>
+      <span id="eli-modelo-show" style="color:var(--mut);font-size:11px;"></span>
+    </div>
+    <p id="eli-warn" style="font-size:11px;color:var(--dn-c);background:var(--dn-b);border:1px solid var(--dn-c);border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;"></p>
+    <div class="fg fspan" style="margin-bottom:12px;">
+      <label>Motivo de la eliminación <span class="req">*</span></label>
+      <textarea id="eli-motivo" rows="3" placeholder="Ej: chatarrizado, equipo duplicado, registrado por error..." style="width:100%;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" id="btn-eli-confirm" style="flex:1;background:var(--dn-c);color:#fff;border-color:var(--dn-c);" onclick="confirmarEliminar()">Eliminar</button>
+      <button class="btn" id="eli-btn-cancel" onclick="closeEliminar()">Cancelar</button>
+    </div>
   </div>
 </div>
 <!-- MODAL REACTIVAR EQUIPO DAÑADO -->
@@ -810,6 +850,7 @@ code{font-family:monospace;font-size:11px;background:var(--brd);padding:1px 5px;
       <button class="btn" id="rea-btn-mant" style="padding:14px 10px;background:var(--mt-b);color:var(--mt-c);border-color:var(--mt-c);" onclick="selReactivarDestino('MANTENIMIENTO')">🔧 Mantenimiento</button>
       <button class="btn" id="rea-btn-danado" style="padding:14px 10px;background:var(--dn-b);color:var(--dn-c);border-color:var(--dn-c);display:none;" onclick="selReactivarDestino('DAÑADO')">✕ Dañado</button>
     </div>
+    <button class="btn btn-eli-bd" id="rea-btn-eliminar" onclick="eliminarDesdeReactivar()">🗑️ Eliminar cabinet</button>
     <p id="rea-estado-ok" style="display:none;font-size:12px;color:var(--ok-c);background:var(--ok-b);border:1px solid var(--ok-c);border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;font-weight:700;">✓ Estado cambiado</p>
     <div id="rea-body" style="display:none;">
       <div id="rea-etapa-picker" style="display:none;margin-bottom:12px;">
@@ -1102,6 +1143,7 @@ var _et='';
 var _placaEntradaExiste=false;
 var _corrEt='';
 var _reaDestino='', _reaEtapa='', _reaEnviando=false, _reaTs='', _reaOrigen='';
+var eliF='TODOS', eliS='', _eliEnviando=false, _eliTs='';
 var SI={};
 
 function g(id){return document.getElementById(id);}
@@ -1695,7 +1737,7 @@ function apiKeyParam(){
   return LOGISTICA_API_KEY ? '&apiKey='+encodeURIComponent(LOGISTICA_API_KEY) : '';
 }
 
-function rAll(){rKPI();rRes();rBod();rMnt();rRep();rMov();rPlan();chkAlert();}
+function rAll(){rKPI();rRes();rBod();rMnt();rRep();rMov();rPlan();rEli();chkAlert();}
 
 function rKPI(){
   var eq=eqArr(),hoy=hoyStr();
@@ -1731,7 +1773,7 @@ function rRes(){
   var movs=[].concat(DB.movimientos||[]).filter(function(m){return !esPlanPendiente(m);}).sort(function(a,b){return b.ts.localeCompare(a.ts);}).slice(0,10);
   g('cc-um').textContent=movs.length+' recientes';
   g('tb-um').innerHTML=movs.length?movs.map(function(m){
-    var badge=esMovBaja(m)?'<span class="badge b-dn">✕ Baja</span>':m.tipo==='SALIDA'?'<span class="badge b-mv">↑ Captación</span>':m.tipo==='ENVIO_QUITO'?'<span class="badge b-mt">→ Quito</span>':m.tipo==='SALIDA_TALLER'?'<span class="badge b-ok">✓ Salió taller</span>':m.tipo==='CORRECCION'?'<span class="badge b-mt">✎ Corrección</span>':m.tipo==='CAMBIO_ESTADO'?'<span class="badge b-pl">⇄ '+x(m.estado||'Cambio')+'</span>':'<span class="badge b-ok">↓ Entrada</span>';
+    var badge=esMovBaja(m)?'<span class="badge b-dn">✕ Baja</span>':m.tipo==='SALIDA'?'<span class="badge b-mv">↑ Captación</span>':m.tipo==='ENVIO_QUITO'?'<span class="badge b-mt">→ Quito</span>':m.tipo==='SALIDA_TALLER'?'<span class="badge b-ok">✓ Salió taller</span>':m.tipo==='CORRECCION'?'<span class="badge b-mt">✎ Corrección</span>':m.tipo==='CAMBIO_ESTADO'?'<span class="badge b-pl">⇄ '+x(m.estado||'Cambio')+'</span>':m.tipo==='ELIMINADO'?'<span class="badge b-dn">🗑️ Eliminado</span>':'<span class="badge b-ok">↓ Entrada</span>';
     var clienteTxt=(m.codCli?m.codCli+' — ':'')+(m.nomCli||m.cliente||'');
     return'<tr><td class="tm">'+dt(m.ts)+'</td><td>'+badge+'</td><td class="tp">'+x(m.placa)+'</td><td>'+x(m.modelo)+'</td><td class="tm">'+x(clienteTxt||'—')+'</td></tr>';
   }).join(''):'<tr><td colspan="5" class="empty">Sin movimientos</td></tr>';
@@ -1790,6 +1832,7 @@ function openReactivarDanado(placa){
   g('rea-btn-bodega').style.display=desdeDanado?'':'none';
   g('rea-btn-mant').style.display='';
   g('rea-btn-danado').style.display=desdeDanado?'none':'';
+  g('rea-btn-eliminar').style.display=canEliminar()?'':'none';
   g('rea-destino').style.display='grid';
   g('rea-body').style.display='none';
   g('rea-etapa-picker').style.display='none';
@@ -1818,7 +1861,7 @@ function closeReactivarDanado(){
 // hay una confirmacion en curso. Sin esto, si el push() tarda, se puede volver
 // a presionar Confirmar y terminan compitiendo dos guardados por la misma placa.
 function setReactivarBusy(busy){
-  ['rea-btn-bodega','rea-btn-mant','rea-btn-danado','rea-et-A','rea-et-B','rea-et-C','btn-rea-confirm','rea-btn-cancel','rea-btn-close'].forEach(function(id){
+  ['rea-btn-bodega','rea-btn-mant','rea-btn-danado','rea-btn-eliminar','rea-et-A','rea-et-B','rea-et-C','btn-rea-confirm','rea-btn-cancel','rea-btn-close'].forEach(function(id){
     var el=g(id); if(el)el.disabled=busy;
   });
 }
@@ -1832,6 +1875,7 @@ function selReactivarDestino(destino){
   var esMant=(destino==='MANTENIMIENTO');
   var necesita4=(destino!=='BODEGA_OK'); // Mantenimiento o Dañado piden las mismas 4 fotos que una Entrada
   g('rea-destino').style.display='none';
+  g('rea-btn-eliminar').style.display='none';
   g('rea-body').style.display='block';
   g('rea-etapa-picker').style.display=esMant?'block':'none';
   g('rea-item-p').style.display=necesita4?'':'none';
@@ -1948,7 +1992,7 @@ function esEnvioQuito(e){
 function accionMantenimiento(e){
   if(!canEditBodega())return '<span class="badge b-mt">Mant.</span>';
   if(esEnvioQuito(e)){
-    return '<div class="dmg-actions"><button class="btn btn-mini btn-ok" data-p="'+x(e.placa)+'" onclick="openListo(this.dataset.p)">Arreglado</button><button class="btn btn-mini" style="background:var(--dn-b);color:var(--dn-c);border-color:var(--dn-c);" data-p="'+x(e.placa)+'" onclick="noArregloQuito(this.dataset.p)">No hay arreglo</button></div>';
+    return '<div class="dmg-actions"><button class="btn btn-mini btn-ok" data-p="'+x(e.placa)+'" onclick="openListo(this.dataset.p)">Arreglado</button><button class="btn btn-mini" style="background:var(--dn-b);color:var(--dn-c);border-color:var(--dn-c);" data-p="'+x(e.placa)+'" onclick="noArregloQuito(this.dataset.p)">No hay arreglo</button><button class="btn btn-mini" title="Corregir etapa o eliminar" data-p="'+x(e.placa)+'" onclick="openCorrEtapa(this.dataset.p)">✎</button></div>';
   }
   return '<div class="dmg-actions"><button class="btn btn-ok" style="font-size:10px;" data-p="'+x(e.placa)+'" onclick="openListo(this.dataset.p)">✓ Listo</button><button class="btn btn-mini" style="background:var(--mt-b);color:var(--mt-c);border-color:var(--mt-c);" data-p="'+x(e.placa)+'" onclick="openCorrEtapa(this.dataset.p)">✎ Etapa</button></div>';
 }
@@ -1976,7 +2020,108 @@ function openCorrEtapa(placa){
   g('cor-actual-show').innerHTML=bEt(e.etapa);
   document.querySelectorAll('#modal-corr-etapa .esb').forEach(function(b){b.className='esb';});
   g('cor-warn-dan').style.display='none';
+  g('cor-btn-eliminar').style.display=canEliminar()?'':'none';
   g('modal-corr-etapa').classList.add('on');
+}
+function eliminarDesdeCorrEtapa(){
+  var placa=g('cor-placa').value;
+  closeCorrEtapa();
+  openEliminar(placa);
+}
+function eliminarDesdeReactivar(){
+  if(_reaEnviando)return;
+  var placa=g('rea-placa').value;
+  closeReactivarDanado();
+  openEliminar(placa);
+}
+// Eliminar = el cabinet deja de existir: sale de OPAUSTRO y de la BD general
+// de inventario (ICE). Solo queda en el historial de Eliminados.
+function openEliminar(placa){
+  if(!canEliminar()){toast('No tienes permiso para eliminar cabinets','err');return;}
+  var e=DB.equipos[placa]; if(!e){toast('Equipo no encontrado','err');return;}
+  if((DB.movimientos||[]).some(function(m){return esPlanPendiente(m)&&String(m.placa)===String(placa);})){
+    toast('La placa '+placa+' tiene una salida planificada. Cancela la planificación antes de eliminarla.','err');return;
+  }
+  _eliEnviando=false;
+  _eliTs=new Date().toISOString(); // fijo por apertura: un reintento reenvia el mismo ts y el backend no duplica
+  g('eli-placa').value=placa;
+  g('eli-placa-show').textContent=placa;
+  g('eli-estado-show').innerHTML=bSt(e)+(e.etapa?' '+bEt(e.etapa):'');
+  g('eli-modelo-show').textContent='Modelo: '+(e.modelo||'—');
+  g('eli-warn').textContent='⚠ La placa se borrará de toda la base de datos (OPAUSTRO y la BD general de inventario que usa ICE) y dejará de contar en los totales. Solo quedará en el historial de Eliminados.';
+  g('eli-motivo').value='';
+  setEliminarBusy(false);
+  g('modal-eliminar').classList.add('on');
+  setTimeout(function(){g('eli-motivo').focus();},50);
+}
+function closeEliminar(){
+  if(_eliEnviando)return;
+  g('modal-eliminar').classList.remove('on');
+}
+function setEliminarBusy(busy){
+  ['btn-eli-confirm','eli-btn-cancel','eli-btn-close','eli-motivo'].forEach(function(id){var el=g(id);if(el)el.disabled=busy;});
+  g('btn-eli-confirm').innerHTML=busy?'<span class="sp"></span>':'Eliminar';
+}
+async function confirmarEliminar(){
+  if(_eliEnviando)return;
+  var placa=g('eli-placa').value;
+  var e=DB.equipos[placa]; if(!e){toast('Equipo no encontrado','err');return;}
+  var motivo=g('eli-motivo').value.trim();
+  if(!motivo){toast('Escribe el motivo de la eliminación','err');g('eli-motivo').focus();return;}
+  if(!confirm('¿Estás seguro de eliminar la placa '+placa+' de la base de datos?\n\nEsta acción no se puede deshacer. El equipo pasará al historial de Eliminados.'))return;
+  var usuario=usuarioActual();
+  _eliEnviando=true;
+  setEliminarBusy(true);
+  var ok=await push({action:'eliminarEquipo',placa:placa,motivo:motivo,usuario:usuario,ts:_eliTs});
+  _eliEnviando=false;
+  setEliminarBusy(false);
+  if(!ok){
+    toast('❌ No se pudo eliminar en el servidor. Intenta de nuevo.','err');
+    return;
+  }
+  DB.eliminados=DB.eliminados||[];
+  DB.eliminados.push({ts:_eliTs,placa:placa,modelo:e.modelo||'',alcance:'BD',estadoAnterior:e.estado||'',etapaAnterior:e.etapa||'',motivo:motivo,usuario:usuario,obs:e.obs||'',cliente:e.cliente||'',tsIngresoBodega:e.tsIngresoBodega||'',trabajos:e.trabajos||[],fotosEntrada:e.fotosEntrada||{},fotosSalida:e.fotosSalida||{},fotosContrato:e.fotosContrato||{},eliminadoInventario:true});
+  DB.movimientos=DB.movimientos||[];
+  DB.movimientos.push({tipo:'ELIMINADO',ts:_eliTs,placa:placa,modelo:e.modelo||'',estado:'ELIMINADO',trabajos:[],obs:motivo,fotosEntrada:{},fotosContrato:{}});
+  delete DB.equipos[placa];
+  g('modal-eliminar').classList.remove('on');
+  rAll();
+  toast('🗑️ Placa '+placa+' eliminada de la base de datos','ok');
+}
+function estadoEliTxt(r){
+  var est=r.estadoAnterior||'';
+  if(est==='BODEGA_OK')return'<span class="badge b-ok">Bodega OK</span>';
+  if(est==='DAÑADO')return'<span class="badge b-dn">Dañado</span>';
+  if(est==='MANTENIMIENTO')return'<span class="badge b-mt">Mant.</span>'+(r.etapaAnterior?' '+bEt(r.etapaAnterior):'');
+  return x(est||'—');
+}
+function fotosEliTxt(r){
+  var links=[];
+  [['fotosEntrada','Entrada'],['fotosSalida','Salida'],['fotosContrato','Contrato']].forEach(function(p){
+    var f=r[p[0]]||{};
+    Object.keys(f).forEach(function(k){
+      var u=String(f[k]||'');
+      if(/^https?:\/\//.test(u))links.push('<a href="'+x(u)+'" target="_blank" rel="noopener" style="color:var(--acc);">'+p[1]+' '+x(k)+'</a>');
+    });
+  });
+  return links.length?'<div class="rep-work" style="font-size:11px;">'+links.join(' · ')+'</div>':'—';
+}
+function rEli(){
+  var all=[].concat(DB.eliminados||[]).sort(function(a,b){return String(b.ts||'').localeCompare(String(a.ts||''));});
+  var cnt=function(est){return all.filter(function(r){return r.estadoAnterior===est;}).length;};
+  if(g('fb-eli-todos'))g('fb-eli-todos').textContent='Todos ('+all.length+')';
+  if(g('fb-eli-ok'))g('fb-eli-ok').textContent='Bodega OK ('+cnt('BODEGA_OK')+')';
+  if(g('fb-eli-mt'))g('fb-eli-mt').textContent='Mantenimiento ('+cnt('MANTENIMIENTO')+')';
+  if(g('fb-eli-dn'))g('fb-eli-dn').textContent='Dañados ('+cnt('DAÑADO')+')';
+  var view=all;
+  if(eliF!=='TODOS')view=view.filter(function(r){return r.estadoAnterior===eliF;});
+  if(eliS){var q=eliS.toLowerCase();view=view.filter(function(r){return String((r.placa||'')+' '+(r.modelo||'')+' '+(r.motivo||'')+' '+(r.usuario||'')).toLowerCase().indexOf(q)>=0;});}
+  if(g('cc-eli'))g('cc-eli').textContent=view.length+' registros';
+  var tb=g('tb-eli'); if(!tb)return;
+  if(!view.length){tb.innerHTML='<tr><td colspan="7" class="empty">Sin cabinets eliminados</td></tr>';return;}
+  tb.innerHTML=view.map(function(r){
+    return'<tr><td class="tm">'+dt(r.ts)+'</td><td class="tp">'+x(r.placa)+'</td><td>'+x(r.modelo||'—')+'</td><td>'+estadoEliTxt(r)+'</td><td style="max-width:260px;white-space:normal;">'+x(r.motivo||'—')+'</td><td class="tm">'+x(r.usuario||'—')+'</td><td>'+fotosEliTxt(r)+'</td></tr>';
+  }).join('');
 }
 function selCorrEt(et,btn){
   _corrEt=et;
@@ -2661,6 +2806,8 @@ function fMt(v,el){mF=v;act(el,'pane-mnt');rMnt();}
 function fMv(v,el){mvF=v;act(el,'pane-mov');rMov();}
 function fRep(v,el){rpF=v;act(el,'pane-rep');rRep();}
 function fPl(v,el){plF=v;act(el,'pane-plan');rPlan();}
+function fEli(v,el){eliF=v;act(el,'pane-eli');rEli();}
+function sEli(v){eliS=v;rEli();}
 function sBo(v){bS=v;rBod();}function sMt(v){mS=v;rMnt();}function sRep(v){rpS=v;rRep();}function sMv(v){mvS=v;rMov();}function sPl(v){plS=v;rPlan();}
 function act(el,pid){document.getElementById(pid).querySelectorAll('.fb').forEach(function(b){b.classList.remove('on');});el.classList.add('on');}
 function abrirKpi(pane,filtro){
@@ -2724,7 +2871,7 @@ var AUTH_NAME_KEY='cabinet_auth_name';
 // Usuarios y claves se cargan en vivo desde el Sheet (pestaña "cabinets").
 // Lista vacía a propósito: no se almacenan credenciales en el repositorio.
 var AUTH_USERS={};
-var ROLE_PANES={admin:['res','bod','mnt','rep','mov','plan'],logistica:['res','bod','mnt','rep','mov','plan'],tecnico:['bod','mnt','plan'],ventas:['bod']};
+var ROLE_PANES={admin:['res','bod','mnt','rep','mov','plan','eli'],logistica:['res','bod','mnt','rep','mov','plan','eli'],tecnico:['bod','mnt','plan'],ventas:['bod']};
 var _appStarted=false;
 
 function normUser(v){return String(v||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -2745,6 +2892,26 @@ function allowedPanes(){return ROLE_PANES[currentRole()]||[];}
 function canPane(n){return allowedPanes().indexOf(n)>=0;}
 function canAdmin(){return currentRole()==='admin';}
 function canEditBodega(){return currentRole()!=='ventas';}
+// Eliminar cabinets es irreversible: solo admin y logistica (no tecnico ni ventas).
+function canEliminar(){var r=currentRole();return r==='admin'||r==='logistica';}
+// Usuario real logueado en el portal (Login guarda 'opaustro_session' en el
+// mismo origen). sessionStorage primero: es de esta pestaña, mientras que
+// localStorage lo comparten las pestañas de pruebas y oficial. Si cabinets se
+// abre suelto (sin portal) cae al nombre de su propio login.
+function usuarioActual(){
+  var raws=[];
+  try{raws.push(sessionStorage.getItem('opaustro_session'));}catch(e){}
+  try{raws.push(localStorage.getItem('opaustro_session'));}catch(e){}
+  for(var i=0;i<raws.length;i++){
+    try{
+      var s=raws[i]&&JSON.parse(raws[i]);
+      var ses=s&&s.session;
+      var u=ses&&(ses.user||ses.usuario||ses.nombre);
+      if(u)return String(u).trim().toUpperCase();
+    }catch(e){}
+  }
+  try{return sessionStorage.getItem(AUTH_NAME_KEY)||'';}catch(e){return '';}
+}
 function isLoggedIn(){
   try{return sessionStorage.getItem(AUTH_KEY)==='ok'&&!!currentRole();}catch(e){return false;}
 }
