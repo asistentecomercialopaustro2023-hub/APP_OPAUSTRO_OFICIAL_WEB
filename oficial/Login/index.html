@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script src="../fuera-de-produccion.js?v=1" data-modo="login"></script>
   <meta charset="utf-8">
   <meta name="viewport" id="viewportMeta" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
   <meta name="referrer" content="no-referrer">
@@ -2690,6 +2691,9 @@
     function appEnv() {
       return isLocalEnv() ? 'local' : 'prod';
     }
+    // App fuera de produccion: el interruptor esta en /fuera-de-produccion.js (true = bloquea el ingreso con aviso).
+    // Si ese archivo no cargara, se mantiene bloqueado por seguridad.
+    const APP_FUERA_DE_PRODUCCION = window.OPAUSTRO_FUERA_DE_PRODUCCION !== false;
     const SESSION_KEY = 'opaustro_session';
     const ACTIVE_MODULE_KEY = 'opaustro_active_module';
     const SESSION_TIMEOUT_MS = 40 * 60 * 1000;
@@ -4220,6 +4224,12 @@
     }
 
     function restoreSession() {
+      // App fuera de produccion: no reabrir sesiones guardadas; se borran para que nadie quede adentro.
+      if (APP_FUERA_DE_PRODUCCION) {
+        removeStored(SESSION_KEY);
+        removeStored(ACTIVE_MODULE_KEY);
+        return false;
+      }
       try {
         const raw = readStored(SESSION_KEY);
         if (!raw) return false;
@@ -4323,9 +4333,41 @@
       }
     });
 
+    // ===== App fuera de produccion =====
+    // La empresa ya trabaja con otra aplicacion. El codigo se conserva intacto;
+    // solo se bloquea el ingreso mostrando un aviso. Para volver a habilitar: poner false.
+    function mostrarAvisoFueraDeProduccion() {
+      const previo = document.getElementById("avisoFueraProduccion");
+      if (previo) previo.remove();
+      const overlay = document.createElement("div");
+      overlay.id = "avisoFueraProduccion";
+      overlay.setAttribute("role", "alertdialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-labelledby", "avisoFueraProduccionTitulo");
+      overlay.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.6);";
+      overlay.innerHTML =
+        '<div style="max-width:420px;width:100%;background:#fff;color:#1f2937;border-radius:16px;padding:28px 22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3);font-family:inherit;">' +
+          '<div style="display:inline-block;background:#fee2e2;color:#b91c1c;font-weight:700;font-size:13px;padding:4px 12px;border-radius:999px;margin-bottom:12px;">Fuera de producción</div>' +
+          '<h2 id="avisoFueraProduccionTitulo" style="font-size:20px;margin:0 0 10px;">Esta aplicación ya no está en uso</h2>' +
+          '<p style="font-size:15px;line-height:1.5;margin:0 0 8px;color:#4b5563;">OPAUSTRO ahora trabaja con otra aplicación, por lo que el ingreso a esta app fue deshabilitado.</p>' +
+          '<p style="font-size:15px;line-height:1.5;margin:0 0 18px;color:#4b5563;">Por favor, utilice la nueva aplicación. Si tiene dudas, comuníquese con el área de TI.</p>' +
+          '<button type="button" id="avisoFueraProduccionOk" style="border:0;border-radius:10px;padding:10px 24px;font-size:15px;font-weight:600;background:#1d4ed8;color:#fff;cursor:pointer;">Entendido</button>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      const ok = overlay.querySelector("#avisoFueraProduccionOk");
+      ok.addEventListener("click", () => overlay.remove());
+      ok.focus();
+    }
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       setMessage("", "");
+      if (APP_FUERA_DE_PRODUCCION) {
+        $("#password").value = "";
+        setMessage("Aplicación fuera de producción. El ingreso está deshabilitado.", "error");
+        mostrarAvisoFueraDeProduccion();
+        return;
+      }
       submitButton.disabled = true;
       submitButton.textContent = "Validando...";
 
