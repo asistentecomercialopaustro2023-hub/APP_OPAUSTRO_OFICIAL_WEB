@@ -2,10 +2,12 @@
  * OPAUSTRO - Interruptor "Aplicacion fuera de produccion".
  *
  * La empresa ya trabaja con otra aplicacion. El codigo NO se elimino; solo se bloquea:
- *  - Login/index.html: muestra el aviso al pulsar "Ingresar" y no deja entrar
- *    (incluye este script con data-modo="login"; solo lee el interruptor).
- *  - Paginas de modulos: si alguien las abre por enlace directo, se muestra el aviso
- *    a pantalla completa y el resto de la pagina (scripts, llamadas a Apps Script) no se ejecuta.
+ *  - Login/index.html (entrada de la app): apenas se abre la app se muestra el aviso a
+ *    pantalla completa, sin formulario de ingreso.
+ *  - Paginas de modulos: si alguien las abre por enlace directo, se muestra el mismo aviso.
+ *  En ambos casos el resto de la pagina (scripts, llamadas a Apps Script) no se ejecuta.
+ *  (Con data-modo="login" el script solo publica el interruptor, sin mostrar el aviso;
+ *   Login/index.html conserva ademas su propio bloqueo al pulsar "Ingresar" como respaldo.)
  *
  * PARA VOLVER A HABILITAR LA APP: cambiar FUERA_DE_PRODUCCION a false
  * (y subir el ?v= de fuera-de-produccion.js en las paginas para saltar la cache del navegador).
